@@ -11,11 +11,17 @@ import { e1rmEpley, sessionTonnage } from "@bstrainer/engine";
 import { EXERCISES, exerciseName } from "@/lib/workout/exercises";
 import { syncSession } from "@/lib/workout/sync";
 import {
+  bestHistoricalE1rm,
+  lastPerformanceFor,
+  type LastPerformance,
+} from "@/lib/workout/history-lookup";
+import {
   appendToSessionHistory,
   clearActiveSession,
   loadActiveSession,
   saveActiveSession,
 } from "@/lib/workout/storage";
+import { PlateCalculator } from "@/components/PlateCalculator";
 
 const REST_DEFAULT_SEC = 90;
 const RPE_OPTIONS = ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"];
@@ -26,8 +32,6 @@ interface SetDraft {
   load: string;
   rpe: string;
 }
-
-const EMPTY_DRAFT: SetDraft = { reps: 8, load: "", rpe: "" };
 
 function parseLoad(raw: string): number | null {
   const trimmed = raw.trim().replace(",", ".");
@@ -64,6 +68,16 @@ export default function TrainSessionPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
 
+  // Última performance por exercício (histórico) — ghost/prefill
+  const [lastPerf, setLastPerf] = useState<Record<string, LastPerformance | null>>({});
+  // Melhor e1RM histórico por exercício (baseline de PR, congelado no add)
+  const prBaseline = useRef<Record<string, number>>({});
+  // Exercícios que bateram PR nesta sessão -> valor do PR
+  const [prHit, setPrHit] = useState<Record<string, number>>({});
+
+  // Plate calculator
+  const [plateTarget, setPlateTarget] = useState<number | null>(null);
+
   // Timer de descanso
   const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
   const [restLeft, setRestLeft] = useState(0);
@@ -77,16 +91,23 @@ export default function TrainSessionPage() {
     const active = loadActiveSession();
     setSession(active);
     setLoaded(true);
+    // pré-carrega última performance e baseline de PR dos exercícios já na sessão
+    if (active) {
+      const perf: Record<string, LastPerformance | null> = {};
+      for (const ex of active.exercises) {
+        perf[ex.exerciseId] = lastPerformanceFor(ex.exerciseId);
+        prBaseline.current[ex.exerciseId] = bestHistoricalE1rm(ex.exerciseId);
+      }
+      setLastPerf(perf);
+    }
   }, []);
 
-  // Persiste toda mudança na sessão ativa
   useEffect(() => {
     if (session && session.status === "in_progress") {
       saveActiveSession(session);
     }
   }, [session]);
 
-  // Contagem regressiva do descanso
   useEffect(() => {
     if (restEndsAt == null) return;
     const tick = () => {
@@ -96,7 +117,7 @@ export default function TrainSessionPage() {
         setRestEndsAt(null);
         setRestDone(true);
         if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-          navigator.vibrate?.([200, 100, 200, 100, 400]);
+          navigator.vibrate?.([200, 100, 200]);
         }
       }
     };
@@ -105,7 +126,6 @@ export default function TrainSessionPage() {
     return () => clearInterval(t);
   }, [restEndsAt]);
 
-  // Apaga o alerta visual do descanso após alguns segundos
   useEffect(() => {
     if (!restDone) return;
     const t = setTimeout(() => setRestDone(false), 4000);
@@ -124,18 +144,24 @@ export default function TrainSessionPage() {
     });
   }
 
-  function draftFor(exerciseRowId: string): SetDraft {
-    return drafts[exerciseRowId] ?? EMPTY_DRAFT;
+  function draftFor(rowId: string, exerciseId: string): SetDraft {
+    const existing = drafts[rowId];
+    if (existing) return existing;
+    const last = lastPerf[exerciseId];
+    return { reps: last?.reps ?? 8, load: "", rpe: "" };
   }
 
-  function setDraft(exerciseRowId: string, patch: Partial<SetDraft>) {
+  function setDraft(rowId: string, exerciseId: string, patch: Partial<SetDraft>) {
     setDrafts((prev) => ({
       ...prev,
-      [exerciseRowId]: { ...draftFor(exerciseRowId), ...patch },
+      [rowId]: { ...draftFor(rowId, exerciseId), ...patch },
     }));
   }
 
   function addExercise(exerciseId: string) {
+    const last = lastPerformanceFor(exerciseId);
+    setLastPerf((prev) => ({ ...prev, [exerciseId]: last }));
+    prBaseline.current[exerciseId] = bestHistoricalE1rm(exerciseId);
     setSession((prev) => {
       if (!prev) return prev;
       const row: PerformedExercise = {
@@ -162,26 +188,43 @@ export default function TrainSessionPage() {
     });
   }
 
-  function appendSet(rowId: string, set: Omit<PerformedSet, "id" | "order">) {
+  function checkPr(exerciseId: string, set: PerformedSet) {
+    if (set.loadKg == null) return;
+    const e = e1rmEpley(set.loadKg, set.reps);
+    const baseline = prBaseline.current[exerciseId] ?? 0;
+    const currentSessionBest = prHit[exerciseId] ?? 0;
+    if (e > baseline && e > currentSessionBest) {
+      setPrHit((prev) => ({ ...prev, [exerciseId]: e }));
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate?.(30);
+      }
+    }
+  }
+
+  function appendSet(
+    rowId: string,
+    exerciseId: string,
+    set: Omit<PerformedSet, "id" | "order">,
+  ) {
+    const newSet: PerformedSet = { ...set, id: crypto.randomUUID(), order: 0 };
     setSession((prev) => {
       if (!prev) return prev;
       const exercises = prev.exercises.map((e) => {
         if (e.id !== rowId) return e;
-        const newSet: PerformedSet = {
-          ...set,
-          id: crypto.randomUUID(),
-          order: e.sets.length + 1,
+        return {
+          ...e,
+          sets: [...e.sets, { ...newSet, order: e.sets.length + 1 }],
         };
-        return { ...e, sets: [...e.sets, newSet] };
       });
       return { ...prev, exercises };
     });
+    checkPr(exerciseId, newSet);
     startRest();
   }
 
-  function confirmSet(rowId: string) {
-    const d = draftFor(rowId);
-    appendSet(rowId, {
+  function confirmSet(rowId: string, exerciseId: string) {
+    const d = draftFor(rowId, exerciseId);
+    appendSet(rowId, exerciseId, {
       reps: d.reps,
       loadKg: parseLoad(d.load),
       rpe: d.rpe === "" ? null : Number(d.rpe),
@@ -196,7 +239,7 @@ export default function TrainSessionPage() {
   function repeatLastSet(exercise: PerformedExercise) {
     const last = exercise.sets[exercise.sets.length - 1];
     if (!last) return;
-    appendSet(exercise.id, {
+    appendSet(exercise.id, exercise.exerciseId, {
       reps: last.reps,
       loadKg: last.loadKg,
       rpe: last.rpe,
@@ -235,16 +278,15 @@ export default function TrainSessionPage() {
     setAskingSrpe(false);
     setFinished(done);
     setSession(done);
-    // sync com o banco em segundo plano; falha vai pra fila offline
     void syncSession(done);
   }
 
-  // ---- Renders de estado especial ----
+  // ---- Estados especiais ----
 
   if (!loaded) {
     return (
       <div className="mx-auto max-w-lg p-4">
-        <p className="text-sm text-zinc-500">Carregando…</p>
+        <div className="h-14 animate-pulse rounded-lg bg-surface-2" />
       </div>
     );
   }
@@ -262,40 +304,40 @@ export default function TrainSessionPage() {
       (acc, e) => acc + e.sets.length,
       0,
     );
+    const prCount = Object.keys(prHit).length;
     return (
       <div className="mx-auto max-w-lg space-y-6 p-4">
-        <h1 className="text-2xl font-bold">Treino concluído</h1>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg bg-zinc-900 p-4 text-center">
-            <p className="text-2xl font-bold">{durationMin}</p>
-            <p className="text-xs text-zinc-400">min</p>
-          </div>
-          <div className="rounded-lg bg-zinc-900 p-4 text-center">
-            <p className="text-2xl font-bold">
-              {formatKg(sessionTonnage(finished))}
+        <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+          Treino concluído
+        </h1>
+        {prCount > 0 && (
+          <div className="animate-pr-pop rounded-lg border border-gold/30 bg-gold/10 px-4 py-3">
+            <p className="font-display font-semibold text-gold">
+              {prCount} novo{prCount > 1 ? "s" : ""} recorde
+              {prCount > 1 ? "s" : ""} hoje
             </p>
-            <p className="text-xs text-zinc-400">kg tonelagem</p>
           </div>
-          <div className="rounded-lg bg-zinc-900 p-4 text-center">
-            <p className="text-2xl font-bold">{totalSets}</p>
-            <p className="text-xs text-zinc-400">séries</p>
-          </div>
+        )}
+        <div className="grid grid-cols-3 gap-3">
+          <Stat value={String(durationMin)} label="min" />
+          <Stat value={formatKg(sessionTonnage(finished))} label="kg total" />
+          <Stat value={String(totalSets)} label="séries" />
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-px">
           {finished.exercises.map((e) => (
             <li
               key={e.id}
-              className="flex items-center justify-between rounded-lg bg-zinc-900 px-4 py-3 text-sm"
+              className="flex items-center justify-between border-b border-line px-1 py-3 text-sm"
             >
-              <span>{exerciseName(e.exerciseId)}</span>
-              <span className="text-zinc-400">{e.sets.length} séries</span>
+              <span className="text-text">{exerciseName(e.exerciseId)}</span>
+              <span className="tnum text-mute">{e.sets.length} séries</span>
             </li>
           ))}
         </ul>
         <button
           type="button"
           onClick={() => router.push("/train")}
-          className="min-h-12 w-full rounded-lg bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition active:bg-emerald-500"
+          className="h-12 w-full rounded-lg bg-signal text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
         >
           Voltar para Treinar
         </button>
@@ -306,12 +348,14 @@ export default function TrainSessionPage() {
   if (!session) {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-4">
-        <h1 className="text-2xl font-bold">Sessão</h1>
-        <p className="text-sm text-zinc-400">Nenhum treino em andamento.</p>
+        <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+          Sessão
+        </h1>
+        <p className="text-sm text-mute">Nenhum treino em andamento.</p>
         <button
           type="button"
           onClick={() => router.push("/train")}
-          className="min-h-12 w-full rounded-lg bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition active:bg-emerald-500"
+          className="h-12 w-full rounded-lg bg-signal text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
         >
           Ir para Treinar
         </button>
@@ -325,63 +369,59 @@ export default function TrainSessionPage() {
     e.name.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")),
   );
   const restActive = restEndsAt != null;
+  const restCritical = restActive && restLeft <= 10;
 
   return (
     <div className="mx-auto max-w-lg pb-4">
       {/* Timer de descanso fixo no topo */}
       <div
-        className={`sticky top-0 z-20 border-b border-zinc-800 px-4 py-3 backdrop-blur transition-colors ${
-          restDone
-            ? "animate-pulse bg-emerald-600/90"
-            : restActive
-              ? "bg-zinc-900/95"
-              : "bg-zinc-950/95"
+        className={`sticky top-0 z-20 border-b border-line px-4 py-3 backdrop-blur-sm transition-colors ${
+          restDone ? "animate-timer-pulse" : restActive ? "bg-surface-2" : "bg-ink/95"
         }`}
       >
         {restActive ? (
           <div className="flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={() => adjustRest(-30)}
-              className="min-h-11 min-w-11 rounded-lg bg-zinc-800 px-3 text-sm font-semibold transition active:bg-zinc-700"
+              onClick={() => adjustRest(-15)}
+              className="h-11 rounded-lg border border-line px-3 text-sm font-semibold text-mute transition active:bg-surface-2"
             >
-              -30s
+              −15s
             </button>
-            <div className="text-center">
-              <p className="text-3xl font-bold tabular-nums">
-                {formatClock(restLeft)}
-              </p>
-              <p className="text-xs text-zinc-400">descanso</p>
-            </div>
+            <p
+              className={`tnum font-display text-4xl font-bold ${
+                restCritical ? "text-signal" : "text-text"
+              }`}
+            >
+              {formatClock(restLeft)}
+            </p>
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => adjustRest(30)}
-                className="min-h-11 min-w-11 rounded-lg bg-zinc-800 px-3 text-sm font-semibold transition active:bg-zinc-700"
+                onClick={() => adjustRest(15)}
+                className="h-11 rounded-lg border border-line px-3 text-sm font-semibold text-mute transition active:bg-surface-2"
               >
-                +30s
+                +15s
               </button>
               <button
                 type="button"
                 onClick={() => setRestEndsAt(null)}
-                className="min-h-11 min-w-11 rounded-lg border border-zinc-700 px-3 text-sm text-zinc-400 transition active:bg-zinc-800"
+                className="h-11 rounded-lg px-3 text-sm text-mute transition active:bg-surface-2"
               >
                 Pular
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex min-h-11 items-center justify-between">
-            <p
-              className={`text-sm font-semibold ${restDone ? "text-white" : "text-zinc-400"}`}
-            >
-              {restDone ? "Descanso concluído — próxima série!" : "Treino livre"}
+          <div className="flex h-11 items-center justify-between">
+            <p className="caps-label font-display font-semibold text-mute">
+              {restDone ? "Descanso concluído" : "Treino livre"}
             </p>
             {!restDone && (
               <button
                 type="button"
                 onClick={startRest}
-                className="min-h-11 rounded-lg bg-zinc-800 px-4 text-sm font-semibold transition active:bg-zinc-700"
+                className="h-11 rounded-lg border border-line px-4 text-sm font-semibold text-text transition active:bg-surface-2"
               >
                 Descanso {REST_DEFAULT_SEC}s
               </button>
@@ -391,57 +431,74 @@ export default function TrainSessionPage() {
       </div>
 
       <div className="space-y-4 p-4">
-        {/* Exercícios */}
         {session.exercises.map((exercise) => {
-          const draft = draftFor(exercise.id);
+          const draft = draftFor(exercise.id, exercise.exerciseId);
           const e1rm = bestE1rm(exercise);
+          const last = lastPerf[exercise.exerciseId];
+          const pr = prHit[exercise.exerciseId];
+          const parsedLoad = parseLoad(draft.load);
           return (
             <section
               key={exercise.id}
-              className="space-y-3 rounded-lg bg-zinc-900 p-4"
+              className="space-y-3 rounded-lg border border-line bg-surface p-4"
             >
               <header className="flex items-start justify-between gap-2">
-                <div>
-                  <h2 className="text-base font-semibold">
+                <div className="min-w-0">
+                  <h2 className="font-display text-lg font-semibold">
                     {exerciseName(exercise.exerciseId)}
                   </h2>
-                  {e1rm > 0 && (
-                    <p className="text-xs text-emerald-400">
-                      e1RM {formatKg(Math.round(e1rm * 10) / 10)} kg
-                    </p>
-                  )}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                    {e1rm > 0 && (
+                      <span className="tnum text-xs text-mute">
+                        e1RM {formatKg(Math.round(e1rm * 10) / 10)} kg
+                      </span>
+                    )}
+                    {last?.loadKg != null && (
+                      <span className="tnum text-xs text-mute">
+                        Última: {formatKg(last.loadKg)} kg × {last.reps}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeExercise(exercise.id)}
-                  aria-label={`Remover ${exerciseName(exercise.exerciseId)}`}
-                  className="min-h-11 min-w-11 rounded-lg text-zinc-500 transition active:bg-zinc-800"
-                >
-                  ✕
-                </button>
+                {pr != null ? (
+                  <span className="animate-pr-pop shrink-0 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gold">
+                    PR · {formatKg(Math.round(pr * 10) / 10)} kg
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => removeExercise(exercise.id)}
+                    aria-label={`Remover ${exerciseName(exercise.exerciseId)}`}
+                    className="h-9 w-9 shrink-0 rounded-lg text-mute transition active:bg-surface-2"
+                  >
+                    ✕
+                  </button>
+                )}
               </header>
 
               {/* Séries confirmadas */}
               {exercise.sets.length > 0 && (
-                <ul className="space-y-1">
+                <ul className="space-y-px">
                   {exercise.sets.map((set) => (
                     <li
                       key={set.id}
-                      className="flex items-center justify-between rounded-lg bg-zinc-800/60 px-3 py-2 text-sm"
+                      className="grid h-12 grid-cols-[28px_1fr_1fr_40px] items-center gap-2 border-b border-line text-sm last:border-b-0"
                     >
-                      <span className="text-zinc-400">#{set.order}</span>
-                      <span className="font-medium tabular-nums">
-                        {set.reps} reps
-                        {set.loadKg != null && ` × ${formatKg(set.loadKg)} kg`}
+                      <span className="caps-label text-mute">{set.order}</span>
+                      <span className="tnum text-center font-display font-semibold">
+                        {set.loadKg != null ? `${formatKg(set.loadKg)} kg` : "—"}
+                      </span>
+                      <span className="tnum text-center font-display font-semibold">
+                        {set.reps}
                         {set.rpe != null && (
-                          <span className="text-zinc-400"> @ {set.rpe}</span>
+                          <span className="text-mute"> @{set.rpe}</span>
                         )}
                       </span>
                       <button
                         type="button"
                         onClick={() => removeSet(exercise.id, set.id)}
                         aria-label={`Remover série ${set.order}`}
-                        className="min-h-11 min-w-11 rounded-lg text-zinc-500 transition active:bg-zinc-700"
+                        className="flex h-11 items-center justify-center rounded text-mute transition active:bg-surface-2"
                       >
                         ✕
                       </button>
@@ -454,77 +511,103 @@ export default function TrainSessionPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {/* Stepper de reps */}
-                  <div className="flex items-center rounded-lg bg-zinc-800">
+                  <div className="flex items-center rounded border border-line bg-ink">
                     <button
                       type="button"
                       onClick={() =>
-                        setDraft(exercise.id, {
+                        setDraft(exercise.id, exercise.exerciseId, {
                           reps: Math.max(0, draft.reps - 1),
                         })
                       }
                       aria-label="Menos uma repetição"
-                      className="min-h-11 min-w-11 text-lg font-bold transition active:bg-zinc-700"
+                      className="h-11 w-10 font-display text-lg font-bold text-mute transition active:bg-surface-2"
                     >
                       −
                     </button>
-                    <span className="min-w-12 text-center text-base font-semibold tabular-nums">
+                    <span className="tnum w-10 text-center font-display text-lg font-semibold">
                       {draft.reps}
-                      <span className="block text-[10px] font-normal text-zinc-400">
-                        reps
-                      </span>
                     </span>
                     <button
                       type="button"
                       onClick={() =>
-                        setDraft(exercise.id, { reps: draft.reps + 1 })
+                        setDraft(exercise.id, exercise.exerciseId, {
+                          reps: draft.reps + 1,
+                        })
                       }
                       aria-label="Mais uma repetição"
-                      className="min-h-11 min-w-11 text-lg font-bold transition active:bg-zinc-700"
+                      className="h-11 w-10 font-display text-lg font-bold text-mute transition active:bg-surface-2"
                     >
                       +
                     </button>
                   </div>
 
-                  {/* Carga */}
-                  <label className="flex-1">
-                    <span className="sr-only">Carga em kg</span>
+                  {/* Carga (toque no ícone abre plate calc) */}
+                  <div className="relative flex-1">
                     <input
                       type="text"
                       inputMode="decimal"
-                      placeholder="kg"
+                      placeholder={
+                        last?.loadKg != null ? formatKg(last.loadKg) : "kg"
+                      }
                       value={draft.load}
                       onChange={(e) =>
-                        setDraft(exercise.id, { load: e.target.value })
+                        setDraft(exercise.id, exercise.exerciseId, {
+                          load: e.target.value,
+                        })
                       }
-                      className="min-h-11 w-full rounded-lg bg-zinc-800 px-3 text-center text-base font-semibold outline-none placeholder:text-zinc-500 focus:ring-2 focus:ring-emerald-500"
+                      className="h-11 w-full rounded border border-line bg-ink px-3 pr-9 text-center font-display text-lg font-semibold outline-none transition-colors placeholder:font-body placeholder:text-base placeholder:font-normal placeholder:text-mute focus:border-signal"
                     />
-                  </label>
+                    {parsedLoad != null && parsedLoad > 20 && (
+                      <button
+                        type="button"
+                        onClick={() => setPlateTarget(parsedLoad)}
+                        aria-label="Calcular anilhas"
+                        className="absolute right-1 top-1/2 flex h-9 w-8 -translate-y-1/2 items-center justify-center rounded text-mute transition active:bg-surface-2"
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          aria-hidden
+                        >
+                          <path d="M3 12h2" strokeLinecap="round" />
+                          <path d="M19 12h2" strokeLinecap="round" />
+                          <rect x="6" y="8" width="3" height="8" rx="0.5" />
+                          <rect x="15" y="8" width="3" height="8" rx="0.5" />
+                          <path d="M9 12h6" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
 
                   {/* RPE */}
-                  <label>
-                    <span className="sr-only">RPE da série</span>
-                    <select
-                      value={draft.rpe}
-                      onChange={(e) =>
-                        setDraft(exercise.id, { rpe: e.target.value })
-                      }
-                      className="min-h-11 rounded-lg bg-zinc-800 px-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="">RPE</option>
-                      {RPE_OPTIONS.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <select
+                    aria-label="RPE da série"
+                    value={draft.rpe}
+                    onChange={(e) =>
+                      setDraft(exercise.id, exercise.exerciseId, {
+                        rpe: e.target.value,
+                      })
+                    }
+                    className="h-11 rounded border border-line bg-ink px-2 text-sm outline-none focus:border-signal"
+                  >
+                    <option value="">RPE</option>
+                    {RPE_OPTIONS.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => confirmSet(exercise.id)}
-                    className="min-h-12 flex-1 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white transition active:bg-emerald-500"
+                    onClick={() => confirmSet(exercise.id, exercise.exerciseId)}
+                    className="h-12 flex-1 rounded-lg bg-signal text-sm font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
                   >
                     Confirmar série
                   </button>
@@ -532,9 +615,9 @@ export default function TrainSessionPage() {
                     <button
                       type="button"
                       onClick={() => repeatLastSet(exercise)}
-                      className="min-h-12 rounded-lg border border-zinc-700 px-4 text-sm font-semibold text-zinc-300 transition active:bg-zinc-800"
+                      className="h-12 rounded-lg border border-line px-4 text-sm font-semibold text-text transition active:bg-surface-2"
                     >
-                      Repetir última
+                      Repetir
                     </button>
                   )}
                 </div>
@@ -545,7 +628,7 @@ export default function TrainSessionPage() {
 
         {/* Adicionar exercício */}
         {showPicker ? (
-          <section className="space-y-2 rounded-lg bg-zinc-900 p-4">
+          <section className="space-y-2 rounded-lg border border-line bg-surface p-4">
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -553,7 +636,7 @@ export default function TrainSessionPage() {
                 placeholder="Buscar exercício…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="min-h-11 w-full rounded-lg bg-zinc-800 px-3 text-base outline-none placeholder:text-zinc-500 focus:ring-2 focus:ring-emerald-500"
+                className="h-11 w-full rounded border border-line bg-ink px-3 text-base outline-none placeholder:text-mute focus:border-signal"
               />
               <button
                 type="button"
@@ -562,25 +645,25 @@ export default function TrainSessionPage() {
                   setSearch("");
                 }}
                 aria-label="Fechar busca"
-                className="min-h-11 min-w-11 rounded-lg text-zinc-500 transition active:bg-zinc-800"
+                className="h-11 w-11 rounded-lg text-mute transition active:bg-surface-2"
               >
                 ✕
               </button>
             </div>
-            <ul className="max-h-64 space-y-1 overflow-y-auto">
+            <ul className="max-h-64 space-y-px overflow-y-auto">
               {filtered.map((e) => (
                 <li key={e.id}>
                   <button
                     type="button"
                     onClick={() => addExercise(e.id)}
-                    className="min-h-11 w-full rounded-lg px-3 py-2 text-left text-sm transition active:bg-zinc-800"
+                    className="h-11 w-full rounded px-3 text-left text-sm transition active:bg-surface-2"
                   >
                     {e.name}
                   </button>
                 </li>
               ))}
               {filtered.length === 0 && (
-                <li className="px-3 py-2 text-sm text-zinc-500">
+                <li className="px-3 py-2 text-sm text-mute">
                   Nenhum exercício encontrado.
                 </li>
               )}
@@ -590,7 +673,7 @@ export default function TrainSessionPage() {
           <button
             type="button"
             onClick={() => setShowPicker(true)}
-            className="min-h-12 w-full rounded-lg border border-dashed border-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-300 transition active:bg-zinc-900"
+            className="h-12 w-full rounded-lg border border-dashed border-line text-sm font-semibold text-mute transition active:bg-surface"
           >
             + Adicionar exercício
           </button>
@@ -601,7 +684,7 @@ export default function TrainSessionPage() {
           <button
             type="button"
             onClick={() => setAskingSrpe(true)}
-            className="min-h-12 w-full rounded-lg bg-zinc-100 px-4 py-3 text-base font-semibold text-zinc-950 transition active:bg-zinc-300"
+            className="h-12 w-full rounded-lg border border-line bg-surface text-[15px] font-semibold text-text transition active:bg-surface-2"
           >
             Finalizar treino
           </button>
@@ -611,10 +694,12 @@ export default function TrainSessionPage() {
       {/* Overlay de sRPE */}
       {askingSrpe && (
         <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/70 p-4">
-          <div className="w-full max-w-lg space-y-4 rounded-lg bg-zinc-900 p-4">
+          <div className="w-full max-w-lg space-y-4 rounded-lg border border-line bg-surface p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
             <div>
-              <h2 className="text-lg font-semibold">Esforço da sessão</h2>
-              <p className="text-sm text-zinc-400">
+              <h2 className="font-display text-xl font-semibold">
+                Esforço da sessão
+              </h2>
+              <p className="mt-1 text-sm text-mute">
                 De 0 (repouso) a 10 (máximo), quão pesado foi o treino inteiro?
               </p>
             </div>
@@ -624,7 +709,7 @@ export default function TrainSessionPage() {
                   key={v}
                   type="button"
                   onClick={() => finishSession(v)}
-                  className="min-h-12 rounded-lg bg-zinc-800 text-base font-semibold transition active:bg-emerald-600"
+                  className="tnum h-12 rounded border border-line bg-ink font-display text-base font-semibold transition active:border-signal active:bg-signal/10"
                 >
                   {v}
                 </button>
@@ -633,13 +718,30 @@ export default function TrainSessionPage() {
             <button
               type="button"
               onClick={() => setAskingSrpe(false)}
-              className="min-h-11 w-full rounded-lg border border-zinc-700 px-4 text-sm text-zinc-400 transition active:bg-zinc-800"
+              className="h-11 w-full rounded-lg text-sm text-mute transition active:bg-surface-2"
             >
               Cancelar
             </button>
           </div>
         </div>
       )}
+
+      {/* Plate calculator */}
+      {plateTarget != null && (
+        <PlateCalculator
+          targetKg={plateTarget}
+          onClose={() => setPlateTarget(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-lg border border-line bg-surface p-4 text-center">
+      <p className="tnum font-display text-2xl font-bold">{value}</p>
+      <p className="caps-label mt-0.5 text-mute">{label}</p>
     </div>
   );
 }

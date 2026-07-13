@@ -49,26 +49,28 @@ export default function TrainPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6 p-4">
-      <h1 className="text-2xl font-bold">Treinar</h1>
+      <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+        Treinar
+      </h1>
 
       {!loaded ? (
-        <p className="text-sm text-zinc-500">Carregando…</p>
+        <div className="h-16 animate-pulse rounded-lg bg-surface-2" />
       ) : active ? (
         <div className="space-y-3">
           <button
             type="button"
             onClick={() => router.push("/train/session")}
-            className="flex min-h-16 w-full flex-col items-center justify-center rounded-lg bg-emerald-600 px-4 py-4 text-lg font-semibold text-white transition active:bg-emerald-500"
+            className="flex h-16 w-full flex-col items-center justify-center rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
           >
             Continuar treino
-            <span className="text-sm font-normal text-emerald-100">
+            <span className="tnum text-sm font-normal text-ink/70">
               em andamento há {formatElapsed(active.startedAt, now)}
             </span>
           </button>
           <button
             type="button"
             onClick={discardActive}
-            className="min-h-11 w-full rounded-lg border border-zinc-800 px-4 py-3 text-sm text-zinc-400 transition active:bg-zinc-900"
+            className="h-11 w-full rounded-lg border border-line text-sm text-mute transition active:bg-surface-2"
           >
             Descartar treino em andamento
           </button>
@@ -77,13 +79,13 @@ export default function TrainPage() {
         <button
           type="button"
           onClick={startFreeSession}
-          className="min-h-16 w-full rounded-lg bg-emerald-600 px-4 py-5 text-lg font-semibold text-white transition active:bg-emerald-500"
+          className="h-16 w-full rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
         >
           Iniciar treino livre
         </button>
       )}
 
-      <p className="text-sm text-zinc-400">
+      <p className="text-sm text-mute">
         Ficha do dia chega em breve — por enquanto, registre um treino livre.
       </p>
     </div>

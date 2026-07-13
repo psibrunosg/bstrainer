@@ -38,6 +38,44 @@ body {
   text-transform: uppercase;
 }
 
+/* Motion — docs/DESIGN.md seção 4 */
+@keyframes pr-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes set-check {
+  0% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes timer-pulse {
+  0%,
+  100% {
+    background-color: var(--color-surface-2);
+  }
+  50% {
+    background-color: color-mix(in srgb, var(--color-signal) 30%, transparent);
+  }
+}
+.animate-pr-pop {
+  animation: pr-pop 400ms var(--ease-spring);
+}
+.animate-set-check {
+  animation: set-check 250ms var(--ease-spring);
+}
+.animate-timer-pulse {
+  animation: timer-pulse 300ms ease-in-out 2;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
