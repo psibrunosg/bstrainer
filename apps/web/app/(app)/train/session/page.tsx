@@ -9,6 +9,7 @@ import type {
 } from "@bstrainer/domain";
 import { e1rmEpley, sessionTonnage } from "@bstrainer/engine";
 import { EXERCISES, exerciseName } from "@/lib/workout/exercises";
+import { syncSession } from "@/lib/workout/sync";
 import {
   appendToSessionHistory,
   clearActiveSession,
@@ -234,6 +235,8 @@ export default function TrainSessionPage() {
     setAskingSrpe(false);
     setFinished(done);
     setSession(done);
+    // sync com o banco em segundo plano; falha vai pra fila offline
+    void syncSession(done);
   }
 
   // ---- Renders de estado especial ----
