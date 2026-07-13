@@ -132,5 +132,631 @@
         ]
       }
     ]
+  },
+  {
+    "id": "upper-lower-4x",
+    "name": "Upper/Lower 4x Hipertrofia-Força",
+    "goal": "hypertrophy",
+    "level": "intermediate",
+    "daysPerWeek": 4,
+    "rationale": "Divisão upper/lower 4x mantém frequência 2x/músculo (meta-análise Schoenfeld 2016 sobre frequência) e permite dia pesado + dia de volume por metade do corpo, esquema semi-ondulado típico das recomendações de Helms para intermediários.",
+    "progressionRule": "Dias pesados: +2.5kg quando todas as séries atingirem o topo da faixa com RIR>=2. Dias de volume: dupla progressão 8->12 (ou 12->15 em isoladores) antes de subir 2.5-5% de carga. Repetir o bloco de 5 semanas; a cada novo bloco, +1 série nos 2 primeiros exercícios de cada dia de volume até o MRV individual.",
+    "mesocycles": [
+      {
+        "weeks": 5,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "deloadNote": "Semana 5: 50% das séries, cargas da semana 3, RIR 4.",
+        "workouts": [
+          {
+            "name": "Upper Pesado",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 5, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa com carga", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca bíceps", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower Pesado",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 5, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "búlgaro", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Upper Volume",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada cavalinho ou máquina", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta pegada neutra", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps francês", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca inclinada", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower Volume",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "hack squat ou leg press", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "hip thrust", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "extensora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha sentado", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ppl-6x",
+    "name": "Push/Pull/Legs 6x Alto Volume",
+    "goal": "hypertrophy",
+    "level": "advanced",
+    "daysPerWeek": 6,
+    "rationale": "PPL 6x (A+B) entrega frequência 2x/músculo com volume alto (16-22 séries/músculo/semana), adequado a avançados perto do MRV (Israetel/RP; Schoenfeld 2017 dose-resposta). Sessões A priorizam compostos pesados em faixas 6-10; sessões B deslocam o estímulo para máquinas, cabos e faixas 10-15, distribuindo fadiga articular ao longo da semana.",
+    "progressionRule": "Dupla progressão dentro da faixa em todos os exercícios: ao atingir o topo com o RIR da semana, +2.5% (compostos) ou menor incremento (isoladores) e voltar ao piso. Onda de esforço RIR 3 (sem 1-2) -> RIR 2 (sem 3-4) -> RIR 1 (sem 5); +1 série nos 2 primeiros exercícios de cada sessão nas semanas 3 e 5 até o MRV individual. Após o deload, repetir o bloco trocando variantes que estagnaram.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "weeklyIntensityWave": "Sem 1-2: RIR 3; sem 3-4: RIR 2 (+1 série nos 2 primeiros exercícios na sem 3); sem 5: RIR 1 (+1 série nos 2 primeiros exercícios); sem 6: deload.",
+        "deloadNote": "Semana 6: 50% das séries, cargas da semana 3, RIR 4, sem séries adicionadas.",
+        "workouts": [
+          {
+            "name": "Push A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pull A",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "pull_v", "suggestedVariant": "barra fixa com carga", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta pegada neutra", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "face pull", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Legs A",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "búlgaro", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Push B",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino inclinado", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo no cross", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral no cabo", "priorityEquipment": "cable", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 20, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps testa", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pull B",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "pull_h", "suggestedVariant": "remada cavalinho", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta", "priorityEquipment": "cable", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada baixa", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo inverso", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca inclinada", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Legs B",
+            "suggestedWeekday": 6,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "hack squat ou leg press", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "hip thrust", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "extensora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora sentada", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha sentado", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "cable crunch", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ppl-3x-rotativo",
+    "name": "Push/Pull/Legs 3x Rotativo",
+    "goal": "hypertrophy",
+    "level": "intermediate",
+    "daysPerWeek": 3,
+    "rationale": "PPL rodado em 3 sessões semanais: cada grupo é treinado 1x por semana-calendário, mas com volume concentrado por sessão e progressão avaliada por exposição ao mesmo treino, não por semana. Serve intermediários com só 3 dias disponíveis que preferem sessões focadas a full-body; volume semanal fica em ~10-12 séries/músculo, dentro da faixa dose-resposta de Schoenfeld (2017).",
+    "progressionRule": "Progressão por exposição: comparar cada sessão com a última execução do MESMO treino (Push com Push, ~7 dias antes). Dupla progressão dentro da faixa; ao fechar o topo com o RIR alvo em todas as séries, +2.5% (compostos) ou menor incremento (isoladores). Se duas exposições seguidas do mesmo treino estagnarem, trocar a variante do exercício estagnado no bloco seguinte.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "microcycleNote": "Sequência fixa Push -> Pull -> Legs (ex.: seg/qua/sex). A progressão é medida por exposição do mesmo treino, não por semana-calendário.",
+        "deloadNote": "Semana 6: 50% das séries, cargas da penúltima exposição, RIR 4.",
+        "workouts": [
+          {
+            "name": "Push",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pull",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "pull_v", "suggestedVariant": "barra fixa ou puxada alta", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada baixa", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "face pull", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Legs",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "búlgaro", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel ou prancha", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dup-4x-forca-hipertrofia",
+    "name": "DUP 4x Força + Hipertrofia",
+    "goal": "strength",
+    "level": "intermediate",
+    "daysPerWeek": 4,
+    "rationale": "Periodização diária ondulada (DUP): 2 dias de força (percent_1rm, faixas 3-6) e 2 dias de hipertrofia (RIR, faixas 8-15) na mesma semana. Meta-análises (Grgic et al.) mostram DUP igual ou superior à linear para força em intermediários, e o volume em faixas moderadas sustenta a hipertrofia que dá teto à força de longo prazo.",
+    "progressionRule": "Dias de força: seguir a onda semanal de % do 1RM (77.5 -> 80 -> 82.5 -> 85%); completar todas as séries prescritas antes de avançar a semana. Dias de hipertrofia: dupla progressão com RIR descendo 3 -> 1 ao longo do bloco. Ao fim de cada bloco de 5 semanas, recalcular o e1RM pelos AMRAPs/melhores séries dos dias pesados e reiniciar a onda com os novos percentuais.",
+    "mesocycles": [
+      {
+        "weeks": 5,
+        "emphasis": "strength",
+        "progressionModel": "undulating",
+        "includesDeload": true,
+        "weeklyIntensityWave": "Dias de força: sem 1 = 77.5%, sem 2 = 80%, sem 3 = 82.5%, sem 4 = 85% do 1RM. Dias de hipertrofia: RIR 3 (sem 1) -> RIR 2 (sem 2-3) -> RIR 1 (sem 4). Sem 5: deload.",
+        "deloadNote": "Semana 5: dias de força a 60% do 1RM com metade das séries; dias de hipertrofia com 50% das séries e RIR 4. Recalcular e1RM ao final.",
+        "workouts": [
+          {
+            "name": "Upper Força",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 4, "repsMax": 6, "loadMethod": "percent_1rm", "loadValue": 77.5, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 4, "repsMax": 6, "loadMethod": "percent_1rm", "loadValue": 77.5, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa com carga", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 4, "repsMin": 5, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower Força",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 4, "repsMax": 6, "loadMethod": "percent_1rm", "loadValue": 77.5, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 3, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 77.5, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "búlgaro", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Upper Hipertrofia",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada máquina", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca inclinada", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower Hipertrofia",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "leg press ou hack squat", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "hip thrust", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "extensora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha sentado", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "block-atr-intermediate",
+    "name": "Periodização em Blocos ATR (Acumulação-Transmutação-Realização)",
+    "goal": "strength",
+    "level": "intermediate",
+    "daysPerWeek": 4,
+    "rationale": "Modelo clássico de blocos (Issurin/Verkhoshansky adaptado à força): acumulação constrói massa e capacidade de trabalho com volume alto a 65-75%; transmutação converte em força com step loading de 80 a 87.5%; realização expressa a força com singles/doubles acima de 90% e taper, terminando em teste de e1RM. Concentrar cada qualidade num bloco melhora a gestão de fadiga em intermediários avançados que já não progridem com carga linear.",
+    "progressionRule": "Acumulação: +2.5% do 1RM por semana (65 -> 72.5%) mantendo as reps; acessórios em dupla progressão. Transmutação: step loading +2.5%/semana (80 -> 87.5%); se falhar as reps prescritas, repetir o degrau na semana seguinte. Realização: semanas 1-2 singles/doubles a 90-92.5% com volume mínimo; semana 3 taper e teste de e1RM nos básicos. Reiniciar o macrociclo com os novos 1RMs.",
+    "mesocycles": [
+      {
+        "weeks": 4,
+        "emphasis": "hypertrophy",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "acumulação",
+        "weeklyIntensityWave": "Sem 1 = 65%, sem 2 = 67.5%, sem 3 = 70%, sem 4 = 72.5% do 1RM nos básicos; volume alto constante.",
+        "microcycleNote": "Bloco de volume: prioridade em qualidade técnica e densidade de trabalho, básicos a 65-72.5%.",
+        "workouts": [
+          {
+            "name": "Upper A (volume)",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 10, "loadMethod": "percent_1rm", "loadValue": 65, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower A (volume)",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 10, "loadMethod": "percent_1rm", "loadValue": 65, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "búlgaro", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Upper B (volume)",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino inclinado", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "percent_1rm", "loadValue": 65, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa ou puxada", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada baixa", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower B (volume)",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 8, "loadMethod": "percent_1rm", "loadValue": 65, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "squat", "suggestedVariant": "front squat ou leg press", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      },
+      {
+        "weeks": 4,
+        "emphasis": "strength",
+        "progressionModel": "step_loading",
+        "includesDeload": false,
+        "phase": "transmutação",
+        "weeklyIntensityWave": "Sem 1 = 80%, sem 2 = 82.5%, sem 3 = 85%, sem 4 = 87.5% do 1RM nos básicos; volume de acessórios reduzido.",
+        "microcycleNote": "Bloco de intensificação: converter a massa/capacidade do bloco anterior em força nos básicos.",
+        "workouts": [
+          {
+            "name": "Upper Pesado A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 3, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 80, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 5, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 4, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower Pesado A",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 3, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 80, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Upper Pesado B",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto (variação com pausa)", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 3, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 80, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa com carga", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 4, "repsMin": 5, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada baixa", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Lower Pesado B",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 2, "repsMax": 4, "loadMethod": "percent_1rm", "loadValue": 80, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "squat", "suggestedVariant": "front squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 4, "repsMax": 6, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      },
+      {
+        "weeks": 3,
+        "emphasis": "strength",
+        "progressionModel": "linear",
+        "includesDeload": true,
+        "phase": "realização",
+        "weeklyIntensityWave": "Sem 1 = 90%, sem 2 = 92.5% (singles/doubles), sem 3 = taper com aberturas leves e teste de e1RM.",
+        "microcycleNote": "Bloco de pico: 3 sessões efetivas por semana (volume mínimo); manter técnica afiada e fadiga baixa.",
+        "deloadNote": "Semana 3: taper — 2 sessões curtas a 70-80% com 1-2 singles de abertura, depois teste de e1RM em agachamento, supino e terra.",
+        "workouts": [
+          {
+            "name": "Pico Agachamento",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 1, "repsMax": 2, "loadMethod": "percent_1rm", "loadValue": 90, "restSeconds": 300, "lastSetAmrap": false } },
+              { "slot": "squat", "suggestedVariant": "back squat (backoff)", "priorityEquipment": "barbell", "note": "séries de apoio mais leves após os singles/doubles", "setScheme": { "setCount": 2, "repsMin": 3, "repsMax": 4, "loadMethod": "percent_1rm", "loadValue": 80, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 20, "repsMax": 40, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pico Supino",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 1, "repsMax": 2, "loadMethod": "percent_1rm", "loadValue": 90, "restSeconds": 300, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino reto (backoff)", "priorityEquipment": "barbell", "note": "séries de apoio mais leves após os singles/doubles", "setScheme": { "setCount": 2, "repsMin": 3, "repsMax": 4, "loadMethod": "percent_1rm", "loadValue": 80, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada leve", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 3, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pico Terra",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 1, "repsMax": 2, "loadMethod": "percent_1rm", "loadValue": 90, "restSeconds": 300, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada leve", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 3, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "dead bug", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "texas-5x5-simplified",
+    "name": "Texas Method Simplificado (5x5)",
+    "goal": "strength",
+    "level": "intermediate",
+    "daysPerWeek": 3,
+    "rationale": "Estrutura clássica do Texas Method (Rippetoe/Baker) para o intermediário que esgotou a progressão linear por sessão: segunda concentra o estresse de volume (5x5 a ~78%), quarta é recuperação ativa (~62% com acessórios), sexta busca um PR semanal de 5 reps (~87%, última série AMRAP). A progressão passa a ser semanal em vez de por sessão, com o volume da segunda sustentando o PR da sexta.",
+    "progressionRule": "Adicionar +2.5kg por SEMANA ao dia de intensidade (o 5RM da sexta); o dia de volume acompanha mantendo ~90% da carga da sexta e o dia de recuperação ~72% da segunda. Se falhar o PR da sexta em 2 semanas seguidas no mesmo exercício, reduzir 5% na semana seguinte e reconstruir. Deload programado na semana 8 (ou antecipado após 2 falhas consecutivas).",
+    "mesocycles": [
+      {
+        "weeks": 8,
+        "emphasis": "strength",
+        "progressionModel": "step_loading",
+        "includesDeload": true,
+        "microcycleNote": "Seg = Volume (5x5 @ ~78%), Qua = Recuperação (2x5 @ ~62% + acessórios leves), Sex = Intensidade (1x5 PR @ ~87%, última série AMRAP).",
+        "deloadNote": "Semana 8: Volume a 60% com 3x5, sem dia de intensidade (substituir por técnica leve). Antecipar o deload se houver 2 falhas consecutivas no PR da sexta.",
+        "workouts": [
+          {
+            "name": "Volume",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 5, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 78, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 5, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 78, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Recuperação",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat leve", "priorityEquipment": "barbell", "setScheme": { "setCount": 2, "repsMin": 5, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 62, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 3, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa ou puxada", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 2, "repsMin": 20, "repsMax": 45, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Intensidade",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "note": "série única de PR: 5 reps, AMRAP controlado (parar com a técnica íntegra)", "setScheme": { "setCount": 1, "repsMin": 5, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 87, "restSeconds": 300, "lastSetAmrap": true } },
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "note": "série única de PR: 5 reps, AMRAP controlado", "setScheme": { "setCount": 1, "repsMin": 5, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 87, "restSeconds": 300, "lastSetAmrap": true } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "note": "série única pesada de 5 reps", "setScheme": { "setCount": 1, "repsMin": 5, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 85, "restSeconds": 300, "lastSetAmrap": true } },
+              { "slot": "pull_h", "suggestedVariant": "remada unilateral halter", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hypertrophy-5x-specialization",
+    "name": "Especialização de Superiores 5x",
+    "goal": "hypertrophy",
+    "level": "advanced",
+    "daysPerWeek": 5,
+    "rationale": "Bloco de especialização para avançados: peito, costas e ombros recebem volume próximo ao MRV (~20-25 séries/semana cada, frequência 3x) enquanto pernas ficam em volume de manutenção (~6 séries/semana), liberando orçamento de recuperação para os grupos priorizados (princípio de volume-trade-off do RP/Israetel; manutenção com ~1/3 do volume preserva massa, Bickel et al. 2011). Usar por 1-2 blocos e rotacionar o grupo especializado.",
+    "progressionRule": "Dupla progressão nos grupos especializados com RIR 2 -> 1 ao longo do bloco; +1 série no primeiro exercício de peito, costas e ombros nas semanas 3 e 5 (até o MRV individual). Pernas: manter cargas e séries constantes (manutenção, sem progressão forçada). Após o deload, rotacionar o grupo especializado (ex.: bloco seguinte de pernas) para evitar estagnação e desequilíbrio.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "microcycleNote": "Peito/costas/ombros em frequência 3x com ~20-25 séries/semana; pernas em manutenção (~6 séries/semana) numa única sessão curta.",
+        "deloadNote": "Semana 6: 50% das séries em todos os grupos, cargas da semana 4, RIR 4.",
+        "workouts": [
+          {
+            "name": "Peito + Ombros A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo no cross", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 20, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Costas A",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "pull_v", "suggestedVariant": "barra fixa com carga", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 4, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta pegada neutra", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada baixa", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "face pull", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 20, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pernas (manutenção)",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Peito + Costas B",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino inclinado", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada cavalinho", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada supinada", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino máquina ou flexão com carga", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Ombros + Braços",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral no cabo", "priorityEquipment": "cable", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 20, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo inverso", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca martelo", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps francês", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fullbody-linear-hypertrophy-strength-3x",
+    "name": "Full-Body Linear 3x (Intro + Força-Hipertrofia)",
+    "goal": "strength",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Ponte do novato absoluto para o treino sério: 2 semanas de introdução técnica com RIR alto para consolidar padrões de movimento, seguidas de 10 semanas de progressão linear por sessão em 3x5 (Rippetoe adaptado), com acessórios em faixas de hipertrofia. Full-body 3x maximiza frequência de prática e o driver neural de força em novatos, enquanto os acessórios acumulam volume de hipertrofia moderado.",
+    "progressionRule": "Fase intro (sem 1-2): manter cargas leves, RIR 4, foco exclusivo em técnica; subir carga apenas se a execução estiver perfeita. Fase linear (sem 3-12): +2.5kg por sessão em agachamento e terra, +1.25 a 2.5kg em supino/desenvolvimento quando as 3x5 forem completadas com RIR>=2; ao falhar 3 sessões seguidas, reduzir 10% e retomar. Ao 2º reset no MESMO exercício, o novato virou intermediário: migrar para o template texas-5x5-simplified.",
+    "mesocycles": [
+      {
+        "weeks": 2,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "introdução técnica",
+        "microcycleNote": "Sessões A e B alternadas (A-B-A, B-A-B). Cargas deliberadamente leves (RIR 4): a meta é padrão motor, não esforço.",
+        "workouts": [
+          {
+            "name": "Intro A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 4, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 4, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 4, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 2, "repsMin": 20, "repsMax": 40, "loadMethod": "bodyweight", "targetRir": 4, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Intro B",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 2, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 4, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 4, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta ou barra assistida", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 4, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "afundo estático", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "bodyweight", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      },
+      {
+        "weeks": 10,
+        "emphasis": "strength",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "progressão linear",
+        "microcycleNote": "Sessões A e B alternadas (A-B-A, B-A-B). Básicos em 3x5 RIR 2 com +carga por sessão; acessórios em dupla progressão. Ao 2º reset no mesmo exercício, sinalizar migração para o texas-5x5-simplified.",
+        "workouts": [
+          {
+            "name": "Treino A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel ou prancha", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Treino B",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 1, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa ou puxada", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "afundo com halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
