@@ -1,0 +1,136 @@
+[
+  {
+    "id": "linear-beginner-fullbody-3x",
+    "name": "Base de Força Linear (Full-Body 3x)",
+    "goal": "strength",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Progressão linear sessão a sessão no estilo Starting Strength (Rippetoe): o iniciante recupera entre sessões e ainda adapta a cada exposição, então a carga sobe a cada treino em vez de a cada semana. Full-body 3x com poucos básicos maximiza frequência de prática motora, que é o principal driver de ganho de força em novatos.",
+    "progressionRule": "Adicionar +2.5kg por sessão em agachamento e levantamento terra, +1.25 a 2.5kg em supino e desenvolvimento, sempre que as 3x5 forem completadas. Ao falhar a mesma carga em 3 sessões consecutivas, reduzir 10% e retomar a subida. Acessórios: dupla progressão dentro da faixa.",
+    "mesocycles": [
+      {
+        "weeks": 12,
+        "emphasis": "strength",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "microcycleNote": "Sessões A e B alternadas (A-B-A, B-A-B): semana típica seg/qua/sex.",
+        "workouts": [
+          {
+            "name": "Treino A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "bench press", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "deadlift", "priorityEquipment": "barbell", "setScheme": { "setCount": 1, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "barbell row", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Treino B",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "overhead press", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 5, "loadMethod": "rir", "targetRir": 2, "restSeconds": 180, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "chin-up ou lat pulldown", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha ou ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fullbody-hypertrophy-3x",
+    "name": "Hipertrofia Full-Body 3x",
+    "goal": "hypertrophy",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Frequência 2-3x por grupo muscular com volume semanal moderado (~10-13 séries/músculo), dentro da zona dose-resposta de Schoenfeld et al. (2017). Dupla progressão (reps antes de carga) é o modelo mais robusto para novato/intermediário inicial em faixas de 8-15 reps, mantendo 1-3 RIR conforme a pirâmide de Helms.",
+    "progressionRule": "Dupla progressão: ao atingir o topo da faixa de reps em todas as séries com o RIR alvo, aumentar a carga 2.5-5% na sessão seguinte e voltar ao piso da faixa. Repetir o mesociclo após o deload adicionando 1 série ao primeiro exercício de cada sessão (até o teto de ~16 séries/músculo/semana).",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "deloadNote": "Semana 6: mesmas sessões com 50% das séries e 2 reps abaixo do topo da faixa, RIR 4.",
+        "workouts": [
+          {
+            "name": "Full-Body A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat ou goblet", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino com halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada ou máquina", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "cable crunch", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body B",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body C",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "lunge", "suggestedVariant": "afundo ou leg press unilateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "supino inclinado ou flexão", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada unilateral halter", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora deitada", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimalist-health-2x",
+    "name": "Saúde Geral Minimalista 2x",
+    "goal": "health",
+    "level": "beginner",
+    "daysPerWeek": 2,
+    "rationale": "Doses mínimas efetivas: 2 sessões full-body semanais cobrindo todos os padrões de movimento já capturam a maior parte dos benefícios de saúde e força para não-atletas (curva dose-resposta fortemente côncava; diretrizes ACSM/OMS de 2x/semana de força). Prioriza compostos multiarticulares, carries e core, com dupla progressão lenta e RIR alto para aderência e baixo risco.",
+    "progressionRule": "Dupla progressão conservadora 8→12: ao completar 12 reps em todas as séries com RIR≥3, subir o menor incremento disponível (ou progressão de alavanca no peso corporal, ex.: flexão inclinada → solo). Sem deload programado; se duas sessões seguidas regredirem, repetir a carga por 1 semana.",
+    "mesocycles": [
+      {
+        "weeks": 8,
+        "emphasis": "intro",
+        "progressionModel": "double_progression",
+        "includesDeload": false,
+        "workouts": [
+          {
+            "name": "Sessão A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "goblet squat", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "flexão ou supino halteres", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada halter ou elástico", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "carry", "suggestedVariant": "farmer walk", "priorityEquipment": "dumbbell", "note": "reps = metros", "setScheme": { "setCount": 3, "repsMin": 30, "repsMax": 40, "loadMethod": "rir", "targetRir": 3, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 2, "repsMin": 20, "repsMax": 45, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Sessão B",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "terra romeno halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada ou barra assistida", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "afundo estático", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "dead bug ou prancha lateral", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
