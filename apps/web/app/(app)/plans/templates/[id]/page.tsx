@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTemplate, templateLibrary } from "@bstrainer/engine";
+import { UseTemplateButton } from "@/components/UseTemplateButton";
 
 export function generateStaticParams() {
   return templateLibrary.map((t) => ({ id: t.id }));
@@ -81,14 +82,7 @@ export default async function TemplateDetailPage({
         </section>
       ))}
 
-      <button
-        type="button"
-        disabled
-        className="h-12 w-full rounded-lg bg-signal px-4 text-[15px] font-semibold text-ink opacity-50"
-        title="Disponível quando o banco estiver conectado"
-      >
-        Usar este template (em breve)
-      </button>
+      <UseTemplateButton templateId={template.id} />
     </div>
   );
 }
