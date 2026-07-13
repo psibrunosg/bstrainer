@@ -26,39 +26,49 @@ export default async function TemplateDetailPage({
   return (
     <div className="mx-auto max-w-lg space-y-5 p-4">
       <div>
-        <Link href="/plans/templates" className="text-sm text-zinc-500">
+        <Link
+          href="/plans/templates"
+          className="text-sm text-mute transition-colors duration-200 hover:text-text"
+        >
           ← Templates
         </Link>
-        <h1 className="mt-1 text-2xl font-bold">{template.name}</h1>
-        <p className="mt-2 text-sm text-zinc-400">{template.rationale}</p>
+        <h1 className="mt-2 font-display text-[28px] font-extrabold uppercase tracking-tight">
+          {template.name}
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-mute">
+          {template.rationale}
+        </p>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-        <h2 className="text-sm font-semibold text-zinc-300">
+      <div className="rounded-lg border border-line bg-surface p-4">
+        <h2 className="caps-label font-display font-semibold text-mute">
           Regra de progressão
         </h2>
-        <p className="mt-1 text-sm text-zinc-400">{template.progressionRule}</p>
+        <p className="mt-2 text-sm leading-relaxed text-text">
+          {template.progressionRule}
+        </p>
       </div>
 
       {template.mesocycles.map((meso, i) => (
         <section key={i} className="space-y-3">
-          <h2 className="font-semibold">
+          <h2 className="caps-label font-display font-semibold text-mute">
             Mesociclo {i + 1} · {meso.weeks} semanas ·{" "}
             {EMPHASIS_LABEL[meso.emphasis] ?? meso.emphasis}
           </h2>
           {meso.workouts.map((w) => (
             <div
               key={w.name}
-              className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
+              className="rounded-lg border border-line bg-surface p-4"
             >
-              <h3 className="font-medium">{w.name}</h3>
-              <ul className="mt-2 space-y-1.5">
+              <h3 className="font-semibold text-text">{w.name}</h3>
+              <ul className="mt-2">
                 {w.exercises.map((ex, j) => (
-                  <li key={j} className="flex justify-between text-sm">
-                    <span className="text-zinc-300">
-                      {ex.suggestedVariant}
-                    </span>
-                    <span className="text-zinc-500">
+                  <li
+                    key={j}
+                    className="flex justify-between border-b border-line py-1.5 text-sm last:border-b-0"
+                  >
+                    <span className="text-text">{ex.suggestedVariant}</span>
+                    <span className="tnum text-mute">
                       {ex.setScheme.setCount}×{ex.setScheme.repsMin}
                       {ex.setScheme.repsMax !== ex.setScheme.repsMin &&
                         `–${ex.setScheme.repsMax}`}
@@ -74,7 +84,7 @@ export default async function TemplateDetailPage({
       <button
         type="button"
         disabled
-        className="w-full rounded-lg bg-zinc-100 px-4 py-3 font-medium text-zinc-900 opacity-50"
+        className="h-12 w-full rounded-lg bg-signal px-4 text-[15px] font-semibold text-ink opacity-50"
         title="Disponível quando o banco estiver conectado"
       >
         Usar este template (em breve)

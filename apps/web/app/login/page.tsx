@@ -27,38 +27,48 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">bstrainer</h1>
-          <p className="text-sm text-zinc-400">
-            Entre com seu e-mail para receber um link de acesso
+    <main className="flex min-h-screen items-center justify-center bg-ink p-6 text-text">
+      <div className="w-full max-w-sm space-y-8">
+        <div className="space-y-2">
+          <p className="caps-label font-display font-semibold text-signal">
+            bstrainer
+          </p>
+          <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+            Entrar
+          </h1>
+          <p className="text-sm leading-relaxed text-mute">
+            Digite seu e-mail para receber um link de acesso.
           </p>
         </div>
 
         {sent ? (
-          <p className="rounded-lg border border-emerald-800 bg-emerald-950 p-4 text-sm text-emerald-300">
+          <p className="rounded-lg border border-line bg-surface p-4 text-sm text-text">
             Link enviado para <strong>{email}</strong>. Confira sua caixa de
             entrada.
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-base outline-none focus:border-zinc-400"
-            />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <label className="block space-y-1.5">
+              <span className="caps-label block font-medium text-mute">
+                E-mail
+              </span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="h-12 w-full rounded border border-line bg-surface px-4 text-base text-text outline-none transition-colors duration-200 placeholder:text-mute focus:border-signal"
+              />
+            </label>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-zinc-100 px-4 py-3 font-medium text-zinc-900 transition hover:bg-white disabled:opacity-50"
+              className="h-12 w-full rounded-lg bg-signal px-4 text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press disabled:opacity-50"
             >
               {loading ? "Enviando…" : "Enviar link de acesso"}
             </button>
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-err">{error}</p>}
           </form>
         )}
       </div>
