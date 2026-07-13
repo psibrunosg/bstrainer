@@ -4,6 +4,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "bstrainer",
   description: "Planejamento, execução e análise de treinamento de força",
+  manifest: "/manifest.json",
+  icons: { icon: "/icon.svg" },
+};
+
+export const viewport = {
+  themeColor: "#09090b",
 };
 
 export default function RootLayout({
