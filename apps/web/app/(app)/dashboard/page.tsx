@@ -14,9 +14,17 @@ import {
   YAxis,
 } from "recharts";
 import type { WorkoutSession } from "@bstrainer/domain";
-import { e1rmWithRir, e1rmEpley, sessionTonnage } from "@bstrainer/engine";
-import { loadSessionHistory } from "@/lib/workout/storage";
-import { exerciseName } from "@/lib/workout/exercises";
+import {
+  e1rmWithRir,
+  e1rmEpley,
+  frequencyHeatmap,
+  sessionTonnage,
+  weeklyStreak,
+} from "@bstrainer/engine";
+import { loadSessions } from "@/lib/data/sessions";
+import { loadExerciseNames } from "@/lib/data/exercise-names";
+import { exerciseName as localName } from "@/lib/workout/exercises";
+import { Heatmap } from "@/components/Heatmap";
 
 const CHART_SIGNAL = "#FF4D00";
 const CHART_LINE = "#2E2924";
@@ -28,9 +36,7 @@ interface E1rmPoint {
   e1rm: number;
 }
 
-function bestE1rmByExercise(
-  sessions: WorkoutSession[],
-): Map<string, E1rmPoint[]> {
+function bestE1rmByExercise(sessions: WorkoutSession[]): Map<string, E1rmPoint[]> {
   const byExercise = new Map<string, Map<string, number>>();
   for (const s of sessions) {
     const day = s.startedAt.slice(0, 10);
@@ -53,7 +59,10 @@ function bestE1rmByExercise(
       exId,
       [...days.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, e1rm]) => ({ date: date.slice(5), e1rm: Math.round(e1rm * 10) / 10 })),
+        .map(([date, e1rm]) => ({
+          date: date.slice(5),
+          e1rm: Math.round(e1rm * 10) / 10,
+        })),
     );
   }
   return result;
@@ -77,14 +86,20 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [nameOf, setNameOf] = useState<(id: string) => string>(() => localName);
 
   useEffect(() => {
-    setSessions(loadSessionHistory().filter((s) => s.status === "completed"));
-    setLoaded(true);
+    loadSessions().then((s) => {
+      setSessions(s);
+      setLoaded(true);
+    });
+    loadExerciseNames().then((fn) => setNameOf(() => fn));
   }, []);
 
   const e1rmSeries = useMemo(() => bestE1rmByExercise(sessions), [sessions]);
   const tonnageSeries = useMemo(() => weeklyTonnage(sessions), [sessions]);
+  const streak = useMemo(() => weeklyStreak(sessions), [sessions]);
+  const heatmap = useMemo(() => frequencyHeatmap(sessions, 91), [sessions]);
 
   const exerciseIds = [...e1rmSeries.keys()];
   const activeExercise =
@@ -122,11 +137,7 @@ export default function DashboardPage() {
 
   const totalSets = sessions.reduce(
     (acc, s) =>
-      acc +
-      s.exercises.reduce(
-        (a, ex) => a + ex.sets.filter((st) => !st.isWarmup).length,
-        0,
-      ),
+      acc + s.exercises.reduce((a, ex) => a + ex.sets.filter((st) => !st.isWarmup).length, 0),
     0,
   );
 
@@ -136,14 +147,24 @@ export default function DashboardPage() {
         Progresso
       </h1>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <Stat label="Treinos" value={String(sessions.length)} />
         <Stat label="Séries" value={String(totalSets)} />
         <Stat
           label="Tonelagem"
           value={`${Math.round(sessions.reduce((a, s) => a + sessionTonnage(s), 0) / 1000)}t`}
         />
+        <Stat label="Sequência" value={`${streak}sem`} accent={streak > 0} />
       </div>
+
+      <section className="space-y-2">
+        <h2 className="caps-label font-display font-semibold text-mute">
+          Frequência · 13 semanas
+        </h2>
+        <div className="rounded-lg border border-line bg-surface p-3">
+          <Heatmap cells={heatmap} />
+        </div>
+      </section>
 
       {activeExercise && (
         <section className="space-y-2">
@@ -158,7 +179,7 @@ export default function DashboardPage() {
             >
               {exerciseIds.map((id) => (
                 <option key={id} value={id}>
-                  {exerciseName(id)}
+                  {nameOf(id)}
                 </option>
               ))}
             </select>
@@ -214,19 +235,25 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
       </section>
-
-      <p className="text-xs text-mute">
-        Dados locais deste aparelho. Sincronização com a nuvem em breve.
-      </p>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-line bg-surface p-4 text-center">
-      <p className="tnum font-display text-xl font-bold text-text">{value}</p>
-      <p className="caps-label mt-1 text-mute">{label}</p>
+    <div className="rounded-lg border border-line bg-surface p-3 text-center">
+      <p className={`tnum font-display text-xl font-bold ${accent ? "text-signal" : ""}`}>
+        {value}
+      </p>
+      <p className="caps-label mt-0.5 text-mute">{label}</p>
     </div>
   );
 }

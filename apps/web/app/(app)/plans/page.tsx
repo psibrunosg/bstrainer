@@ -52,19 +52,33 @@ export default function PlansPage() {
         </ul>
       )}
 
-      <Link
-        href="/plans/templates"
-        className="block rounded-lg border border-line bg-surface p-4 transition-colors duration-200 hover:bg-surface-2"
-      >
-        <h2 className="caps-label font-display font-semibold text-mute">
-          Biblioteca de templates
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-text">
-          {plans.length > 0
-            ? "Adicionar outra periodização baseada em literatura."
-            : "Comece com uma periodização pronta — linear, hipertrofia, PPL, blocos."}
-        </p>
-      </Link>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Link
+          href="/plans/templates"
+          className="block rounded-lg border border-line bg-surface p-4 transition-colors duration-200 hover:bg-surface-2"
+        >
+          <h2 className="caps-label font-display font-semibold text-mute">
+            Biblioteca de templates
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-text">
+            {plans.length > 0
+              ? "Adicionar outra periodização baseada em literatura."
+              : "Comece com uma periodização pronta — linear, hipertrofia, PPL, blocos."}
+          </p>
+        </Link>
+
+        <Link
+          href="/plans/new"
+          className="block rounded-lg border border-line bg-surface p-4 transition-colors duration-200 hover:bg-surface-2"
+        >
+          <h2 className="caps-label font-display font-semibold text-mute">
+            Criar ficha manual
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-text">
+            Monte um treino do zero — exercícios, séries e reps à mão.
+          </p>
+        </Link>
+      </div>
     </div>
   );
 }
