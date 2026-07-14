@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AuthGuard } from "@/components/AuthGuard";
 
 const ICON_PROPS = {
   width: 24,
@@ -118,7 +119,9 @@ export default function AppLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-ink text-text">
-      <main className="flex-1 pb-24">{children}</main>
+      <main className="flex-1 pb-24">
+        <AuthGuard>{children}</AuthGuard>
+      </main>
       {/* Nav inferior — logger é o coração do app */}
       <nav className="fixed inset-x-0 bottom-0 z-30 h-16 border-t border-line bg-ink/95 backdrop-blur-sm">
         <div className="mx-auto flex h-full max-w-lg items-stretch">

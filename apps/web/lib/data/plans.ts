@@ -1,10 +1,6 @@
-"use server";
-
-import { randomUUID } from "node:crypto";
-import { revalidatePath } from "next/cache";
 import type { Exercise, LoadType } from "@bstrainer/domain";
 import { getTemplate, instantiateTemplate } from "@bstrainer/engine";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 
 export interface UsePlanResult {
   ok: boolean;
@@ -15,7 +11,7 @@ export interface UsePlanResult {
 
 /**
  * Instancia um template para o equipamento do usuário e persiste o plano
- * completo (training_plan -> mesocycles -> workouts -> prescribed_*) no banco.
+ * completo no banco. Roda no browser; RLS garante o isolamento por org.
  */
 export async function usePlanFromTemplate(
   templateId: string,
@@ -24,7 +20,7 @@ export async function usePlanFromTemplate(
   const spec = getTemplate(templateId);
   if (!spec) return { ok: false, error: "Template não encontrado." };
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -38,7 +34,6 @@ export async function usePlanFromTemplate(
     .single();
   if (!membership) return { ok: false, error: "Organização não encontrada." };
 
-  // Catálogo: exercícios globais + os da org
   const { data: rows, error: exErr } = await supabase
     .from("exercises")
     .select(
@@ -63,10 +58,10 @@ export async function usePlanFromTemplate(
 
   const plan = instantiateTemplate(spec, catalog, {
     availableEquipment: equipment,
-    generateId: randomUUID,
+    generateId: () => crypto.randomUUID(),
   });
 
-  const planId = randomUUID();
+  const planId = crypto.randomUUID();
   const today = new Date().toISOString().slice(0, 10);
 
   const { error: planErr } = await supabase.from("training_plans").insert({
@@ -82,8 +77,6 @@ export async function usePlanFromTemplate(
   });
   if (planErr) return { ok: false, error: "Falha ao criar plano." };
 
-  // Persiste a hierarquia. Erros abortam e retornam (sem transação no client SDK,
-  // mas RLS garante consistência de acesso; falha parcial é rara e recuperável).
   for (const meso of plan.mesocycles) {
     const { error: mErr } = await supabase.from("mesocycles").insert({
       id: meso.id,
@@ -144,6 +137,41 @@ export async function usePlanFromTemplate(
     }
   }
 
-  revalidatePath("/plans");
   return { ok: true, planId, unresolved: plan.unresolvedSlots.length };
+}
+
+export interface PlanSummary {
+  id: string;
+  goal: string;
+  status: string;
+  start_date: string;
+  mesocycleCount: number;
+}
+
+export async function listPlans(): Promise<PlanSummary[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("training_plans")
+    .select("id, goal, status, start_date, mesocycles(count)")
+    .in("status", ["active", "draft"])
+    .order("start_date", { ascending: false });
+
+  return ((data ?? []) as unknown as {
+    id: string;
+    goal: string;
+    status: string;
+    start_date: string;
+    mesocycles: { count: number }[];
+  }[]).map((p) => ({
+    id: p.id,
+    goal: p.goal,
+    status: p.status,
+    start_date: p.start_date,
+    mesocycleCount: p.mesocycles?.[0]?.count ?? 0,
+  }));
 }

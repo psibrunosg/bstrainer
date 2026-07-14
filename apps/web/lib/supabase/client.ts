@@ -1,5 +1,10 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+/**
+ * Client Supabase no browser. No build estático (GitHub Pages) não há server,
+ * então a sessão vive no browser e o magic link é processado pelo client
+ * (PKCE + detectSessionInUrl).
+ */
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

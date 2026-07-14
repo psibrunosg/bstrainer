@@ -1,5 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { listPlans, type PlanSummary } from "@/lib/data/plans";
 
 const GOAL_LABEL: Record<string, string> = {
   hypertrophy: "Hipertrofia",
@@ -10,29 +13,16 @@ const GOAL_LABEL: Record<string, string> = {
   fat_loss: "Emagrecimento",
 };
 
-interface PlanRow {
-  id: string;
-  goal: string;
-  status: string;
-  start_date: string;
-  mesocycles: { count: number }[];
-}
+export default function PlansPage() {
+  const [plans, setPlans] = useState<PlanSummary[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
-export default async function PlansPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let plans: PlanRow[] = [];
-  if (user) {
-    const { data } = await supabase
-      .from("training_plans")
-      .select("id, goal, status, start_date, mesocycles(count)")
-      .in("status", ["active", "draft"])
-      .order("start_date", { ascending: false });
-    plans = (data as PlanRow[] | null) ?? [];
-  }
+  useEffect(() => {
+    listPlans().then((p) => {
+      setPlans(p);
+      setLoaded(true);
+    });
+  }, []);
 
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
@@ -40,7 +30,7 @@ export default async function PlansPage() {
         Fichas
       </h1>
 
-      {plans.length > 0 && (
+      {loaded && plans.length > 0 && (
         <ul className="space-y-2">
           {plans.map((p) => (
             <li
@@ -52,7 +42,8 @@ export default async function PlansPage() {
                   {GOAL_LABEL[p.goal] ?? p.goal}
                 </p>
                 <p className="caps-label mt-0.5 text-mute">
-                  {p.mesocycles?.[0]?.count ?? 0} mesociclos · {p.status === "active" ? "ativo" : "rascunho"}
+                  {p.mesocycleCount} mesociclos ·{" "}
+                  {p.status === "active" ? "ativo" : "rascunho"}
                 </p>
               </div>
               <span className="tnum text-xs text-mute">{p.start_date}</span>

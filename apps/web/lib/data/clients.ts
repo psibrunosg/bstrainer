@@ -1,7 +1,4 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 
 export interface InviteResult {
   ok: boolean;
@@ -10,12 +7,11 @@ export interface InviteResult {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Convida um aluno por e-mail: cria client_link pendente na org do trainer. */
 export async function inviteClient(email: string): Promise<InviteResult> {
   const clean = email.trim().toLowerCase();
   if (!EMAIL_RE.test(clean)) return { ok: false, error: "E-mail inválido." };
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -37,6 +33,38 @@ export async function inviteClient(email: string): Promise<InviteResult> {
   });
   if (error) return { ok: false, error: "Falha ao convidar (talvez já exista)." };
 
-  revalidatePath("/clients");
   return { ok: true };
+}
+
+export interface ClientLink {
+  id: string;
+  status: string;
+  invite_email: string | null;
+  name: string | null;
+}
+
+export async function listClientLinks(): Promise<ClientLink[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("client_links")
+    .select("id, status, invite_email, profiles:client_id(name)")
+    .eq("trainer_id", user.id)
+    .order("status", { ascending: true });
+
+  return ((data ?? []) as unknown as {
+    id: string;
+    status: string;
+    invite_email: string | null;
+    profiles: { name: string } | null;
+  }[]).map((l) => ({
+    id: l.id,
+    status: l.status,
+    invite_email: l.invite_email,
+    name: l.profiles?.name ?? null,
+  }));
 }

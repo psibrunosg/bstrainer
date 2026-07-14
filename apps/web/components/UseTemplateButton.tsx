@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { LoadType } from "@bstrainer/domain";
-import { usePlanFromTemplate } from "@/app/(app)/plans/templates/[id]/actions";
+import { usePlanFromTemplate } from "@/lib/data/plans";
 
 const EQUIPMENT: { key: LoadType; label: string }[] = [
   { key: "barbell", label: "Barra" },

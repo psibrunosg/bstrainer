@@ -1,13 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
-import { InviteClientForm } from "@/components/InviteClientForm";
+"use client";
 
-interface ClientLinkRow {
-  id: string;
-  status: string;
-  invite_email: string | null;
-  client_id: string | null;
-  profiles: { name: string } | null;
-}
+import { useCallback, useEffect, useState } from "react";
+import {
+  inviteClient,
+  listClientLinks,
+  type ClientLink,
+} from "@/lib/data/clients";
 
 const STATUS_LABEL: Record<string, string> = {
   invited: "Convidado",
@@ -15,20 +13,33 @@ const STATUS_LABEL: Record<string, string> = {
   archived: "Arquivado",
 };
 
-export default async function ClientsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function ClientsPage() {
+  const [links, setLinks] = useState<ClientLink[]>([]);
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  let links: ClientLinkRow[] = [];
-  if (user) {
-    const { data } = await supabase
-      .from("client_links")
-      .select("id, status, invite_email, client_id, profiles:client_id(name)")
-      .eq("trainer_id", user.id)
-      .order("status", { ascending: true });
-    links = (data as unknown as ClientLinkRow[] | null) ?? [];
+  const reload = useCallback(() => {
+    listClientLinks().then(setLinks);
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setMsg(null);
+    const result = await inviteClient(email);
+    setBusy(false);
+    if (result.ok) {
+      setEmail("");
+      setMsg({ ok: true, text: "Convite registrado." });
+      reload();
+    } else {
+      setMsg({ ok: false, text: result.error ?? "Falha." });
+    }
   }
 
   const active = links.filter((l) => l.status === "active");
@@ -46,7 +57,30 @@ export default async function ClientsPage() {
         </p>
       </div>
 
-      <InviteClientForm />
+      <form onSubmit={submit} className="space-y-2">
+        <div className="flex gap-2">
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@do-aluno.com"
+            className="h-12 flex-1 rounded border border-line bg-surface px-4 text-base outline-none placeholder:text-mute focus:border-signal"
+          />
+          <button
+            type="submit"
+            disabled={busy}
+            className="h-12 rounded-lg bg-signal px-5 text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press disabled:opacity-50"
+          >
+            {busy ? "…" : "Convidar"}
+          </button>
+        </div>
+        {msg && (
+          <p className={`text-sm ${msg.ok ? "text-ok" : "text-err"}`}>
+            {msg.text}
+          </p>
+        )}
+      </form>
 
       {links.length === 0 ? (
         <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">
@@ -65,9 +99,7 @@ export default async function ClientsPage() {
                     key={l.id}
                     className="flex items-center justify-between border-b border-line px-1 py-3 last:border-b-0"
                   >
-                    <span className="text-text">
-                      {l.profiles?.name ?? "Aluno"}
-                    </span>
+                    <span className="text-text">{l.name ?? "Aluno"}</span>
                     <span className="caps-label text-ok">
                       {STATUS_LABEL[l.status]}
                     </span>
