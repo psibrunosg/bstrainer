@@ -1,4 +1,5 @@
 import type { WorkoutSession } from "@bstrainer/domain";
+import { getTrainingOrgId } from "@/lib/data/memberships";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -41,17 +42,12 @@ async function pushSession(session: WorkoutSession): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("not-authenticated");
 
-  const { data: membership, error: mErr } = await supabase
-    .from("memberships")
-    .select("org_id")
-    .eq("profile_id", user.id)
-    .limit(1)
-    .single();
-  if (mErr || !membership) throw new Error("no-membership");
+  const orgId = await getTrainingOrgId();
+  if (!orgId) throw new Error("no-membership");
 
   const { error: sErr } = await supabase.from("workout_sessions").insert({
     id: session.id,
-    org_id: membership.org_id,
+    org_id: orgId,
     client_id: user.id,
     workout_template_id: session.workoutTemplateId,
     started_at: session.startedAt,

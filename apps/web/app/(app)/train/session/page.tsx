@@ -438,11 +438,25 @@ export default function TrainSessionPage() {
           const last = lastPerf[exercise.exerciseId];
           const pr = prHit[exercise.exerciseId];
           const parsedLoad = parseLoad(draft.load);
+          const option = EXERCISES.find((e) => e.id === exercise.exerciseId);
+          const mediaSrc = publicAssetPath(option?.mediaUrl);
           return (
             <section
               key={exercise.id}
-              className="space-y-3 rounded-lg border border-line bg-surface p-4"
+              className="overflow-hidden rounded-lg border border-line bg-surface"
             >
+              {mediaSrc && (
+                <div className="border-b border-line bg-ink">
+                  <img
+                    src={mediaSrc}
+                    alt=""
+                    loading="lazy"
+                    className="h-52 w-full object-contain"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-3 p-4">
               <header className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h2 className="font-display text-lg font-semibold">
@@ -461,18 +475,6 @@ export default function TrainSessionPage() {
                     )}
                   </div>
                 </div>
-                {publicAssetPath(EXERCISES.find((e) => e.id === exercise.exerciseId)?.mediaUrl) && (
-                  <img
-                    src={
-                      publicAssetPath(
-                        EXERCISES.find((e) => e.id === exercise.exerciseId)?.mediaUrl,
-                      ) ?? ""
-                    }
-                    alt=""
-                    loading="lazy"
-                    className="h-14 w-14 shrink-0 rounded border border-line bg-ink object-contain"
-                  />
-                )}
                 {pr != null ? (
                   <span className="animate-pr-pop shrink-0 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gold">
                     PR · {formatKg(Math.round(pr * 10) / 10)} kg
@@ -634,6 +636,7 @@ export default function TrainSessionPage() {
                     </button>
                   )}
                 </div>
+              </div>
               </div>
             </section>
           );

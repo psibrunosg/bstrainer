@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isClientOnly } from "@/lib/data/memberships";
 import { getMyTrainerProfile, setTrainerListing } from "@/lib/data/trainers";
 
 export default function SettingsPage() {
   const [acceptingClients, setAcceptingClients] = useState(false);
+  const [clientOnly, setClientOnly] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    isClientOnly().then(setClientOnly);
     getMyTrainerProfile().then((profile) => {
       setAcceptingClients(profile?.accepting_clients ?? false);
     });
@@ -35,6 +38,15 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm leading-relaxed text-mute">Perfil, organização e assinatura.</p>
       </div>
 
+      {clientOnly ? (
+        <section className="rounded-lg border border-line bg-surface p-5">
+          <p className="caps-label font-display font-semibold text-signal">Perfil de aluno</p>
+          <h2 className="mt-1 font-display text-2xl font-semibold">Acompanhamento ativo</h2>
+          <p className="mt-2 text-sm leading-relaxed text-mute">
+            Esta conta esta vinculada como aluno. A area de convidar alunos fica oculta neste perfil.
+          </p>
+        </section>
+      ) : (
       <section className="rounded-lg border border-line bg-surface p-5">
         <p className="caps-label font-display font-semibold text-signal">Perfil profissional</p>
         <h2 className="mt-1 font-display text-2xl font-semibold">Atender alunos</h2>
@@ -51,6 +63,7 @@ export default function SettingsPage() {
         </button>
         {message && <p className="mt-3 text-sm text-mute">{message}</p>}
       </section>
+      )}
     </div>
   );
 }

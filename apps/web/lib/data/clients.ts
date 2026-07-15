@@ -1,3 +1,4 @@
+import { canManageClients, getTrainerOrgId } from "@/lib/data/memberships";
 import { createClient } from "@/lib/supabase/client";
 
 export interface InviteResult {
@@ -17,21 +18,21 @@ export async function inviteClient(email: string): Promise<InviteResult> {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada." };
 
-  const { data: membership } = await supabase
-    .from("memberships")
-    .select("org_id")
-    .eq("profile_id", user.id)
-    .limit(1)
-    .single();
-  if (!membership) return { ok: false, error: "Organização não encontrada." };
+  const orgId = await getTrainerOrgId();
+  if (!orgId) {
+    return {
+      ok: false,
+      error: "Ative seu perfil profissional antes de convidar alunos.",
+    };
+  }
 
   const { error } = await supabase.from("client_links").insert({
-    org_id: membership.org_id,
+    org_id: orgId,
     trainer_id: user.id,
     invite_email: clean,
     status: "invited",
   });
-  if (error) return { ok: false, error: "Falha ao convidar (talvez já exista)." };
+  if (error) return { ok: false, error: "Falha ao convidar. Talvez já exista." };
 
   return { ok: true };
 }
@@ -58,6 +59,7 @@ export async function listClientLinks(): Promise<ClientLink[]> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return [];
+  if (!(await canManageClients())) return [];
 
   const { data } = await supabase
     .from("client_links")
@@ -70,10 +72,10 @@ export async function listClientLinks(): Promise<ClientLink[]> {
     status: string;
     invite_email: string | null;
     profiles: { name: string } | null;
-  }[]).map((l) => ({
-    id: l.id,
-    status: l.status,
-    invite_email: l.invite_email,
-    name: l.profiles?.name ?? null,
+  }[]).map((link) => ({
+    id: link.id,
+    status: link.status,
+    invite_email: link.invite_email,
+    name: link.profiles?.name ?? null,
   }));
 }

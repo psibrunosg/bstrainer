@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { AuthGuard } from "@/components/AuthGuard";
+import { canManageClients } from "@/lib/data/memberships";
 
 const ICON_PROPS = {
   width: 24,
@@ -115,8 +117,13 @@ export default function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
+  const [showClients, setShowClients] = useState(false);
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
+
+  useEffect(() => {
+    canManageClients().then(setShowClients);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-ink text-text">
@@ -146,7 +153,7 @@ export default function AppLayout({
               Treinar
             </span>
           </Link>
-          {RIGHT.map((item) => (
+          {RIGHT.filter((item) => showClients || item.href !== "/clients").map((item) => (
             <NavLink key={item.href} item={item} active={isActive(item.href)} />
           ))}
         </div>

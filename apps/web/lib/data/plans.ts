@@ -1,5 +1,6 @@
 import type { Exercise, LoadType } from "@bstrainer/domain";
 import { getTemplate, instantiateTemplate } from "@bstrainer/engine";
+import { getTrainingOrgId } from "@/lib/data/memberships";
 import { createClient } from "@/lib/supabase/client";
 
 export interface UsePlanResult {
@@ -24,6 +25,8 @@ export async function usePlanFromTemplate(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const orgId = await getTrainingOrgId();
+  if (!orgId) return { ok: false, error: "Organizacao nao encontrada." };
   if (!user) return { ok: false, error: "Sessão expirada." };
 
   const { data: membership } = await supabase
@@ -66,7 +69,7 @@ export async function usePlanFromTemplate(
 
   const { error: planErr } = await supabase.from("training_plans").insert({
     id: planId,
-    org_id: membership.org_id,
+    org_id: orgId,
     client_id: user.id,
     created_by: user.id,
     goal: plan.goal,
@@ -209,6 +212,8 @@ export async function createManualPlan(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const orgId = await getTrainingOrgId();
+  if (!orgId) return { ok: false, error: "Organizacao nao encontrada." };
   if (!user) return { ok: false, error: "Sessão expirada." };
 
   const { data: membership } = await supabase
@@ -226,7 +231,7 @@ export async function createManualPlan(
 
   const { error: planErr } = await supabase.from("training_plans").insert({
     id: planId,
-    org_id: membership.org_id,
+    org_id: orgId,
     client_id: user.id,
     created_by: user.id,
     goal: input.goal,
