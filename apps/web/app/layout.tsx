@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BS Trainer | Diário de força",
+  title: "BS Trainer",
   description:
     "Registre cada série. Veja cada progresso. Prescrição e execução de treino de força para personal trainers e atletas.",
   manifest: "/manifest.json",
