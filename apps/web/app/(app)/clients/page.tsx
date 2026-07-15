@@ -4,11 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   inviteClient,
   listClientLinks,
+  respondToTrainerRequest,
   type ClientLink,
 } from "@/lib/data/clients";
 
 const STATUS_LABEL: Record<string, string> = {
   invited: "Convidado",
+  requested: "Solicitação recebida",
   active: "Ativo",
   archived: "Arquivado",
 };
@@ -42,8 +44,25 @@ export default function ClientsPage() {
     }
   }
 
+  async function respond(linkId: string, accept: boolean) {
+    setBusy(true);
+    setMsg(null);
+    const result = await respondToTrainerRequest(linkId, accept);
+    setBusy(false);
+    setMsg({
+      ok: result.ok,
+      text: result.ok
+        ? accept
+          ? "Aluno vinculado."
+          : "Solicitação recusada."
+        : result.error ?? "Falha ao responder.",
+    });
+    if (result.ok) reload();
+  }
+
   const active = links.filter((l) => l.status === "active");
   const pending = links.filter((l) => l.status === "invited");
+  const requests = links.filter((l) => l.status === "requested");
 
   return (
     <div className="mx-auto max-w-lg space-y-6 p-4">
@@ -88,6 +107,38 @@ export default function ClientsPage() {
         </p>
       ) : (
         <div className="space-y-5">
+          {requests.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="caps-label font-display font-semibold text-mute">
+                Pedidos de acompanhamento · {requests.length}
+              </h2>
+              <ul className="space-y-2">
+                {requests.map((l) => (
+                  <li key={l.id} className="rounded border border-line bg-surface p-3">
+                    <p className="text-text">{l.name ?? "Novo aluno"}</p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => respond(l.id, true)}
+                        className="h-9 rounded-full bg-signal px-4 text-sm font-semibold text-surface disabled:opacity-50"
+                      >
+                        Aceitar
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => respond(l.id, false)}
+                        className="h-9 rounded-full border border-line px-4 text-sm text-mute disabled:opacity-50"
+                      >
+                        Recusar
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {active.length > 0 && (
             <section className="space-y-2">
               <h2 className="caps-label font-display font-semibold text-mute">

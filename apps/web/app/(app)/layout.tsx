@@ -88,6 +88,7 @@ const LEFT: NavItem[] = [
 ];
 
 const RIGHT: NavItem[] = [
+  { href: "/personal", label: "Personal", icon: IconClients },
   { href: "/clients", label: "Alunos", icon: IconClients },
   { href: "/settings", label: "Ajustes", icon: IconSettings },
 ];

@@ -43,6 +43,15 @@ export interface ClientLink {
   name: string | null;
 }
 
+export async function respondToTrainerRequest(linkId: string, accept: boolean) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("respond_to_trainer_request", {
+    p_link_id: linkId,
+    p_accept: accept,
+  });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
 export async function listClientLinks(): Promise<ClientLink[]> {
   const supabase = createClient();
   const {
