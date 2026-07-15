@@ -22,6 +22,7 @@ import {
   saveActiveSession,
 } from "@/lib/workout/storage";
 import { PlateCalculator } from "@/components/PlateCalculator";
+import { publicAssetPath } from "@/lib/public-asset";
 
 const REST_DEFAULT_SEC = 90;
 const RPE_OPTIONS = ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"];
@@ -460,6 +461,18 @@ export default function TrainSessionPage() {
                     )}
                   </div>
                 </div>
+                {publicAssetPath(EXERCISES.find((e) => e.id === exercise.exerciseId)?.mediaUrl) && (
+                  <img
+                    src={
+                      publicAssetPath(
+                        EXERCISES.find((e) => e.id === exercise.exerciseId)?.mediaUrl,
+                      ) ?? ""
+                    }
+                    alt=""
+                    loading="lazy"
+                    className="h-14 w-14 shrink-0 rounded border border-line bg-ink object-contain"
+                  />
+                )}
                 {pr != null ? (
                   <span className="animate-pr-pop shrink-0 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gold">
                     PR · {formatKg(Math.round(pr * 10) / 10)} kg
@@ -653,13 +666,26 @@ export default function TrainSessionPage() {
             <ul className="max-h-64 space-y-px overflow-y-auto">
               {filtered.map((e) => (
                 <li key={e.id}>
+                  {(() => {
+                    const mediaSrc = publicAssetPath(e.mediaUrl);
+                    return (
                   <button
                     type="button"
                     onClick={() => addExercise(e.id)}
-                    className="h-11 w-full rounded px-3 text-left text-sm transition active:bg-surface-2"
+                    className="flex min-h-14 w-full items-center gap-3 rounded px-2 py-2 text-left text-sm transition active:bg-surface-2"
                   >
-                    {e.name}
+                    {mediaSrc && (
+                      <img
+                        src={mediaSrc}
+                        alt=""
+                        loading="lazy"
+                        className="h-11 w-11 shrink-0 rounded border border-line bg-ink object-contain"
+                      />
+                    )}
+                    <span>{e.name}</span>
                   </button>
+                    );
+                  })()}
                 </li>
               ))}
               {filtered.length === 0 && (

@@ -143,6 +143,7 @@ export async function usePlanFromTemplate(
 export interface ExerciseOption {
   id: string;
   name: string;
+  mediaUrl: string | null;
 }
 
 /**
@@ -156,12 +157,16 @@ export async function searchExercises(term: string): Promise<ExerciseOption[]> {
   const supabase = createClient();
   const { data } = await supabase
     .from("exercises")
-    .select("id, name")
+    .select("id, name, media_url")
     .ilike("name", `%${clean}%`)
     .order("name", { ascending: true })
     .limit(20);
 
-  return (data ?? []).map((r) => ({ id: r.id, name: r.name }));
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    name: r.name,
+    mediaUrl: r.media_url,
+  }));
 }
 
 export interface ManualPlanExercise {

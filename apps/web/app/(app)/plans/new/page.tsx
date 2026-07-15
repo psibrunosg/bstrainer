@@ -9,6 +9,7 @@ import {
   type ExerciseOption,
   type ManualPlanExercise,
 } from "@/lib/data/plans";
+import { publicAssetPath } from "@/lib/public-asset";
 
 const GOALS: { key: string; label: string }[] = [
   { key: "hypertrophy", label: "Hipertrofia" },
@@ -29,6 +30,7 @@ const LOAD_METHODS: { key: string; label: string }[] = [
 
 interface DraftExercise extends ManualPlanExercise {
   name: string;
+  mediaUrl: string | null;
 }
 
 export default function NewManualPlanPage() {
@@ -75,6 +77,7 @@ export default function NewManualPlanPage() {
       {
         exerciseId: opt.id,
         name: opt.name,
+        mediaUrl: opt.mediaUrl,
         sets: 3,
         repsMin: 8,
         repsMax: 12,
@@ -102,7 +105,7 @@ export default function NewManualPlanPage() {
       const result = await createManualPlan({
         goal,
         workoutName,
-        exercises: exercises.map(({ name: _name, ...rest }) => rest),
+        exercises: exercises.map(({ name: _name, mediaUrl: _mediaUrl, ...rest }) => rest),
       });
       if (result.ok) {
         router.push("/plans");
@@ -190,13 +193,26 @@ export default function NewManualPlanPage() {
             {!searching &&
               results.map((r) => (
                 <li key={r.id}>
+                  {(() => {
+                    const mediaSrc = publicAssetPath(r.mediaUrl);
+                    return (
                   <button
                     type="button"
                     onClick={() => addExercise(r)}
-                    className="h-11 w-full rounded px-3 text-left text-sm transition active:bg-surface-2"
+                    className="flex min-h-14 w-full items-center gap-3 rounded px-2 py-2 text-left text-sm transition active:bg-surface-2"
                   >
-                    {r.name}
+                    {mediaSrc && (
+                      <img
+                        src={mediaSrc}
+                        alt=""
+                        loading="lazy"
+                        className="h-11 w-11 shrink-0 rounded border border-line bg-ink object-contain"
+                      />
+                    )}
+                    <span>{r.name}</span>
                   </button>
+                    );
+                  })()}
                 </li>
               ))}
             {!searching && results.length === 0 && (
@@ -220,7 +236,17 @@ export default function NewManualPlanPage() {
               className="space-y-3 rounded-lg border border-line bg-surface p-4"
             >
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-display text-lg font-semibold">{ex.name}</h3>
+                <div className="flex min-w-0 items-center gap-3">
+                  {publicAssetPath(ex.mediaUrl) && (
+                    <img
+                      src={publicAssetPath(ex.mediaUrl) ?? ""}
+                      alt=""
+                      loading="lazy"
+                      className="h-14 w-14 shrink-0 rounded border border-line bg-ink object-contain"
+                    />
+                  )}
+                  <h3 className="font-display text-lg font-semibold">{ex.name}</h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => remove(ex.exerciseId)}

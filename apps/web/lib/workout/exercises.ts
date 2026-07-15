@@ -6,9 +6,10 @@
 export interface ExerciseOption {
   id: string;
   name: string;
+  mediaUrl?: string | null;
 }
 
-export const EXERCISES: ExerciseOption[] = [
+const LOCAL_EXERCISES: ExerciseOption[] = [
   { id: "5b6f3f2a-1c9d-4e8b-9a01-000000000001", name: "Agachamento livre" },
   { id: "5b6f3f2a-1c9d-4e8b-9a01-000000000002", name: "Supino reto" },
   { id: "5b6f3f2a-1c9d-4e8b-9a01-000000000003", name: "Levantamento terra" },
@@ -26,8 +27,22 @@ export const EXERCISES: ExerciseOption[] = [
   { id: "5b6f3f2a-1c9d-4e8b-9a01-000000000015", name: "Prancha" },
 ];
 
+function hasaneyldrmMediaUrl(id: string): string | null {
+  const externalId = id.match(/^b1d7a80a-0000-4000-8000-(\d{12})$/)?.[1];
+  return externalId ? `/exercise-media/bstrainer/${externalId.slice(-4)}.gif` : null;
+}
+
+export const EXERCISES: ExerciseOption[] = [
+  ...LOCAL_EXERCISES,
+  ...CATALOG_EXERCISES.map((exercise) => ({
+    ...exercise,
+    mediaUrl: hasaneyldrmMediaUrl(exercise.id),
+  })),
+];
+
 export function exerciseName(exerciseId: string): string {
   return (
     EXERCISES.find((e) => e.id === exerciseId)?.name ?? "Exercício removido"
   );
 }
+import { CATALOG_EXERCISES } from "./exercises.catalog";
