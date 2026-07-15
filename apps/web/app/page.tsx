@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function LandingPage() {
   return (
@@ -38,12 +39,11 @@ export default function LandingPage() {
           </div>
           <div className="relative mx-auto max-w-md md:max-w-none">
             <div aria-hidden className="absolute inset-x-10 bottom-8 h-16 rounded-full bg-surface-2" />
-            <Image
-              src="/lobo-movimento.png"
+            <img
+              src={`${BASE_PATH}/lobo-movimento.png`}
               alt="Lobo que representa movimento, constância e bem-estar"
               width={1365}
               height={1365}
-              priority
               className="relative mx-auto w-full max-w-md"
             />
           </div>
