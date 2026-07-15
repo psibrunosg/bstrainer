@@ -286,7 +286,7 @@ export default function TrainSessionPage() {
 
   if (!loaded) {
     return (
-      <div className="mx-auto max-w-lg p-4">
+      <div className="mx-auto max-w-6xl p-4 lg:p-6">
         <div className="h-14 animate-pulse rounded-lg bg-surface-2" />
       </div>
     );
@@ -307,7 +307,7 @@ export default function TrainSessionPage() {
     );
     const prCount = Object.keys(prHit).length;
     return (
-      <div className="mx-auto max-w-lg space-y-6 p-4">
+      <div className="mx-auto max-w-6xl space-y-6 p-4 lg:p-6">
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
           Treino concluído
         </h1>
@@ -348,7 +348,7 @@ export default function TrainSessionPage() {
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div className="mx-auto max-w-6xl space-y-4 p-4 lg:p-6">
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
           Sessão
         </h1>
@@ -373,10 +373,10 @@ export default function TrainSessionPage() {
   const restCritical = restActive && restLeft <= 10;
 
   return (
-    <div className="mx-auto max-w-lg pb-4">
+    <div className="mx-auto max-w-6xl pb-6">
       {/* Timer de descanso fixo no topo */}
       <div
-        className={`sticky top-0 z-20 border-b border-line px-4 py-3 backdrop-blur-sm transition-colors ${
+        className={`sticky top-0 z-20 border-b border-line px-4 py-3 backdrop-blur-sm transition-colors lg:px-6 ${
           restDone ? "animate-timer-pulse" : restActive ? "bg-surface-2" : "bg-ink/95"
         }`}
       >
@@ -431,7 +431,7 @@ export default function TrainSessionPage() {
         )}
       </div>
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 lg:p-6">
         {session.exercises.map((exercise) => {
           const draft = draftFor(exercise.id, exercise.exerciseId);
           const e1rm = bestE1rm(exercise);
@@ -443,20 +443,20 @@ export default function TrainSessionPage() {
           return (
             <section
               key={exercise.id}
-              className="overflow-hidden rounded-lg border border-line bg-surface"
+              className="overflow-hidden rounded-lg border border-line bg-surface lg:grid lg:grid-cols-[minmax(240px,340px)_1fr]"
             >
               {mediaSrc && (
-                <div className="border-b border-line bg-ink">
+                <div className="border-b border-line bg-ink lg:border-b-0 lg:border-r">
                   <img
                     src={mediaSrc}
                     alt=""
                     loading="lazy"
-                    className="h-52 w-full object-contain"
+                    className="h-52 w-full object-contain lg:h-full lg:min-h-[320px]"
                   />
                 </div>
               )}
 
-              <div className="space-y-3 p-4">
+              <div className="space-y-3 p-4 lg:p-5">
               <header className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h2 className="font-display text-lg font-semibold">
@@ -666,7 +666,7 @@ export default function TrainSessionPage() {
                 ✕
               </button>
             </div>
-            <ul className="max-h-64 space-y-px overflow-y-auto">
+            <ul className="max-h-64 space-y-px overflow-y-auto lg:grid lg:max-h-[28rem] lg:grid-cols-2 lg:gap-1 lg:space-y-0">
               {filtered.map((e) => (
                 <li key={e.id}>
                   {(() => {
@@ -723,7 +723,7 @@ export default function TrainSessionPage() {
       {/* Overlay de sRPE */}
       {askingSrpe && (
         <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/70 p-4">
-          <div className="w-full max-w-lg space-y-4 rounded-lg border border-line bg-surface p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+          <div className="w-full max-w-2xl space-y-4 rounded-lg border border-line bg-surface p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
             <div>
               <h2 className="font-display text-xl font-semibold">
                 Esforço da sessão
