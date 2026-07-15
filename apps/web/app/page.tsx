@@ -1,49 +1,51 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function LandingPage() {
   return (
     <main className="bg-ink text-text">
-      {/* Hero — editorial assimétrico */}
       <section className="relative overflow-hidden border-b border-line">
-        <div className="mx-auto max-w-6xl px-5 pb-24 pt-20 md:pb-32 md:pt-28">
-          <p className="caps-label font-display font-semibold text-signal">
-            bstrainer
-          </p>
-          <h1 className="mt-6 max-w-4xl font-display text-5xl font-black italic leading-[0.95] tracking-tight md:text-8xl">
-            O TREINO
-            <br />
-            NÃO MENTE.
-          </h1>
-          <p className="mt-8 max-w-md text-lg leading-relaxed text-mute">
-            Registre cada série. Veja cada progresso. bstrainer é o diário de
-            força que seu treinador — ou você — sempre quis.
-          </p>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/login"
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-signal px-8 text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
-            >
-              Começar grátis
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex h-12 items-center justify-center px-4 text-[15px] font-medium text-mute transition hover:text-text"
-            >
-              Sou personal →
-            </Link>
+        <div aria-hidden className="absolute -left-24 -top-28 h-72 w-72 rounded-full bg-surface-2/80 blur-3xl" />
+        <div aria-hidden className="absolute -right-32 bottom-0 h-64 w-64 rounded-full bg-gold/15 blur-3xl" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-5 pb-16 pt-16 md:grid-cols-[1.05fr_0.95fr] md:pb-20 md:pt-20">
+          <div>
+            <p className="caps-label font-display text-lg font-semibold text-signal">
+              bstrainer · a matilha em movimento
+            </p>
+            <h1 className="mt-5 max-w-xl font-display text-6xl font-bold leading-[0.9] tracking-tight md:text-8xl">
+              TREINAR É
+              <br />
+              CUIDAR DE SI.
+            </h1>
+            <p className="mt-7 max-w-md text-lg leading-relaxed text-mute">
+              Força, constância e bem-estar no mesmo ritmo. Registre seu treino,
+              acompanhe seu progresso e construa uma rotina que cabe na sua vida.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link
+                href="/login"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-signal px-8 text-[15px] font-semibold text-surface transition active:scale-[0.98] active:bg-signal-press"
+              >
+                Começar grátis
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex h-12 items-center justify-center px-4 text-[15px] font-medium text-mute transition hover:text-text"
+              >
+                Sou personal →
+              </Link>
+            </div>
           </div>
-        </div>
-        {/* barra gráfica abstrata sangrando à direita */}
-        <div
-          aria-hidden
-          className="absolute -right-16 top-1/2 hidden -translate-y-1/2 rotate-[-4deg] md:block"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-40 w-5 rounded-sm bg-surface-2" />
-            <div className="h-56 w-7 rounded-sm bg-surface-2" />
-            <div className="h-2 w-64 rounded-sm bg-line" />
-            <div className="h-56 w-7 rounded-sm bg-surface-2" />
-            <div className="h-40 w-5 rounded-sm bg-surface-2" />
+          <div className="relative mx-auto max-w-md md:max-w-none">
+            <div aria-hidden className="absolute inset-x-10 bottom-8 h-16 rounded-full bg-surface-2" />
+            <Image
+              src="/lobo-movimento.png"
+              alt="Lobo que representa movimento, constância e bem-estar"
+              width={1365}
+              height={1365}
+              priority
+              className="relative mx-auto w-full max-w-md"
+            />
           </div>
         </div>
       </section>
@@ -243,7 +245,7 @@ function ChartMock() {
         <polyline
           points={points}
           fill="none"
-          stroke="#FF4D00"
+          stroke="var(--color-signal)"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"

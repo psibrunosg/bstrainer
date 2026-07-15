@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 
-const archivo = Archivo({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800", "900"],
-  style: ["normal", "italic"],
-  variable: "--font-archivo",
+  weight: ["500", "600", "700"],
+  variable: "--font-cormorant",
 });
 
 const inter = Inter({
@@ -24,14 +23,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0C0A09",
+  themeColor: "#F8F4ED",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${archivo.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

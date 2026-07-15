@@ -2,19 +2,19 @@
 
 @theme {
   /* Ferro Editorial — docs/DESIGN.md */
-  --color-ink: #0c0a09;
-  --color-surface: #171412;
-  --color-surface-2: #221e1b;
-  --color-line: #2e2924;
-  --color-text: #f5f2ee;
-  --color-mute: #8a817a;
-  --color-signal: #ff4d00;
-  --color-signal-press: #d94100;
-  --color-gold: #e8b84b;
-  --color-ok: #3fb950;
-  --color-err: #f0453a;
+  --color-ink: #f8f4ed;
+  --color-surface: #fffdf9;
+  --color-surface-2: #e5ede9;
+  --color-line: #c2d0c8;
+  --color-text: #174b48;
+  --color-mute: #63807a;
+  --color-signal: #287b78;
+  --color-signal-press: #1c625f;
+  --color-gold: #a8c84d;
+  --color-ok: #3f8d6d;
+  --color-err: #c45a4b;
 
-  --font-display: var(--font-archivo), sans-serif;
+  --font-display: var(--font-cormorant), serif;
   --font-body: var(--font-inter), sans-serif;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
