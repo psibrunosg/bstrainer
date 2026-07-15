@@ -1,10 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#09090b"/>
-  <g stroke="#10b981" stroke-width="28" stroke-linecap="round">
-    <line x1="96" y1="256" x2="416" y2="256"/>
-    <rect x="72" y="184" width="48" height="144" rx="12" fill="#10b981" stroke="none"/>
-    <rect x="392" y="184" width="48" height="144" rx="12" fill="#10b981" stroke="none"/>
-    <rect x="128" y="208" width="32" height="96" rx="8" fill="#10b981" stroke="none"/>
-    <rect x="352" y="208" width="32" height="96" rx="8" fill="#10b981" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BS Trainer">
+  <defs>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#174b48" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <circle cx="256" cy="256" r="246" fill="#f8f4ed"/>
+  <circle cx="256" cy="256" r="238" fill="none" stroke="#174b48" stroke-width="5"/>
+  <circle cx="256" cy="256" r="226" fill="none" stroke="#c2d0c8" stroke-width="3"/>
+
+  <g filter="url(#soft-shadow)">
+    <path fill="#287b78" d="M138 179c-44 50-66 117-55 184 9 57 40 104 91 128 22 10 47 15 73 14-40-28-64-66-75-107-20-72-3-151 45-213 32-41 76-68 124-80-81-14-154 18-203 74Z"/>
+    <path fill="#174b48" d="M187 415c-34-45-45-104-31-161 13-54 51-111 96-142 39-27 89-36 139-23-18 26-18 61-7 91 19 52 65 88 76 143 8 42-9 84-42 112-45 39-112 43-162 15-12-7-22-15-32-25-13 5-25 3-37-10Z"/>
+
+    <path fill="#c45a4b" d="M185 222c-11-50-4-103 19-148 17 21 26 47 27 74 21-27 48-46 79-57 4 41-10 81-38 111-27 29-59 36-87 20Z"/>
+    <path fill="#a8c84d" d="M220 139c-10-15-15-35-10-54 19 14 30 34 32 57 0 10-16 7-22-3Z" opacity="0.95"/>
+    <path fill="#a8c84d" d="M281 135c6-20 19-37 37-48 4 24-3 48-20 66-8 8-20-7-17-18Z" opacity="0.95"/>
+
+    <path fill="#e5ede9" d="M178 326c30-31 69-50 112-56 51-8 103 5 146 34 12 8 21 18 28 30-10 33-35 61-67 76-51 23-112 12-151-28-21 11-45 7-68-56Z"/>
+    <path fill="#d5e1dc" d="M246 380c28 14 63 15 95 3 37-14 69-43 88-77 17 12 29 28 35 48-13 34-41 62-75 75-48 18-102 8-143-49Z" opacity="0.72"/>
+
+    <path fill="#174b48" d="M336 214c43 0 84 16 116 45 15 13 32 25 51 31-15 25-40 43-70 49-44 8-86-9-113-44-21-27-14-81 16-81Z"/>
+    <path fill="#e5ede9" d="M312 266c32-24 73-29 110-13 19 8 37 20 55 34-10 24-31 41-58 45-37 6-75-8-101-36-8-9-12-20-6-30Z"/>
+    <path fill="#174b48" d="M452 288c23 3 41 3 55-1-8 15-21 27-38 34-14-8-20-19-17-33Z"/>
+    <circle cx="367" cy="221" r="9" fill="#f8f4ed"/>
+    <path fill="none" stroke="#174b48" stroke-linecap="round" stroke-width="11" d="M364 297c28 19 66 22 95 4"/>
+
+    <path fill="#287b78" d="M143 420c30 30 70 50 115 55-41 22-89 24-132 5-24-10-42-25-54-42 23 3 46-3 71-18Z"/>
   </g>
 </svg>

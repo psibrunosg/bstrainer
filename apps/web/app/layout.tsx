@@ -15,15 +15,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "bstrainer — o diário de força",
+  title: "BS Trainer | Diário de força",
   description:
     "Registre cada série. Veja cada progresso. Prescrição e execução de treino de força para personal trainers e atletas.",
   manifest: "/manifest.json",
-  icons: { icon: "/icon.svg" },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: ["/icon.svg"],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport = {
-  themeColor: "#F8F4ED",
+  themeColor: "#f8f4ed",
 };
 
 export default function RootLayout({
