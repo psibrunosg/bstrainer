@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     "Registre cada série. Veja cada progresso. Prescrição e execução de treino de força para personal trainers e atletas.",
   manifest: "/manifest.json",
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
-    shortcut: ["/icon.svg"],
-    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    shortcut: ["/icon.png"],
+    apple: [{ url: "/icon.png", type: "image/png" }],
   },
 };
 
