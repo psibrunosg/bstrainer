@@ -7,3 +7,6 @@ export * from "./templates/types";
 export * from "./templates/library";
 export * from "./templates/instantiate";
 export * from "./recommend/plan-recommender";
+export * from "./gamification/strength-score";
+export * from "./gamification/xp";
+export * from "./gamification/badges";

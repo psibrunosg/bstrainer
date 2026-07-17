@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Readiness, WorkoutSession } from "@bstrainer/domain";
-import { suggestAdjustment } from "@bstrainer/engine";
+import { suggestAdjustment, weeklyStreak } from "@bstrainer/engine";
 import {
   clearActiveSession,
   createFreeSession,
   loadActiveSession,
   saveActiveSession,
 } from "@/lib/workout/storage";
+import { loadSessions } from "@/lib/data/sessions";
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const READINESS_FIELDS: { key: keyof Readiness; label: string }[] = [
   { key: "sleep", label: "Sono" },
@@ -37,10 +40,24 @@ export default function TrainPage() {
     energy: null,
   });
   const [deloadWarning, setDeloadWarning] = useState<string | null>(null);
+  const [streak, setStreak] = useState(0);
+  // ponytail: janela móvel de 7 dias como proxy de "treinou essa semana" —
+  // mais simples que replicar o corte por segunda-feira do weeklyStreak().
+  const [trainedRecently, setTrainedRecently] = useState(true);
 
   useEffect(() => {
     setActive(loadActiveSession());
     setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    loadSessions().then((sessions) => {
+      setStreak(weeklyStreak(sessions));
+      const cutoff = Date.now() - WEEK_MS;
+      setTrainedRecently(
+        sessions.some((s) => Date.parse(s.startedAt) >= cutoff),
+      );
+    });
   }, []);
 
   useEffect(() => {
@@ -105,6 +122,17 @@ export default function TrainPage() {
         </div>
       ) : (
         <div className="space-y-4">
+          {streak > 0 && (
+            <p
+              className={`text-sm ${trainedRecently ? "text-mute" : "text-signal"}`}
+            >
+              Sequência de {streak} semana{streak > 1 ? "s" : ""}
+              {trainedRecently
+                ? " mantida."
+                : " — treine essa semana pra não perder."}
+            </p>
+          )}
+
           <div className="space-y-3 rounded-lg border border-line bg-surface p-4">
             <h2 className="caps-label font-display font-semibold text-mute">
               Como você está hoje?
