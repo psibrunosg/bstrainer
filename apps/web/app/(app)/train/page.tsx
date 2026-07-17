@@ -2,13 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { WorkoutSession } from "@bstrainer/domain";
+import type { Readiness, WorkoutSession } from "@bstrainer/domain";
+import { suggestAdjustment } from "@bstrainer/engine";
 import {
   clearActiveSession,
   createFreeSession,
   loadActiveSession,
   saveActiveSession,
 } from "@/lib/workout/storage";
+
+const READINESS_FIELDS: { key: keyof Readiness; label: string }[] = [
+  { key: "sleep", label: "Sono" },
+  { key: "soreness", label: "Dor muscular" },
+  { key: "energy", label: "Energia" },
+];
 
 function formatElapsed(startedAt: string, now: number): string {
   const totalSec = Math.max(0, Math.floor((now - Date.parse(startedAt)) / 1000));
@@ -24,6 +31,12 @@ export default function TrainPage() {
   const [active, setActive] = useState<WorkoutSession | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [readiness, setReadiness] = useState<Readiness>({
+    sleep: null,
+    soreness: null,
+    energy: null,
+  });
+  const [deloadWarning, setDeloadWarning] = useState<string | null>(null);
 
   useEffect(() => {
     setActive(loadActiveSession());
@@ -37,8 +50,23 @@ export default function TrainPage() {
   }, [active]);
 
   function startFreeSession() {
-    const session = createFreeSession();
-    saveActiveSession(session);
+    // ponytail: sem histórico de sessão anterior ainda, então lastSessionRpe/recentE1rmTrend
+    // ficam null — upgrade path é ler a última sessão de loadSessionHistory() quando existir.
+    const { recommendation, reason } = suggestAdjustment({
+      readiness,
+      lastSessionRpe: null,
+      recentE1rmTrend: null,
+    });
+    if (recommendation === "deload") {
+      setDeloadWarning(reason);
+      return;
+    }
+    saveActiveSession({ ...createFreeSession(), readiness });
+    router.push("/train/session");
+  }
+
+  function confirmDeloadAndStart() {
+    saveActiveSession({ ...createFreeSession(), readiness });
     router.push("/train/session");
   }
 
@@ -76,13 +104,55 @@ export default function TrainPage() {
           </button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={startFreeSession}
-          className="h-16 w-full rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
-        >
-          Iniciar treino livre
-        </button>
+        <div className="space-y-4">
+          <div className="space-y-3 rounded-lg border border-line bg-surface p-4">
+            <h2 className="caps-label font-display font-semibold text-mute">
+              Como você está hoje?
+            </h2>
+            {READINESS_FIELDS.map((field) => (
+              <div key={field.key} className="flex items-center justify-between gap-2">
+                <span className="text-sm">{field.label}</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() =>
+                        setReadiness((prev) => ({
+                          ...prev,
+                          [field.key]: prev[field.key] === value ? null : value,
+                        }))
+                      }
+                      aria-label={`${field.label} ${value}`}
+                      aria-pressed={readiness[field.key] === value}
+                      className={`tnum h-9 w-9 rounded border text-sm font-semibold transition active:scale-[0.98] ${
+                        readiness[field.key] === value
+                          ? "border-signal bg-signal text-ink"
+                          : "border-line bg-ink text-mute"
+                      }`}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {deloadWarning && (
+            <p className="text-sm text-err">
+              Sinal de baixa recuperação: {deloadWarning} Considere reduzir a carga hoje.
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={deloadWarning ? confirmDeloadAndStart : startFreeSession}
+            className="h-16 w-full rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
+          >
+            {deloadWarning ? "Começar mesmo assim" : "Começar treino"}
+          </button>
+        </div>
       )}
 
       <p className="text-sm text-mute">

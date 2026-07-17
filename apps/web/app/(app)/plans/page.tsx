@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { PlanTemplateSpec } from "@bstrainer/engine";
+import { recommendTemplate, templateLibrary } from "@bstrainer/engine";
 import { listPlans, type PlanSummary } from "@/lib/data/plans";
+import { getMyAthleteProfile } from "@/lib/data/athlete";
+import { UseTemplateButton } from "@/components/UseTemplateButton";
 
 const GOAL_LABEL: Record<string, string> = {
   hypertrophy: "Hipertrofia",
@@ -16,6 +20,10 @@ const GOAL_LABEL: Record<string, string> = {
 export default function PlansPage() {
   const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [recommendation, setRecommendation] = useState<{
+    template: PlanTemplateSpec;
+    reasons: string[];
+  } | null>(null);
 
   useEffect(() => {
     listPlans().then((p) => {
@@ -24,11 +32,48 @@ export default function PlansPage() {
     });
   }, []);
 
+  // Recomendação só faz sentido pra quem ainda não tem plano ativo.
+  useEffect(() => {
+    if (!loaded || plans.length > 0) return;
+    getMyAthleteProfile().then((profile) => {
+      if (!profile) return;
+      const result = recommendTemplate(profile, templateLibrary);
+      if (result) setRecommendation({ template: result.template, reasons: result.reasons });
+    });
+  }, [loaded, plans.length]);
+
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
       <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
         Fichas
       </h1>
+
+      {loaded && plans.length === 0 && recommendation && (
+        <div className="space-y-3 rounded-lg border border-signal/30 bg-signal/5 p-4">
+          <div>
+            <p className="caps-label font-display font-semibold text-signal">
+              Recomendado pra você
+            </p>
+            <h2 className="mt-1 font-display text-xl font-semibold">
+              {recommendation.template.name}
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {recommendation.reasons.map((reason) => (
+              <span
+                key={reason}
+                className="rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-mute"
+              >
+                {reason}
+              </span>
+            ))}
+          </div>
+          <p className="text-sm leading-relaxed text-text">
+            {recommendation.template.rationale}
+          </p>
+          <UseTemplateButton templateId={recommendation.template.id} />
+        </div>
+      )}
 
       {loaded && plans.length > 0 && (
         <ul className="space-y-2">

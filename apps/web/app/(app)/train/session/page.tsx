@@ -9,6 +9,8 @@ import type {
 } from "@bstrainer/domain";
 import { e1rmEpley, sessionTonnage } from "@bstrainer/engine";
 import { EXERCISES, exerciseName } from "@/lib/workout/exercises";
+import { getSubstitutes } from "@/lib/data/substitutions";
+import type { ExerciseOption } from "@/lib/data/plans";
 import { syncSession } from "@/lib/workout/sync";
 import {
   bestHistoricalE1rm,
@@ -87,6 +89,15 @@ export default function TrainSessionPage() {
   // Finalização
   const [askingSrpe, setAskingSrpe] = useState(false);
   const [finished, setFinished] = useState<WorkoutSession | null>(null);
+
+  // Substituição de exercício — nome/mídia de substitutos vindos do Supabase
+  // podem não estar no catálogo local (EXERCISES), então guardamos override aqui.
+  const [substitutePickerFor, setSubstitutePickerFor] = useState<string | null>(null);
+  const [substituteOptions, setSubstituteOptions] = useState<ExerciseOption[]>([]);
+  const [loadingSubs, setLoadingSubs] = useState(false);
+  const [substituteOverride, setSubstituteOverride] = useState<
+    Record<string, { name: string; mediaUrl: string | null }>
+  >({});
 
   useEffect(() => {
     const active = loadActiveSession();
@@ -177,6 +188,38 @@ export default function TrainSessionPage() {
     });
     setSearch("");
     setShowPicker(false);
+  }
+
+  function openSubstitutePicker(rowId: string, exerciseId: string) {
+    setSubstitutePickerFor(rowId);
+    setSubstituteOptions([]);
+    setLoadingSubs(true);
+    getSubstitutes(exerciseId).then((opts) => {
+      setSubstituteOptions(opts);
+      setLoadingSubs(false);
+    });
+  }
+
+  function closeSubstitutePicker() {
+    setSubstitutePickerFor(null);
+    setSubstituteOptions([]);
+  }
+
+  function applySubstitute(rowId: string, option: ExerciseOption) {
+    setSubstituteOverride((prev) => ({
+      ...prev,
+      [option.id]: { name: option.name, mediaUrl: option.mediaUrl },
+    }));
+    setSession((prev) => {
+      if (!prev) return prev;
+      const exercises = prev.exercises.map((e) =>
+        e.id === rowId
+          ? { ...e, exerciseId: option.id, wasSubstituted: true }
+          : e,
+      );
+      return { ...prev, exercises };
+    });
+    closeSubstitutePicker();
   }
 
   function removeExercise(rowId: string) {
@@ -438,8 +481,10 @@ export default function TrainSessionPage() {
           const last = lastPerf[exercise.exerciseId];
           const pr = prHit[exercise.exerciseId];
           const parsedLoad = parseLoad(draft.load);
+          const override = substituteOverride[exercise.exerciseId];
           const option = EXERCISES.find((e) => e.id === exercise.exerciseId);
-          const mediaSrc = publicAssetPath(option?.mediaUrl);
+          const displayName = override?.name ?? exerciseName(exercise.exerciseId);
+          const mediaSrc = publicAssetPath(override?.mediaUrl ?? option?.mediaUrl);
           return (
             <section
               key={exercise.id}
@@ -460,7 +505,7 @@ export default function TrainSessionPage() {
               <header className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h2 className="font-display text-lg font-semibold">
-                    {exerciseName(exercise.exerciseId)}
+                    {displayName}
                   </h2>
                   <div className="mt-0.5 flex flex-wrap items-center gap-2">
                     {e1rm > 0 && (
@@ -475,21 +520,75 @@ export default function TrainSessionPage() {
                     )}
                   </div>
                 </div>
-                {pr != null ? (
-                  <span className="animate-pr-pop shrink-0 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gold">
-                    PR · {formatKg(Math.round(pr * 10) / 10)} kg
-                  </span>
-                ) : (
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => removeExercise(exercise.id)}
-                    aria-label={`Remover ${exerciseName(exercise.exerciseId)}`}
-                    className="h-9 w-9 shrink-0 rounded-lg text-mute transition active:bg-surface-2"
+                    onClick={() => openSubstitutePicker(exercise.id, exercise.exerciseId)}
+                    aria-label={`Trocar ${displayName}`}
+                    className="h-9 w-9 rounded-lg text-mute transition active:bg-surface-2"
                   >
-                    ✕
+                    ⇄
                   </button>
-                )}
+                  {pr != null ? (
+                    <span className="animate-pr-pop rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gold">
+                      PR · {formatKg(Math.round(pr * 10) / 10)} kg
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => removeExercise(exercise.id)}
+                      aria-label={`Remover ${displayName}`}
+                      className="h-9 w-9 rounded-lg text-mute transition active:bg-surface-2"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </header>
+
+              {/* Trocar exercício */}
+              {substitutePickerFor === exercise.id && (
+                <div className="space-y-2 rounded-lg border border-line bg-ink p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="caps-label text-mute">Trocar por</p>
+                    <button
+                      type="button"
+                      onClick={closeSubstitutePicker}
+                      aria-label="Fechar troca"
+                      className="h-8 w-8 rounded text-mute transition active:bg-surface-2"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {loadingSubs && (
+                    <p className="px-1 py-2 text-sm text-mute">Buscando…</p>
+                  )}
+                  {!loadingSubs && substituteOptions.length === 0 && (
+                    <p className="px-1 py-2 text-sm text-mute">
+                      Sem substitutos cadastrados pra este exercício.
+                    </p>
+                  )}
+                  {!loadingSubs &&
+                    substituteOptions.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => applySubstitute(exercise.id, opt)}
+                        className="flex min-h-11 w-full items-center gap-3 rounded px-2 py-2 text-left text-sm transition active:bg-surface-2"
+                      >
+                        {publicAssetPath(opt.mediaUrl) && (
+                          <img
+                            src={publicAssetPath(opt.mediaUrl) ?? ""}
+                            alt=""
+                            loading="lazy"
+                            className="h-9 w-9 shrink-0 rounded border border-line bg-ink object-contain"
+                          />
+                        )}
+                        <span>{opt.name}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
 
               {/* Séries confirmadas */}
               {exercise.sets.length > 0 && (
