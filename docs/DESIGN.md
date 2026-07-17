@@ -1,83 +1,83 @@
-# BSTRAINER — Direção de Design: "FERRO EDITORIAL"
+# BSTRAINER — Direção de Design: "A Matilha em Movimento"
 
-Autoria: Fable (gestor de design). Documento normativo — executores implementam sem inventar.
+Documento normativo — reflete o que está implementado (`apps/web/app/globals.css`, `apps/web/app/page.tsx`), não um plano à parte. Editado por último em 2026-07 para corrigir o drift do documento original ("Ferro Editorial", tema escuro laranja) frente ao app real, que foi rebrandeado pro lobo/matilha em tema claro.
 
 ## 1. Conceito
 
-Revista de performance impressa em tela: fundo quase-preto quente, tipografia condensada gigante em caixa alta para números e headlines (energia Nike), corpo sereno e espaçado (restraint Apple), uma única cor de assinatura — laranja-sinal — usada com disciplina de cardápio McDonald's: só aparece onde há ação ou conquista. Nada flutua, nada brilha, nada tem gradiente: superfícies chapadas, bordas 1px, espaço negativo generoso (Zara). Cada série registrada é um fato impresso. Personalidade: treinador exigente e elegante, fala pouco, comemora alto quando você merece.
+Um lobo em movimento — força tranquila, constância, cuidado consigo. Fundo claro quente (creme, não branco puro), tipografia serifada grande (Cormorant Garamond) para headlines e números, corpo em Inter. Uma cor de assinatura — verde-petróleo — usada com disciplina: só aparece onde há ação, CTA ou conquista. Superfícies chapadas, bordas 1px, espaço negativo generoso. Cada série registrada é um fato. Personalidade: companheiro de treino sereno, não hype de academia.
 
 ## 2. Tokens
 
-### Paleta
+### Paleta (`apps/web/app/globals.css`)
 | Token | Hex | Uso |
 |---|---|---|
-| ink | #0C0A09 | fundo base (preto quente, nunca zinc frio) |
-| surface | #171412 | cards, nav, inputs |
-| surface-2 | #221E1B | hover, célula ativa, chips |
-| line | #2E2924 | bordas 1px (única separação) |
-| text | #F5F2EE | texto primário (branco-osso) |
-| text-mute | #8A817A | labels, metadados |
-| signal | #FF4D00 | accent primário — CTA, série ativa, timer |
-| signal-press | #D94100 | pressed |
-| gold | #E8B84B | exclusivo de PR e recordes |
-| ok | #3FB950 | série concluída (check, nunca fundos grandes) |
-| err | #F0453A | falha/deletar |
+| ink | #f8f4ed | fundo base (creme quente) |
+| surface | #fffdf9 | cards, nav, inputs |
+| surface-2 | #e5ede9 | hover, célula ativa, barra de progresso |
+| line | #c2d0c8 | bordas 1px (única separação) |
+| text | #174b48 | texto primário (verde-petróleo escuro) |
+| mute | #63807a | labels, metadados |
+| signal | #287b78 | accent primário — CTA, série ativa, timer, XP |
+| signal-press | #1c625f | pressed |
+| gold | #a8c84d | exclusivo de PR e recordes |
+| ok | #3f8d6d | série concluída, vínculo ativo |
+| err | #c45a4b | falha/deletar |
 
-Regras: signal ≤ ~5% de qualquer tela. gold só existe se houve PR.
+Regras: signal é o único accent saturado por tela. gold só existe se houve PR.
 
-### Tipografia (Google Fonts)
-- Display: Archivo (wght 500–900) — headlines caps tracking-tight, números de carga, timer.
-- Corpo/UI: Inter (400–600), `font-feature-settings: "tnum"` em números tabulares.
-- Escala px: 12 caps (+0.08em) · 14 corpo · 16 input · 20 título card · 28 título tela · 40 timer/kg · 64–96 hero (Archivo 900 itálico).
+### Tipografia
+- Display: Cormorant Garamond (`--font-display`, via `next/font`) — headlines, números de carga, timer, hero.
+- Corpo/UI: Inter (`--font-body`), `.tnum` (`font-feature-settings: "tnum"`) em todo número tabular (kg, reps, XP, streak).
+- Escala px em uso: 11 pill/badge · 12 caps-label (`.caps-label`, +0.08em, uppercase) · 14 corpo · 15–16 botão/input · 18–20 título de card · 28 título de tela (`text-[28px] font-extrabold uppercase tracking-tight`) · 36–96 hero landing (`font-black italic` na seção final).
 
 ### Forma
-- Raios: 4px inputs/células, 8px cards/botões, 9999px só badges. Nunca rounded-2xl+.
-- Sombras: nenhuma. Elevação = borda line + fundo mais claro. Exceção: bottom-sheet `shadow-[0_-8px_32px_rgba(0,0,0,0.5)]`.
-- Espaçamento: base 4; card 16; gutter 20; seções landing 96–128 vertical.
+- Raios: `rounded` (4px) em células/inputs pequenos, `rounded-lg` (8px) em cards/botões — padrão dominante do app. `rounded-full` só em pills (badge PR, chips de razão/equipamento, botão CTA da landing, círculo do nav central). Nunca `rounded-2xl+`.
+- Sombras: nenhuma no app (`(app)/*`). Elevação = borda `line` + fundo `surface` sobre `ink`. Exceção: overlay de sRPE no fim do treino, `shadow-[0_-8px_32px_rgba(0,0,0,0.5)]`.
+- Espaçamento: containers `mx-auto max-w-lg space-y-6 p-4` (mobile-first, a maioria das telas do app usa esse contêiner exato); landing usa `max-w-6xl` com padding vertical 12–32 (`py-12`…`py-32`).
 
-## 3. Componentes
+## 3. Componentes (conferidos no código, não aspiracionais)
 
-- **Botão primário:** h-12 rounded-lg bg-signal text-#0C0A09 font-semibold 15px. Pressed: signal-press + scale-0.98. Full-width mobile.
-- **Botão secundário:** h-12 rounded-lg border-line bg-surface text. Hover surface-2.
-- **Ghost:** text-mute → text no hover, sem fundo. Cancelar/pular.
-- **Card:** rounded-lg border-line bg-surface p-4. Título Archivo 600 caps 12px mute + valor grande. Sem ícone decorativo.
-- **Input:** h-12 rounded bg-surface border-line px-4 text-base; focus border-signal (sem ring/glow). Label caps 12px acima.
-- **Nav inferior:** h-16 bg-ink/95 backdrop-blur-sm border-t-line, 4 itens, ícone 24px stroke 1.5 + label 10px caps. Ativo text; inativo mute. Item central "Treinar": círculo 48px bg-signal ícone escuro.
-- **Timer descanso:** barra fixa acima da nav, h-14 bg-surface-2 border-t-line; tempo Archivo 700 40→28px tnum esquerda; -15s/+15s/Pular ghost direita. Últimos 10s: dígitos signal.
-- **Célula de série:** h-14 grid [32px_1fr_1fr_56px] gap-2 border-b-line. Nº caps mute; kg/reps caixas bg-surface rounded center Archivo 600 20px; check 44×44 border-line. Concluída: fundo surface, check ok/15 text-ok. Ativa: borda esquerda 2px signal.
-- **Badge PR:** pílula h-6 px-2.5 gold/12 text-gold border-gold/30 11px semibold. "PR · 92,5 kg". Sem emoji/troféu.
+- **Botão primário:** `h-12 rounded-lg bg-signal text-ink font-semibold text-[15px] transition active:scale-[0.98] active:bg-signal-press`. Full-width no app; `rounded-full px-8` na landing.
+- **Botão secundário:** `h-12 rounded-lg border border-line bg-surface text-text active:bg-surface-2`.
+- **Ghost:** `text-mute` → `text-text` no hover/active, sem fundo. Cancelar/pular/fechar picker.
+- **Card:** `rounded-lg border border-line bg-surface p-4`. Título `caps-label font-display font-semibold text-mute` + valor grande `font-display text-xl font-bold`.
+- **Input:** `h-11`/`h-12 rounded border border-line bg-ink px-4 text-base outline-none focus:border-signal` (sem ring/glow). Placeholder `text-mute`.
+- **Nav inferior** (`(app)/layout.tsx`): item central "Treinar" é um círculo `bg-signal`; demais itens texto+ícone, ativo `text-signal`/`text-text`, inativo `text-mute`. "Alunos" só aparece pra quem é personal.
+- **Célula de série** (logger): grid `h-12 grid-cols-[28px_1fr_1fr_40px]` — número caps mute, kg/reps `tnum font-display font-semibold` centralizado, botão remover `✕` `h-9 w-9 rounded-lg text-mute active:bg-surface-2`.
+- **Badge/chip:** pílula `rounded-full border px-2.5 py-1 text-[11px]`. PR usa `border-gold/30 bg-gold/10 text-gold`; razão de recomendação e equipamento usam `border-line bg-surface text-mute`; badge de conquista ganha `border-signal/30 bg-signal/10 text-signal` quando `earned`, `opacity-50` quando não.
+- **Barra de progresso:** `h-1.5`/`h-2 overflow-hidden rounded-full bg-surface-2` com fill `h-full rounded-full bg-signal transition-all`. Usada em XP/nível, metas, mesociclo (mock da landing).
 
 ## 4. Motion
 
-`ease-out-quart: cubic-bezier(0.25,1,0.5,1)` · `spring: cubic-bezier(0.34,1.56,0.64,1)`
+`ease-out-quart: cubic-bezier(0.25,1,0.5,1)` · `spring: cubic-bezier(0.34,1.56,0.64,1)` (`globals.css`)
 
-1. Confirmar série: check scale 0.8→1 spring 250ms; linha desliza fade 200ms. Vibrate 10ms.
-2. PR: badge gold scale 0.6→1 spring 400ms + flash de borda gold 600ms. Sem confete.
-3. Timer zerando: últimos 3s dígitos translateY 8px fade 150ms; ao zerar barra pulsa signal 2× 300ms + vibrate 30ms.
-4. Transição de tela: slide 24px + fade 280ms ease-out-quart. Bottom-sheet translateY 320ms.
-5. Loading: skeleton chapado surface-2 shimmer 1.4s; count-up 400ms só em dashboard.
+1. Confirmar série / PR: `.animate-pr-pop` — scale 0.6→1 + fade, spring 400ms.
+2. Série check: `.animate-set-check` — scale 0.8→1, spring 250ms. Vibrate 30ms em PR (`navigator.vibrate`).
+3. Timer de descanso zerando: `.animate-timer-pulse` — pulsa `surface-2`↔`signal/30%` 2× 300ms + vibrate `[200,100,200]`. Últimos 10s: dígitos `text-signal`.
+4. Loading: skeleton chapado `bg-surface-2 animate-pulse` (Tailwind padrão), sem shimmer customizado.
 
-Regra: nada >400ms; prefers-reduced-motion desativa tudo exceto opacity.
+Regra: nada >400ms; `prefers-reduced-motion` zera todas as durações de animação/transição (`globals.css`).
 
-## 5. Landing (/)
+## 5. Landing (`/`)
 
-1. **Hero** — ink, imagem b&w alto contraste de barra carregada sangrando à direita. Archivo 900 itálico 96px: "O TREINO NÃO MENTE." Sub Inter 18 mute: "Registre cada série. Veja cada progresso. bstrainer é o diário de força que seu treinador — ou você — sempre quis." CTA signal "Começar grátis" + ghost "Sou personal".
-2. **Prova** — surface, 3 números Archivo 700 40px: séries registradas · PRs este mês · nota.
-3. **Logger** — 50/50 editorial, screenshot em moldura chapada. "Registrar em 3 toques." / "Peso, reps, feito. O timer já começou."
-4. **Personal** — invertido. "Sua planilha, aposentada." / "Monte a periodização, entregue no celular do aluno, acompanhe em tempo real."
-5. **Progresso** — gráfico e1RM linha signal sobre ink. "O gráfico que sobe junto com você."
-6. **Pricing** — 3 cards borda line, meio com borda signal + "Mais escolhido": Solo R$0 · Atleta R$19/mês · Personal R$49/mês. Lista com traços, não checks.
-7. **CTA final** — ink, Archivo 900 "HOJE TEM TREINO." Botão "Criar conta grátis". Footer 1 linha.
+Copy real, não aspiracional — ver `apps/web/app/page.tsx` pra qualquer ajuste.
+
+1. **Hero** — `caps-label` "bstrainer · a matilha em movimento" + `TREINAR É / CUIDAR DE SI.` (Cormorant 96px/6xl-8xl) + imagem do lobo (`lobo-movimento.png`) à direita. CTA "Começar grátis" (pill signal) + ghost "Sou personal →".
+2. **Prova** — 3 números: 78 exercícios curados em pt-BR · 10 periodizações da literatura · 3s pra registrar uma série.
+3. **Logger** — "Registrar em 3 toques." + mock da célula de série com PR badge e timer.
+4. **Personal** — "Sua planilha, aposentada." + mock de mesociclo com barra de progresso e lista de alunos.
+5. **Progresso** — "O gráfico que sobe junto com você." + sparkline SVG de e1RM.
+6. **Pricing** — 3 cards `border-line`, meio com `border-signal` + "Mais escolhido": Solo R$0 · Atleta R$19/mês · Personal R$49/mês. Lista com travessão, não check.
+7. **CTA final** — `font-black italic` "HOJE TEM TREINO." + botão + footer 1 linha (crédito wger CC-BY-SA).
 
 ## 6. Não fazer
 
-1. Nenhum gradiente, glow, blur decorativo. Glassmorphism proibido (exceto blur funcional da nav).
-2. Nenhum emoji em UI/copy. Celebração = tipografia + gold.
-3. Nenhum roxo/violeta/índigo; emerald não é accent (ok verde é só estado).
-4. Sem rounded-2xl+, sem shadow-xl empilhada.
-5. Sem feature-icon em círculo pastel; features usam screenshot ou número.
+1. Nenhum gradiente, glow, blur decorativo fora dos dois blobs `blur-3xl` do hero (decoração de fundo, não de componente).
+2. Nenhum emoji em UI/copy. Celebração = tipografia + gold. (Exceção pontual já em produção: `⇄`/`✕` como glifo de ícone funcional, não emoji decorativo.)
+3. Nenhum laranja/roxo/violeta — a paleta é verde-petróleo sobre creme, não mais "Ferro" laranja-sobre-preto.
+4. Sem `rounded-2xl+`, sem `shadow-xl` empilhada.
+5. Sem feature-icon em círculo pastel; features usam mock de UI real ou número.
 6. Copy proibida: "eleve seu treino", "desbloqueie potencial", "revolucione", "sem esforço", "tudo em um só lugar".
-7. Hero assimétrico editorial; proibido badge-pílula "Novo" centralizada.
-8. Um accent por tela.
-9. Números sempre Archivo/tnum.
-10. Dark é o único tema por ora.
+7. Um accent saturado por tela — `signal` é o único.
+8. Números sempre `font-display`/`.tnum`.
+9. Claro é o único tema por ora — não reintroduzir o dark "Ferro" sem decisão de produto explícita.

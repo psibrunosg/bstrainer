@@ -1,19 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   listTrainers,
   requestTrainer,
   type TrainerProfile,
 } from "@/lib/data/trainers";
+import { getMyActiveTrainerLink, type ActiveTrainerLink } from "@/lib/data/clients";
 
 export default function PersonalPage() {
   const [trainers, setTrainers] = useState<TrainerProfile[]>([]);
+  const [activeTrainer, setActiveTrainer] = useState<ActiveTrainerLink | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const reload = useCallback(() => {
     listTrainers().then(setTrainers);
+    getMyActiveTrainerLink().then(setActiveTrainer);
   }, []);
 
   useEffect(() => {
@@ -43,6 +47,25 @@ export default function PersonalPage() {
       </div>
 
       {message && <p className="rounded-lg border border-line bg-surface p-3 text-sm text-text">{message}</p>}
+
+      {activeTrainer && (
+        <article className="flex items-center justify-between rounded-lg border border-signal/30 bg-signal/5 p-5">
+          <div>
+            <p className="caps-label font-display font-semibold text-signal">
+              Seu personal
+            </p>
+            <h2 className="mt-1 font-display text-xl font-semibold">
+              {activeTrainer.name}
+            </h2>
+          </div>
+          <Link
+            href={`/messages?id=${activeTrainer.trainerId}&name=${encodeURIComponent(activeTrainer.name)}`}
+            className="h-10 rounded-full bg-signal px-5 text-sm font-semibold leading-10 text-surface"
+          >
+            Conversar
+          </Link>
+        </article>
+      )}
 
       {trainers.length === 0 ? (
         <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">

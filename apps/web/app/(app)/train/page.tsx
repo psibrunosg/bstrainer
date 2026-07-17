@@ -46,8 +46,10 @@ export default function TrainPage() {
   const [trainedRecently, setTrainedRecently] = useState(true);
 
   useEffect(() => {
-    setActive(loadActiveSession());
-    setLoaded(true);
+    loadActiveSession().then((s) => {
+      setActive(s);
+      setLoaded(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function TrainPage() {
     return () => clearInterval(t);
   }, [active]);
 
-  function startFreeSession() {
+  async function startFreeSession() {
     // ponytail: sem histórico de sessão anterior ainda, então lastSessionRpe/recentE1rmTrend
     // ficam null — upgrade path é ler a última sessão de loadSessionHistory() quando existir.
     const { recommendation, reason } = suggestAdjustment({
@@ -78,17 +80,17 @@ export default function TrainPage() {
       setDeloadWarning(reason);
       return;
     }
-    saveActiveSession({ ...createFreeSession(), readiness });
+    await saveActiveSession({ ...createFreeSession(), readiness });
     router.push("/train/session");
   }
 
-  function confirmDeloadAndStart() {
-    saveActiveSession({ ...createFreeSession(), readiness });
+  async function confirmDeloadAndStart() {
+    await saveActiveSession({ ...createFreeSession(), readiness });
     router.push("/train/session");
   }
 
-  function discardActive() {
-    clearActiveSession();
+  async function discardActive() {
+    await clearActiveSession();
     setActive(null);
   }
 

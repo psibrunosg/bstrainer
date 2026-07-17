@@ -1,59 +1,71 @@
+import { openDB, type IDBPDatabase } from "idb";
 import { workoutSessionSchema, type WorkoutSession } from "@bstrainer/domain";
 
 /**
- * Persistência local do logger (pré-Supabase).
- * Os dados já seguem o schema WorkoutSession de @bstrainer/domain,
- * então a migração para o banco é só trocar a camada de storage.
+ * Persistência local do logger — IndexedDB (era localStorage).
+ * ponytail: appendToSessionHistory agora é upsert por session.id (era push
+ * num array serializado), o que também elimina risco de duplicata se uma
+ * sessão fosse anexada duas vezes.
  */
-export const ACTIVE_SESSION_KEY = "bstrainer.activeSession";
-export const SESSION_HISTORY_KEY = "bstrainer.sessionHistory";
+const DB_NAME = "bstrainer";
+const DB_VERSION = 1;
+export const ACTIVE_SESSION_STORE = "activeSession";
+export const SESSION_HISTORY_STORE = "sessionHistory";
+const ACTIVE_SESSION_KEY = "current";
 
 /** clientId placeholder até existir auth/Supabase. */
 export const LOCAL_CLIENT_ID = "00000000-0000-4000-8000-000000000001";
 
-export function loadActiveSession(): WorkoutSession | null {
+let dbPromise: Promise<IDBPDatabase> | null = null;
+
+function getDb(): Promise<IDBPDatabase> | null {
   if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(ACTIVE_SESSION_KEY);
+  if (!dbPromise) {
+    dbPromise = openDB(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        db.createObjectStore(ACTIVE_SESSION_STORE);
+        db.createObjectStore(SESSION_HISTORY_STORE);
+      },
+    });
+  }
+  return dbPromise;
+}
+
+export async function loadActiveSession(): Promise<WorkoutSession | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const raw = await db.get(ACTIVE_SESSION_STORE, ACTIVE_SESSION_KEY);
   if (!raw) return null;
-  try {
-    const parsed = workoutSessionSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
+  const parsed = workoutSessionSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
 }
 
-export function saveActiveSession(session: WorkoutSession): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(session));
+export async function saveActiveSession(session: WorkoutSession): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.put(ACTIVE_SESSION_STORE, session, ACTIVE_SESSION_KEY);
 }
 
-export function clearActiveSession(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(ACTIVE_SESSION_KEY);
+export async function clearActiveSession(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(ACTIVE_SESSION_STORE, ACTIVE_SESSION_KEY);
 }
 
-export function loadSessionHistory(): WorkoutSession[] {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(SESSION_HISTORY_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((item) => workoutSessionSchema.safeParse(item))
-      .filter((r) => r.success)
-      .map((r) => r.data);
-  } catch {
-    return [];
-  }
+export async function loadSessionHistory(): Promise<WorkoutSession[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.getAll(SESSION_HISTORY_STORE);
+  return rows
+    .map((item) => workoutSessionSchema.safeParse(item))
+    .filter((r) => r.success)
+    .map((r) => r.data);
 }
 
-export function appendToSessionHistory(session: WorkoutSession): void {
-  if (typeof window === "undefined") return;
-  const history = loadSessionHistory();
-  history.push(session);
-  window.localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(history));
+export async function appendToSessionHistory(session: WorkoutSession): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.put(SESSION_HISTORY_STORE, session, session.id);
 }
 
 export function createFreeSession(): WorkoutSession {

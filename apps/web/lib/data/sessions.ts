@@ -115,5 +115,5 @@ export async function loadSessions(): Promise<WorkoutSession[]> {
     }
   }
 
-  return loadSessionHistory().filter((s) => s.status === "completed");
+  return (await loadSessionHistory()).filter((s) => s.status === "completed");
 }

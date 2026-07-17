@@ -25,6 +25,7 @@ import {
 } from "@/lib/workout/storage";
 import { PlateCalculator } from "@/components/PlateCalculator";
 import { publicAssetPath } from "@/lib/public-asset";
+import { shareOrDownloadCard } from "@/lib/workout/share-card";
 
 const REST_DEFAULT_SEC = 90;
 const RPE_OPTIONS = ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"];
@@ -89,6 +90,7 @@ export default function TrainSessionPage() {
   // Finalização
   const [askingSrpe, setAskingSrpe] = useState(false);
   const [finished, setFinished] = useState<WorkoutSession | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   // Substituição de exercício — nome/mídia de substitutos vindos do Supabase
   // podem não estar no catálogo local (EXERCISES), então guardamos override aqui.
@@ -100,23 +102,25 @@ export default function TrainSessionPage() {
   >({});
 
   useEffect(() => {
-    const active = loadActiveSession();
-    setSession(active);
-    setLoaded(true);
-    // pré-carrega última performance e baseline de PR dos exercícios já na sessão
-    if (active) {
-      const perf: Record<string, LastPerformance | null> = {};
-      for (const ex of active.exercises) {
-        perf[ex.exerciseId] = lastPerformanceFor(ex.exerciseId);
-        prBaseline.current[ex.exerciseId] = bestHistoricalE1rm(ex.exerciseId);
+    loadActiveSession().then(async (active) => {
+      setSession(active);
+      setLoaded(true);
+      // pré-carrega última performance e baseline de PR dos exercícios já na sessão
+      if (active) {
+        const perf: Record<string, LastPerformance | null> = {};
+        for (const ex of active.exercises) {
+          perf[ex.exerciseId] = await lastPerformanceFor(ex.exerciseId);
+          prBaseline.current[ex.exerciseId] = await bestHistoricalE1rm(ex.exerciseId);
+        }
+        setLastPerf(perf);
       }
-      setLastPerf(perf);
-    }
+    });
   }, []);
 
   useEffect(() => {
     if (session && session.status === "in_progress") {
-      saveActiveSession(session);
+      // fire-and-forget: escrita no IndexedDB não deve travar o input a cada série
+      void saveActiveSession(session);
     }
   }, [session]);
 
@@ -170,10 +174,10 @@ export default function TrainSessionPage() {
     }));
   }
 
-  function addExercise(exerciseId: string) {
-    const last = lastPerformanceFor(exerciseId);
+  async function addExercise(exerciseId: string) {
+    const last = await lastPerformanceFor(exerciseId);
     setLastPerf((prev) => ({ ...prev, [exerciseId]: last }));
-    prBaseline.current[exerciseId] = bestHistoricalE1rm(exerciseId);
+    prBaseline.current[exerciseId] = await bestHistoricalE1rm(exerciseId);
     setSession((prev) => {
       if (!prev) return prev;
       const row: PerformedExercise = {
@@ -309,7 +313,7 @@ export default function TrainSessionPage() {
     });
   }
 
-  function finishSession(srpe: number) {
+  async function finishSession(srpe: number) {
     if (!session) return;
     const done: WorkoutSession = {
       ...session,
@@ -317,8 +321,8 @@ export default function TrainSessionPage() {
       status: "completed",
       sessionRpe: srpe,
     };
-    appendToSessionHistory(done);
-    clearActiveSession();
+    await appendToSessionHistory(done);
+    await clearActiveSession();
     setAskingSrpe(false);
     setFinished(done);
     setSession(done);
@@ -378,6 +382,21 @@ export default function TrainSessionPage() {
             </li>
           ))}
         </ul>
+        <button
+          type="button"
+          disabled={sharing}
+          onClick={async () => {
+            setSharing(true);
+            try {
+              await shareOrDownloadCard(finished, prCount);
+            } finally {
+              setSharing(false);
+            }
+          }}
+          className="h-12 w-full rounded-lg border border-line bg-surface text-[15px] font-semibold text-text transition active:bg-surface-2 disabled:opacity-50"
+        >
+          {sharing ? "Gerando…" : "Compartilhar treino"}
+        </button>
         <button
           type="button"
           onClick={() => router.push("/train")}

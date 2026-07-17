@@ -12,8 +12,10 @@ export interface LastPerformance {
  * Última série de trabalho registrada para um exercício (histórico local).
  * Usada como ghost/prefill no logger — padrão de todo bom app de treino.
  */
-export function lastPerformanceFor(exerciseId: string): LastPerformance | null {
-  const history = loadSessionHistory()
+export async function lastPerformanceFor(
+  exerciseId: string,
+): Promise<LastPerformance | null> {
+  const history = (await loadSessionHistory())
     .filter((s) => s.status === "completed")
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
@@ -34,11 +36,11 @@ export function lastPerformanceFor(exerciseId: string): LastPerformance | null {
  * Melhor e1RM histórico de um exercício (para detectar PR).
  * Ignora a sessão ativa — comparação é só contra o passado consolidado.
  */
-export function bestHistoricalE1rm(
+export async function bestHistoricalE1rm(
   exerciseId: string,
   history?: WorkoutSession[],
-): number {
-  const sessions = (history ?? loadSessionHistory()).filter(
+): Promise<number> {
+  const sessions = (history ?? (await loadSessionHistory())).filter(
     (s) => s.status === "completed",
   );
   let best = 0;

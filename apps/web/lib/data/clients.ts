@@ -42,6 +42,7 @@ export interface ClientLink {
   status: string;
   invite_email: string | null;
   name: string | null;
+  client_id: string | null;
 }
 
 export async function respondToTrainerRequest(linkId: string, accept: boolean) {
@@ -63,7 +64,7 @@ export async function listClientLinks(): Promise<ClientLink[]> {
 
   const { data } = await supabase
     .from("client_links")
-    .select("id, status, invite_email, profiles:client_id(name)")
+    .select("id, status, invite_email, client_id, profiles:client_id(name)")
     .eq("trainer_id", user.id)
     .order("status", { ascending: true });
 
@@ -71,11 +72,39 @@ export async function listClientLinks(): Promise<ClientLink[]> {
     id: string;
     status: string;
     invite_email: string | null;
+    client_id: string | null;
     profiles: { name: string } | null;
   }[]).map((link) => ({
     id: link.id,
     status: link.status,
     invite_email: link.invite_email,
+    client_id: link.client_id,
     name: link.profiles?.name ?? null,
   }));
+}
+
+export interface ActiveTrainerLink {
+  trainerId: string;
+  name: string;
+}
+
+/** Vínculo ativo do lado do aluno (solo user com personal aceito). */
+export async function getMyActiveTrainerLink(): Promise<ActiveTrainerLink | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("client_links")
+    .select("trainer_id, profiles:trainer_id(name)")
+    .eq("client_id", user.id)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+  const row = data as unknown as { trainer_id: string; profiles: { name: string } | null };
+  return { trainerId: row.trainer_id, name: row.profiles?.name ?? "Seu personal" };
 }

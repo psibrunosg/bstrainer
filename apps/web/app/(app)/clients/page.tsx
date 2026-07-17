@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   inviteClient,
   listClientLinks,
@@ -151,9 +152,19 @@ export default function ClientsPage() {
                     className="flex items-center justify-between border-b border-line px-1 py-3 last:border-b-0"
                   >
                     <span className="text-text">{l.name ?? "Aluno"}</span>
-                    <span className="caps-label text-ok">
-                      {STATUS_LABEL[l.status]}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {l.client_id && (
+                        <Link
+                          href={`/messages?id=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}
+                          className="caps-label text-signal"
+                        >
+                          Conversar
+                        </Link>
+                      )}
+                      <span className="caps-label text-ok">
+                        {STATUS_LABEL[l.status]}
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>
