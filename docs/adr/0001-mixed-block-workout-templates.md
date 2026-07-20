@@ -1,0 +1,3 @@
+# Workout templates use mixed prescribed blocks instead of a separate cardio system
+
+Extending the plan/workout model to cover cardio and interval training (running, cycling, HIIT) alongside existing resistance training required deciding how much to reuse the existing structure. We extended `WorkoutTemplate` with an ordered list of discriminated-union **blocks** (`PrescribedExercise` | `PrescribedActivity` | `PrescribedCircuit`) instead of building a parallel cardio-plan system. This lets one workout mix modalities (e.g. a strength day ending in a bike finisher) and reuses `TrainingPlan`/`Mesocycle`/goal/progression machinery for every modality, at the cost of `WorkoutTemplate.exercises` becoming a discriminated union rather than a flat `PrescribedExercise[]`.

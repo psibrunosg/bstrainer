@@ -1,4 +1,4 @@
-import type { WorkoutSession } from "@bstrainer/domain";
+import { isPerformedExercise, type WorkoutSession } from "@bstrainer/domain";
 import { getTrainingOrgId } from "@/lib/data/memberships";
 import { createClient } from "@/lib/supabase/client";
 
@@ -61,7 +61,7 @@ async function pushSession(session: WorkoutSession): Promise<void> {
   });
   if (sErr) throw sErr;
 
-  for (const ex of session.exercises) {
+  for (const ex of session.blocks.filter(isPerformedExercise)) {
     const { error: eErr } = await supabase.from("performed_exercises").insert({
       id: ex.id,
       session_id: session.id,

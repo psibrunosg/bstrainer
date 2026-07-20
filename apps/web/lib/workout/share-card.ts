@@ -1,4 +1,4 @@
-import type { WorkoutSession } from "@bstrainer/domain";
+import { isPerformedExercise, type WorkoutSession } from "@bstrainer/domain";
 import { sessionTonnage } from "@bstrainer/engine";
 
 /**
@@ -33,7 +33,8 @@ export function renderShareCard(session: WorkoutSession, prCount: number): Blob 
         60_000,
     ),
   );
-  const totalSets = session.exercises.reduce((acc, e) => acc + e.sets.length, 0);
+  const exerciseBlocks = session.blocks.filter(isPerformedExercise);
+  const totalSets = exerciseBlocks.reduce((acc, e) => acc + e.sets.length, 0);
   const tonnage = Math.round(sessionTonnage(session));
 
   if (prCount > 0) {
@@ -71,7 +72,7 @@ export function renderShareCard(session: WorkoutSession, prCount: number): Blob 
   ctx.fillStyle = "#174b48";
   ctx.font = "600 30px Inter, sans-serif";
   let y = 590;
-  for (const ex of session.exercises.slice(0, 10)) {
+  for (const ex of exerciseBlocks.slice(0, 10)) {
     ctx.fillText(`${ex.sets.length}× série${ex.sets.length > 1 ? "s" : ""}`, 80, y);
     y += 52;
   }

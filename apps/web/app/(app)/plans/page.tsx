@@ -7,6 +7,8 @@ import { recommendTemplate, templateLibrary } from "@bstrainer/engine";
 import { listPlans, type PlanSummary } from "@/lib/data/plans";
 import { getMyAthleteProfile } from "@/lib/data/athlete";
 import { UseTemplateButton } from "@/components/UseTemplateButton";
+import { canManageClients } from "@/lib/data/memberships";
+import { listClientLinks, type ClientLink } from "@/lib/data/clients";
 
 const GOAL_LABEL: Record<string, string> = {
   hypertrophy: "Hipertrofia",
@@ -24,6 +26,15 @@ export default function PlansPage() {
     template: PlanTemplateSpec;
     reasons: string[];
   } | null>(null);
+  const [isTrainer, setIsTrainer] = useState(false);
+  const [clients, setClients] = useState<ClientLink[]>([]);
+
+  useEffect(() => {
+    canManageClients().then((trainer) => {
+      setIsTrainer(trainer);
+      if (trainer) listClientLinks().then(setClients);
+    });
+  }, []);
 
   useEffect(() => {
     listPlans().then((p) => {
@@ -41,6 +52,42 @@ export default function PlansPage() {
       if (result) setRecommendation({ template: result.template, reasons: result.reasons });
     });
   }, [loaded, plans.length]);
+
+  if (isTrainer) {
+    const active = clients.filter((c) => c.status === "active");
+    return (
+      <div className="mx-auto max-w-lg space-y-4 p-4">
+        <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+          Fichas
+        </h1>
+        <p className="text-sm text-mute">Escolha um aluno pra criar uma ficha nova.</p>
+        {active.length === 0 ? (
+          <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">
+            Nenhum aluno ativo ainda. Convide alunos em "Alunos".
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {active.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center justify-between rounded-lg border border-line bg-surface p-4"
+              >
+                <span className="text-text">{c.name ?? "Aluno"}</span>
+                {c.client_id && (
+                  <Link
+                    href={`/plans/new?client=${c.client_id}&name=${encodeURIComponent(c.name ?? "Aluno")}`}
+                    className="caps-label text-signal"
+                  >
+                    Criar ficha
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">

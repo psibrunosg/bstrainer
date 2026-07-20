@@ -20,7 +20,7 @@ function mkSession(
     sessionRpe: null,
     readiness: null,
     notes: null,
-    exercises: [],
+    blocks: [],
   };
 }
 

@@ -42,8 +42,9 @@ function mkTemplate(overrides: Partial<PlanTemplateSpec> = {}): PlanTemplateSpec
           {
             name: "Day 1",
             suggestedWeekday: 1,
-            exercises: [
+            blocks: [
               {
+                kind: "exercise",
                 slot: "squat",
                 suggestedVariant: "back squat",
                 priorityEquipment: "barbell",

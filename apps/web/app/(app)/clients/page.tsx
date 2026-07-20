@@ -8,6 +8,7 @@ import {
   respondToTrainerRequest,
   type ClientLink,
 } from "@/lib/data/clients";
+import { RequireTrainer } from "@/components/RequireTrainer";
 
 const STATUS_LABEL: Record<string, string> = {
   invited: "Convidado",
@@ -66,6 +67,7 @@ export default function ClientsPage() {
   const requests = links.filter((l) => l.status === "requested");
 
   return (
+    <RequireTrainer>
     <div className="mx-auto max-w-lg space-y-6 p-4">
       <div>
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
@@ -154,12 +156,20 @@ export default function ClientsPage() {
                     <span className="text-text">{l.name ?? "Aluno"}</span>
                     <div className="flex items-center gap-3">
                       {l.client_id && (
-                        <Link
-                          href={`/messages?id=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}
-                          className="caps-label text-signal"
-                        >
-                          Conversar
-                        </Link>
+                        <>
+                          <Link
+                            href={`/plans/new?client=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}
+                            className="caps-label text-signal"
+                          >
+                            Novo plano
+                          </Link>
+                          <Link
+                            href={`/messages?id=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}
+                            className="caps-label text-signal"
+                          >
+                            Conversar
+                          </Link>
+                        </>
                       )}
                       <span className="caps-label text-ok">
                         {STATUS_LABEL[l.status]}
@@ -194,5 +204,6 @@ export default function ClientsPage() {
         </div>
       )}
     </div>
+    </RequireTrainer>
   );
 }

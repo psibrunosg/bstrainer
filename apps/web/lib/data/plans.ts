@@ -1,6 +1,7 @@
-import type { Exercise, LoadType } from "@bstrainer/domain";
+import type { Activity, Exercise, LoadType } from "@bstrainer/domain";
 import { getTemplate, instantiateTemplate } from "@bstrainer/engine";
 import { getTrainingOrgId } from "@/lib/data/memberships";
+import { hasActiveClientLink } from "@/lib/data/clients";
 import { createClient } from "@/lib/supabase/client";
 
 export interface UsePlanResult {
@@ -17,6 +18,7 @@ export interface UsePlanResult {
 export async function usePlanFromTemplate(
   templateId: string,
   equipment: LoadType[],
+  clientId?: string,
 ): Promise<UsePlanResult> {
   const spec = getTemplate(templateId);
   if (!spec) return { ok: false, error: "Template não encontrado." };
@@ -36,6 +38,11 @@ export async function usePlanFromTemplate(
     .limit(1)
     .single();
   if (!membership) return { ok: false, error: "Organização não encontrada." };
+
+  const targetClientId = clientId ?? user.id;
+  if (clientId && clientId !== user.id && !(await hasActiveClientLink(clientId))) {
+    return { ok: false, error: "Aluno sem vínculo ativo com você." };
+  }
 
   const { data: rows, error: exErr } = await supabase
     .from("exercises")
@@ -59,10 +66,27 @@ export async function usePlanFromTemplate(
     externalId: r.external_id,
   }));
 
-  const plan = instantiateTemplate(spec, catalog, {
-    availableEquipment: equipment,
-    generateId: () => crypto.randomUUID(),
-  });
+  const { data: activityRows } = await supabase
+    .from("activities")
+    .select("id, org_id, name, type, instructions, media_url");
+  const activityCatalog: Activity[] = (activityRows ?? []).map((r) => ({
+    id: r.id,
+    orgId: r.org_id,
+    name: r.name,
+    type: r.type as Activity["type"],
+    instructions: r.instructions,
+    mediaUrl: r.media_url,
+  }));
+
+  const plan = instantiateTemplate(
+    spec,
+    catalog,
+    {
+      availableEquipment: equipment,
+      generateId: () => crypto.randomUUID(),
+    },
+    activityCatalog,
+  );
 
   const planId = crypto.randomUUID();
   const today = new Date().toISOString().slice(0, 10);
@@ -70,7 +94,7 @@ export async function usePlanFromTemplate(
   const { error: planErr } = await supabase.from("training_plans").insert({
     id: planId,
     org_id: orgId,
-    client_id: user.id,
+    client_id: targetClientId,
     created_by: user.id,
     goal: plan.goal,
     engine: "template",
@@ -103,38 +127,80 @@ export async function usePlanFromTemplate(
       });
       if (wErr) return { ok: false, error: "Falha ao salvar treino." };
 
-      for (const ex of workout.exercises) {
-        const { error: peErr } = await supabase
-          .from("prescribed_exercises")
-          .insert({
-            id: ex.id,
-            workout_template_id: workout.id,
-            exercise_id: ex.exerciseId,
-            position: ex.order,
-            technique: ex.technique,
-            superset_group: ex.supersetGroup,
-            notes: ex.notes,
-          });
-        if (peErr) return { ok: false, error: "Falha ao salvar exercício." };
+      for (const block of workout.blocks) {
+        if (block.kind === "exercise") {
+          const { error: peErr } = await supabase
+            .from("prescribed_exercises")
+            .insert({
+              id: block.id,
+              workout_template_id: workout.id,
+              exercise_id: block.exerciseId,
+              position: block.order,
+              technique: block.technique,
+              superset_group: block.supersetGroup,
+              notes: block.notes,
+            });
+          if (peErr) return { ok: false, error: "Falha ao salvar exercício." };
 
-        if (ex.sets.length > 0) {
-          const { error: psErr } = await supabase.from("prescribed_sets").insert(
-            ex.sets.map((s) => ({
-              id: s.id,
-              prescribed_exercise_id: ex.id,
-              position: s.order,
-              reps_min: s.repsMin,
-              reps_max: s.repsMax,
-              load_method: s.loadMethod,
-              load_value: s.loadValue,
-              target_rpe: s.targetRpe,
-              target_rir: s.targetRir,
-              rest_seconds: s.restSeconds,
-              is_warmup: s.isWarmup,
-              is_amrap: s.isAmrap,
-            })),
-          );
-          if (psErr) return { ok: false, error: "Falha ao salvar séries." };
+          if (block.sets.length > 0) {
+            const { error: psErr } = await supabase.from("prescribed_sets").insert(
+              block.sets.map((s) => ({
+                id: s.id,
+                prescribed_exercise_id: block.id,
+                position: s.order,
+                reps_min: s.repsMin,
+                reps_max: s.repsMax,
+                load_method: s.loadMethod,
+                load_value: s.loadValue,
+                target_rpe: s.targetRpe,
+                target_rir: s.targetRir,
+                rest_seconds: s.restSeconds,
+                is_warmup: s.isWarmup,
+                is_amrap: s.isAmrap,
+              })),
+            );
+            if (psErr) return { ok: false, error: "Falha ao salvar séries." };
+          }
+        } else if (block.kind === "activity") {
+          const { error: paErr } = await supabase
+            .from("prescribed_activities")
+            .insert({
+              id: block.id,
+              workout_template_id: workout.id,
+              activity_id: block.activityId,
+              position: block.order,
+              duration_seconds: block.durationSeconds,
+              distance_km: block.distanceKm,
+              target_pace_min_per_km: block.targetPaceMinPerKm,
+              target_rpe: block.targetRpe,
+              notes: block.notes,
+            });
+          if (paErr) return { ok: false, error: "Falha ao salvar atividade." };
+        } else {
+          const { error: pcErr } = await supabase
+            .from("prescribed_circuits")
+            .insert({
+              id: block.id,
+              workout_template_id: workout.id,
+              position: block.order,
+              rounds: block.rounds,
+              work_seconds: block.workSeconds,
+              rest_seconds: block.restSeconds,
+              target_rpe: block.targetRpe,
+              notes: block.notes,
+            });
+          if (pcErr) return { ok: false, error: "Falha ao salvar circuito." };
+
+          const { error: pceErr } = await supabase
+            .from("prescribed_circuit_exercises")
+            .insert(
+              block.exerciseIds.map((exerciseId, i) => ({
+                circuit_id: block.id,
+                exercise_id: exerciseId,
+                position: i + 1,
+              })),
+            );
+          if (pceErr) return { ok: false, error: "Falha ao salvar exercícios do circuito." };
         }
       }
     }
@@ -203,6 +269,7 @@ const EMPHASIS_BY_GOAL: Record<string, string> = {
  */
 export async function createManualPlan(
   input: ManualPlanInput,
+  clientId?: string,
 ): Promise<UsePlanResult> {
   if (input.exercises.length === 0) {
     return { ok: false, error: "Adicione ao menos um exercício." };
@@ -224,6 +291,11 @@ export async function createManualPlan(
     .single();
   if (!membership) return { ok: false, error: "Organização não encontrada." };
 
+  const targetClientId = clientId ?? user.id;
+  if (clientId && clientId !== user.id && !(await hasActiveClientLink(clientId))) {
+    return { ok: false, error: "Aluno sem vínculo ativo com você." };
+  }
+
   const planId = crypto.randomUUID();
   const mesoId = crypto.randomUUID();
   const workoutId = crypto.randomUUID();
@@ -232,7 +304,7 @@ export async function createManualPlan(
   const { error: planErr } = await supabase.from("training_plans").insert({
     id: planId,
     org_id: orgId,
-    client_id: user.id,
+    client_id: targetClientId,
     created_by: user.id,
     goal: input.goal,
     engine: "assisted",

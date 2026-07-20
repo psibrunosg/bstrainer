@@ -1,3 +1,4 @@
+import { isPerformedExercise } from "@bstrainer/domain";
 import type { Exercise, MuscleGroup, WorkoutSession } from "@bstrainer/domain";
 
 /**
@@ -16,7 +17,7 @@ export function weeklySetsPerMuscleGroup(
   };
 
   for (const session of sessions) {
-    for (const performed of session.exercises) {
+    for (const performed of session.blocks.filter(isPerformedExercise)) {
       const exercise = exerciseById.get(performed.exerciseId);
       if (!exercise) continue;
       const workSets = performed.sets.filter((s) => !s.isWarmup).length;

@@ -79,6 +79,6 @@ export function createFreeSession(): WorkoutSession {
     sessionRpe: null,
     readiness: null,
     notes: null,
-    exercises: [],
+    blocks: [],
   };
 }

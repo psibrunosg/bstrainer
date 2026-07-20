@@ -1,8 +1,4 @@
-import type {
-  PerformedExercise,
-  PerformedSet,
-  WorkoutSession,
-} from "@bstrainer/domain";
+import type { PerformedSet, WorkoutSession } from "@bstrainer/domain";
 import { createClient } from "@/lib/supabase/client";
 import { loadSessionHistory } from "@/lib/workout/storage";
 
@@ -42,9 +38,10 @@ interface DbSession {
 }
 
 function toDomain(s: DbSession): WorkoutSession {
-  const exercises: PerformedExercise[] = (s.performed_exercises ?? [])
+  const blocks: WorkoutSession["blocks"] = (s.performed_exercises ?? [])
     .sort((a, b) => a.position - b.position)
     .map((ex) => ({
+      kind: "exercise" as const,
       id: ex.id,
       exerciseId: ex.exercise_id,
       prescribedExerciseId: ex.prescribed_exercise_id,
@@ -86,7 +83,7 @@ function toDomain(s: DbSession): WorkoutSession {
           }
         : null,
     notes: s.notes,
-    exercises,
+    blocks,
   };
 }
 
@@ -94,26 +91,32 @@ function toDomain(s: DbSession): WorkoutSession {
  * Histórico de sessões concluídas. Prefere o banco (cross-device); se não
  * logado ou vazio, cai pro histórico local do logger.
  */
-export async function loadSessions(): Promise<WorkoutSession[]> {
+/**
+ * @param clientId Ver sessões de outro aluno (personal com vínculo ativo). RLS
+ * ("staff reads org sessions") garante que só staff da org consegue ler.
+ */
+export async function loadSessions(clientId?: string): Promise<WorkoutSession[]> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return [];
 
-  if (user) {
-    const { data, error } = await supabase
-      .from("workout_sessions")
-      .select(
-        "id, client_id, workout_template_id, started_at, finished_at, status, session_rpe, readiness_sleep, readiness_soreness, readiness_energy, notes, performed_exercises(id, exercise_id, prescribed_exercise_id, position, was_substituted, performed_sets(id, position, reps, load_kg, rpe, rir, is_failure, is_warmup, time_seconds, notes))",
-      )
-      .eq("client_id", user.id)
-      .eq("status", "completed")
-      .order("started_at", { ascending: false });
+  const targetClientId = clientId ?? user.id;
 
-    if (!error && data && data.length > 0) {
-      return (data as unknown as DbSession[]).map(toDomain);
-    }
+  const { data, error } = await supabase
+    .from("workout_sessions")
+    .select(
+      "id, client_id, workout_template_id, started_at, finished_at, status, session_rpe, readiness_sleep, readiness_soreness, readiness_energy, notes, performed_exercises(id, exercise_id, prescribed_exercise_id, position, was_substituted, performed_sets(id, position, reps, load_kg, rpe, rir, is_failure, is_warmup, time_seconds, notes))",
+    )
+    .eq("client_id", targetClientId)
+    .eq("status", "completed")
+    .order("started_at", { ascending: false });
+
+  if (!error && data && data.length > 0) {
+    return (data as unknown as DbSession[]).map(toDomain);
   }
 
+  if (clientId) return [];
   return (await loadSessionHistory()).filter((s) => s.status === "completed");
 }

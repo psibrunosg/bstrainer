@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type {
-  PerformedExercise,
-  PerformedSet,
-  WorkoutSession,
+import {
+  isPerformedExercise,
+  type PerformedExercise,
+  type PerformedSet,
+  type WorkoutSession,
 } from "@bstrainer/domain";
 import { e1rmEpley, sessionTonnage } from "@bstrainer/engine";
 import { EXERCISES, exerciseName } from "@/lib/workout/exercises";
@@ -26,6 +27,7 @@ import {
 import { PlateCalculator } from "@/components/PlateCalculator";
 import { publicAssetPath } from "@/lib/public-asset";
 import { shareOrDownloadCard } from "@/lib/workout/share-card";
+import { RequireAthlete } from "@/components/RequireAthlete";
 
 const REST_DEFAULT_SEC = 90;
 const RPE_OPTIONS = ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"];
@@ -65,6 +67,14 @@ function bestE1rm(exercise: PerformedExercise): number {
 }
 
 export default function TrainSessionPage() {
+  return (
+    <RequireAthlete>
+      <TrainSessionContent />
+    </RequireAthlete>
+  );
+}
+
+function TrainSessionContent() {
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -108,7 +118,7 @@ export default function TrainSessionPage() {
       // pré-carrega última performance e baseline de PR dos exercícios já na sessão
       if (active) {
         const perf: Record<string, LastPerformance | null> = {};
-        for (const ex of active.exercises) {
+        for (const ex of active.blocks.filter(isPerformedExercise)) {
           perf[ex.exerciseId] = await lastPerformanceFor(ex.exerciseId);
           prBaseline.current[ex.exerciseId] = await bestHistoricalE1rm(ex.exerciseId);
         }
@@ -180,15 +190,16 @@ export default function TrainSessionPage() {
     prBaseline.current[exerciseId] = await bestHistoricalE1rm(exerciseId);
     setSession((prev) => {
       if (!prev) return prev;
-      const row: PerformedExercise = {
+      const row: PerformedExercise & { kind: "exercise" } = {
+        kind: "exercise",
         id: crypto.randomUUID(),
         exerciseId,
         prescribedExerciseId: null,
-        order: prev.exercises.length + 1,
+        order: prev.blocks.length + 1,
         wasSubstituted: false,
         sets: [],
       };
-      return { ...prev, exercises: [...prev.exercises, row] };
+      return { ...prev, blocks: [...prev.blocks, row] };
     });
     setSearch("");
     setShowPicker(false);
@@ -216,12 +227,12 @@ export default function TrainSessionPage() {
     }));
     setSession((prev) => {
       if (!prev) return prev;
-      const exercises = prev.exercises.map((e) =>
-        e.id === rowId
+      const blocks = prev.blocks.map((e) =>
+        e.kind === "exercise" && e.id === rowId
           ? { ...e, exerciseId: option.id, wasSubstituted: true }
           : e,
       );
-      return { ...prev, exercises };
+      return { ...prev, blocks };
     });
     closeSubstitutePicker();
   }
@@ -229,10 +240,10 @@ export default function TrainSessionPage() {
   function removeExercise(rowId: string) {
     setSession((prev) => {
       if (!prev) return prev;
-      const exercises = prev.exercises
+      const blocks = prev.blocks
         .filter((e) => e.id !== rowId)
         .map((e, i) => ({ ...e, order: i + 1 }));
-      return { ...prev, exercises };
+      return { ...prev, blocks };
     });
   }
 
@@ -257,14 +268,14 @@ export default function TrainSessionPage() {
     const newSet: PerformedSet = { ...set, id: crypto.randomUUID(), order: 0 };
     setSession((prev) => {
       if (!prev) return prev;
-      const exercises = prev.exercises.map((e) => {
-        if (e.id !== rowId) return e;
+      const blocks = prev.blocks.map((e) => {
+        if (e.kind !== "exercise" || e.id !== rowId) return e;
         return {
           ...e,
           sets: [...e.sets, { ...newSet, order: e.sets.length + 1 }],
         };
       });
-      return { ...prev, exercises };
+      return { ...prev, blocks };
     });
     checkPr(exerciseId, newSet);
     startRest();
@@ -302,14 +313,14 @@ export default function TrainSessionPage() {
   function removeSet(rowId: string, setId: string) {
     setSession((prev) => {
       if (!prev) return prev;
-      const exercises = prev.exercises.map((e) => {
-        if (e.id !== rowId) return e;
+      const blocks = prev.blocks.map((e) => {
+        if (e.kind !== "exercise" || e.id !== rowId) return e;
         const sets = e.sets
           .filter((s) => s.id !== setId)
           .map((s, i) => ({ ...s, order: i + 1 }));
         return { ...e, sets };
       });
-      return { ...prev, exercises };
+      return { ...prev, blocks };
     });
   }
 
@@ -348,7 +359,8 @@ export default function TrainSessionPage() {
           60_000,
       ),
     );
-    const totalSets = finished.exercises.reduce(
+    const finishedExercises = finished.blocks.filter(isPerformedExercise);
+    const totalSets = finishedExercises.reduce(
       (acc, e) => acc + e.sets.length,
       0,
     );
@@ -372,7 +384,7 @@ export default function TrainSessionPage() {
           <Stat value={String(totalSets)} label="séries" />
         </div>
         <ul className="space-y-px">
-          {finished.exercises.map((e) => (
+          {finishedExercises.map((e) => (
             <li
               key={e.id}
               className="flex items-center justify-between border-b border-line px-1 py-3 text-sm"
@@ -494,7 +506,7 @@ export default function TrainSessionPage() {
       </div>
 
       <div className="space-y-4 p-4 lg:p-6">
-        {session.exercises.map((exercise) => {
+        {session.blocks.filter(isPerformedExercise).map((exercise) => {
           const draft = draftFor(exercise.id, exercise.exerciseId);
           const e1rm = bestE1rm(exercise);
           const last = lastPerf[exercise.exerciseId];
@@ -827,7 +839,7 @@ export default function TrainSessionPage() {
         )}
 
         {/* Finalizar */}
-        {session.exercises.length > 0 && (
+        {session.blocks.length > 0 && (
           <button
             type="button"
             onClick={() => setAskingSrpe(true)}

@@ -8,6 +8,7 @@ import {
   type TrainerProfile,
 } from "@/lib/data/trainers";
 import { getMyActiveTrainerLink, type ActiveTrainerLink } from "@/lib/data/clients";
+import { RequireAthlete } from "@/components/RequireAthlete";
 
 export default function PersonalPage() {
   const [trainers, setTrainers] = useState<TrainerProfile[]>([]);
@@ -37,6 +38,7 @@ export default function PersonalPage() {
   }
 
   return (
+    <RequireAthlete>
     <div className="mx-auto max-w-lg space-y-6 p-4">
       <div>
         <p className="caps-label font-display font-semibold text-signal">Acompanhamento</p>
@@ -90,5 +92,6 @@ export default function PersonalPage() {
         </div>
       )}
     </div>
+    </RequireAthlete>
   );
 }

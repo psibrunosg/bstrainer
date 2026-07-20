@@ -11,6 +11,7 @@ import {
   saveActiveSession,
 } from "@/lib/workout/storage";
 import { loadSessions } from "@/lib/data/sessions";
+import { RequireAthlete } from "@/components/RequireAthlete";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -95,6 +96,7 @@ export default function TrainPage() {
   }
 
   return (
+    <RequireAthlete>
     <div className="mx-auto max-w-lg space-y-6 p-4">
       <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
         Treinar
@@ -189,5 +191,6 @@ export default function TrainPage() {
         Ficha do dia chega em breve — por enquanto, registre um treino livre.
       </p>
     </div>
+    </RequireAthlete>
   );
 }

@@ -1,3 +1,4 @@
+import { isPerformedExercise } from "@bstrainer/domain";
 import type { WorkoutSession } from "@bstrainer/domain";
 import { sessionTonnage } from "../progression/session-load";
 
@@ -12,7 +13,7 @@ export function computeXp(
   let xp = 0;
   for (const session of sessions) {
     if (session.status !== "completed") continue;
-    const validSets = session.exercises.reduce(
+    const validSets = session.blocks.filter(isPerformedExercise).reduce(
       (count, ex) => count + ex.sets.filter((s) => !s.isWarmup).length,
       0,
     );

@@ -1,3 +1,4 @@
+import { isPerformedExercise } from "@bstrainer/domain";
 import type { WorkoutSession } from "@bstrainer/domain";
 import { sessionTonnage } from "../progression/session-load";
 
@@ -21,7 +22,7 @@ export function buildBadgeContext(
     if (session.status !== "completed") continue;
     completedCount++;
     maxSessionTonnageKg = Math.max(maxSessionTonnageKg, sessionTonnage(session));
-    for (const ex of session.exercises) {
+    for (const ex of session.blocks.filter(isPerformedExercise)) {
       totalSets += ex.sets.filter((s) => !s.isWarmup).length;
     }
   }

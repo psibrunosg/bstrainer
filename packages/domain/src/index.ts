@@ -1,3 +1,4 @@
+export * from "./activity";
 export * from "./athlete";
 export * from "./exercise";
 export * from "./plan";

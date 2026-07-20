@@ -15,6 +15,15 @@ const EMPHASIS_LABEL: Record<string, string> = {
   intro: "Introdução",
 };
 
+const ACTIVITY_LABEL: Record<string, string> = {
+  running: "Corrida",
+  cycling: "Ciclismo",
+  swimming: "Natação",
+  rowing: "Remo",
+  walking: "Caminhada",
+  elliptical: "Elíptico",
+};
+
 export default async function TemplateDetailPage({
   params,
 }: {
@@ -63,17 +72,40 @@ export default async function TemplateDetailPage({
             >
               <h3 className="font-semibold text-text">{w.name}</h3>
               <ul className="mt-2">
-                {w.exercises.map((ex, j) => (
+                {w.blocks.map((block, j) => (
                   <li
                     key={j}
                     className="flex justify-between border-b border-line py-1.5 text-sm last:border-b-0"
                   >
-                    <span className="text-text">{ex.suggestedVariant}</span>
-                    <span className="tnum text-mute">
-                      {ex.setScheme.setCount}×{ex.setScheme.repsMin}
-                      {ex.setScheme.repsMax !== ex.setScheme.repsMin &&
-                        `–${ex.setScheme.repsMax}`}
-                    </span>
+                    {block.kind === "exercise" && (
+                      <>
+                        <span className="text-text">{block.suggestedVariant}</span>
+                        <span className="tnum text-mute">
+                          {block.setScheme.setCount}×{block.setScheme.repsMin}
+                          {block.setScheme.repsMax !== block.setScheme.repsMin &&
+                            `–${block.setScheme.repsMax}`}
+                        </span>
+                      </>
+                    )}
+                    {block.kind === "activity" && (
+                      <>
+                        <span className="text-text">
+                          {ACTIVITY_LABEL[block.activityType] ?? block.activityType}
+                        </span>
+                        <span className="tnum text-mute">
+                          {block.durationMinutes ? `${block.durationMinutes} min` : ""}
+                          {block.distanceKm ? ` ${block.distanceKm}km` : ""}
+                        </span>
+                      </>
+                    )}
+                    {block.kind === "circuit" && (
+                      <>
+                        <span className="text-text">Circuito</span>
+                        <span className="tnum text-mute">
+                          {block.rounds}× {block.workSeconds}s/{block.restSeconds}s
+                        </span>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>

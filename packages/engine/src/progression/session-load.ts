@@ -1,3 +1,4 @@
+import { isPerformedExercise } from "@bstrainer/domain";
 import type { WorkoutSession } from "@bstrainer/domain";
 
 /**
@@ -16,7 +17,7 @@ export function sessionLoad(session: WorkoutSession): number | null {
 /** Tonelagem da sessão: soma de reps x carga das séries válidas (ignora warmup). */
 export function sessionTonnage(session: WorkoutSession): number {
   let total = 0;
-  for (const ex of session.exercises) {
+  for (const ex of session.blocks.filter(isPerformedExercise)) {
     for (const set of ex.sets) {
       if (set.isWarmup || set.loadKg == null) continue;
       total += set.reps * set.loadKg;

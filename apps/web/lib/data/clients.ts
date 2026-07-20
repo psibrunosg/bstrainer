@@ -108,3 +108,23 @@ export async function getMyActiveTrainerLink(): Promise<ActiveTrainerLink | null
   const row = data as unknown as { trainer_id: string; profiles: { name: string } | null };
   return { trainerId: row.trainer_id, name: row.profiles?.name ?? "Seu personal" };
 }
+
+/** Confirma vínculo ativo trainer->client antes de deixar o trainer criar plano pro aluno. */
+export async function hasActiveClientLink(clientId: string): Promise<boolean> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data } = await supabase
+    .from("client_links")
+    .select("id")
+    .eq("trainer_id", user.id)
+    .eq("client_id", clientId)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  return !!data;
+}

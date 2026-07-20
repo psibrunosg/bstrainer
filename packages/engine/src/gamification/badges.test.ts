@@ -32,9 +32,10 @@ function session(
     sessionRpe: null,
     readiness: null,
     notes: null,
-    exercises: sets.length
+    blocks: sets.length
       ? [
           {
+            kind: "exercise" as const,
             id: "e1",
             exerciseId: "ex1",
             prescribedExerciseId: null,

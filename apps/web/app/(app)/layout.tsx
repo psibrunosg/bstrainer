@@ -136,24 +136,28 @@ export default function AppLayout({
           {LEFT.map((item) => (
             <NavLink key={item.href} item={item} active={isActive(item.href)} />
           ))}
-          <Link
-            href="/train"
-            aria-label="Treinar"
-            aria-current={isActive("/train") ? "page" : undefined}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5"
-          >
-            <span className="flex h-12 w-12 -translate-y-3 items-center justify-center rounded-full bg-signal text-ink transition active:scale-[0.98] active:bg-signal-press">
-              <IconTrain />
-            </span>
-            <span
-              className={`-mt-2 text-[10px] font-medium uppercase tracking-[0.08em] ${
-                isActive("/train") ? "text-text" : "text-mute"
-              }`}
+          {!showClients && (
+            <Link
+              href="/train"
+              aria-label="Treinar"
+              aria-current={isActive("/train") ? "page" : undefined}
+              className="flex flex-1 flex-col items-center justify-center gap-0.5"
             >
-              Treinar
-            </span>
-          </Link>
-          {RIGHT.filter((item) => showClients || item.href !== "/clients").map((item) => (
+              <span className="flex h-12 w-12 -translate-y-3 items-center justify-center rounded-full bg-signal text-ink transition active:scale-[0.98] active:bg-signal-press">
+                <IconTrain />
+              </span>
+              <span
+                className={`-mt-2 text-[10px] font-medium uppercase tracking-[0.08em] ${
+                  isActive("/train") ? "text-text" : "text-mute"
+                }`}
+              >
+                Treinar
+              </span>
+            </Link>
+          )}
+          {RIGHT.filter((item) =>
+            showClients ? item.href !== "/personal" : item.href !== "/clients",
+          ).map((item) => (
             <NavLink key={item.href} item={item} active={isActive(item.href)} />
           ))}
         </div>

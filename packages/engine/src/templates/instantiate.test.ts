@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Exercise } from "@bstrainer/domain";
+import { isPrescribedExercise, type Exercise } from "@bstrainer/domain";
 import { expandSetScheme, instantiateTemplate, resolveSlot } from "./instantiate";
 import { templateLibrary, getTemplate } from "./library";
 
@@ -123,8 +123,9 @@ describe("instantiateTemplate", () => {
     expect(plan.mesocycles[0]!.workouts).toHaveLength(2);
     expect(plan.unresolvedSlots).toHaveLength(0);
     const treinoA = plan.mesocycles[0]!.workouts[0]!;
-    expect(treinoA.exercises[0]!.exerciseId).toBe("e-squat-bb");
-    expect(treinoA.exercises[0]!.sets).toHaveLength(3);
+    const treinoAExercises = treinoA.blocks.filter(isPrescribedExercise);
+    expect(treinoAExercises[0]!.exerciseId).toBe("e-squat-bb");
+    expect(treinoAExercises[0]!.sets).toHaveLength(3);
   });
 
   it("reports unresolved slots on limited equipment", () => {
@@ -143,7 +144,9 @@ describe("instantiateTemplate", () => {
       generateId: genId,
     });
     expect(plan.unresolvedSlots.length).toBeLessThanOrEqual(1); // pull_v sem cable/bodyweight assistida
-    const allExercises = plan.mesocycles[0]!.workouts.flatMap((w) => w.exercises);
+    const allExercises = plan.mesocycles[0]!.workouts.flatMap((w) =>
+      w.blocks.filter(isPrescribedExercise),
+    );
     expect(allExercises.length).toBeGreaterThan(6);
   });
 });

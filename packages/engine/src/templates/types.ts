@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  activityTypeSchema,
   loadMethodSchema,
   movementPatternSchema,
   progressionModelSchema,
@@ -32,10 +33,40 @@ export const templateSlotSchema = z.object({
 });
 export type TemplateSlot = z.infer<typeof templateSlotSchema>;
 
+/** Slot de esforço contínuo (corrida, bike) — resolvido pelo tipo de Activity, não por equipamento. */
+export const templateActivitySlotSchema = z.object({
+  activityType: activityTypeSchema,
+  durationMinutes: z.number().min(1).nullable().default(null),
+  distanceKm: z.number().min(0).nullable().default(null),
+  targetPaceMinPerKm: z.number().min(0).nullable().default(null),
+  targetRpe: z.number().min(1).max(10).nullable().default(null),
+  note: z.string().optional(),
+});
+export type TemplateActivitySlot = z.infer<typeof templateActivitySlotSchema>;
+
+/** Slot de circuito por rounds (HIIT) — cada padrão de movimento resolve num exercício. */
+export const templateCircuitSlotSchema = z.object({
+  movementPatterns: z.array(movementPatternSchema).min(1),
+  rounds: z.number().int().min(1),
+  workSeconds: z.number().int().min(1),
+  restSeconds: z.number().int().min(0),
+  targetRpe: z.number().min(1).max(10).nullable().default(null),
+  note: z.string().optional(),
+});
+export type TemplateCircuitSlot = z.infer<typeof templateCircuitSlotSchema>;
+
+/** Um item da lista ordenada de um TemplateWorkout — espelha WorkoutBlock, mas pré-instanciação. */
+export const templateBlockSchema = z.discriminatedUnion("kind", [
+  templateSlotSchema.extend({ kind: z.literal("exercise") }),
+  templateActivitySlotSchema.extend({ kind: z.literal("activity") }),
+  templateCircuitSlotSchema.extend({ kind: z.literal("circuit") }),
+]);
+export type TemplateBlock = z.infer<typeof templateBlockSchema>;
+
 export const templateWorkoutSchema = z.object({
   name: z.string(),
   suggestedWeekday: z.number().int().min(1).max(7),
-  exercises: z.array(templateSlotSchema).min(1),
+  blocks: z.array(templateBlockSchema).min(1),
 });
 export type TemplateWorkout = z.infer<typeof templateWorkoutSchema>;
 

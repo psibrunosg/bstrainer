@@ -33,6 +33,44 @@ export const performedExerciseSchema = z.object({
 });
 export type PerformedExercise = z.infer<typeof performedExerciseSchema>;
 
+/** Execução registrada de uma PrescribedActivity. Sem HR/frequência cardíaca na v1. */
+export const performedActivitySchema = z.object({
+  id: z.string().uuid(),
+  activityId: z.string().uuid(),
+  prescribedActivityId: z.string().uuid().nullable(), // null = atividade livre
+  order: z.number().int().min(1),
+  durationSeconds: z.number().int().min(0).nullable().default(null),
+  distanceKm: z.number().min(0).nullable().default(null),
+  avgPaceMinPerKm: z.number().min(0).nullable().default(null),
+  rpe: z.number().min(1).max(10).nullable().default(null),
+});
+export type PerformedActivity = z.infer<typeof performedActivitySchema>;
+
+/** Execução registrada de um PrescribedCircuit. */
+export const performedCircuitSchema = z.object({
+  id: z.string().uuid(),
+  prescribedCircuitId: z.string().uuid().nullable(), // null = circuito livre
+  order: z.number().int().min(1),
+  roundsCompleted: z.number().int().min(0),
+  rpe: z.number().min(1).max(10).nullable().default(null),
+});
+export type PerformedCircuit = z.infer<typeof performedCircuitSchema>;
+
+/** Um item da lista ordenada de um WorkoutSession — espelha WorkoutBlock do lado prescrito. */
+export const performedBlockSchema = z.discriminatedUnion("kind", [
+  performedExerciseSchema.extend({ kind: z.literal("exercise") }),
+  performedActivitySchema.extend({ kind: z.literal("activity") }),
+  performedCircuitSchema.extend({ kind: z.literal("circuit") }),
+]);
+export type PerformedBlock = z.infer<typeof performedBlockSchema>;
+
+/** Narrowing helper — a maioria das métricas (tonnage, XP, volume) só olha exercícios de força. */
+export function isPerformedExercise(
+  block: PerformedBlock,
+): block is PerformedExercise & { kind: "exercise" } {
+  return block.kind === "exercise";
+}
+
 /** Prontidão pré-treino opcional (1-5). */
 export const readinessSchema = z.object({
   sleep: z.number().int().min(1).max(5).nullable().default(null),
@@ -52,6 +90,6 @@ export const workoutSessionSchema = z.object({
   sessionRpe: z.number().min(0).max(10).nullable().default(null),
   readiness: readinessSchema.nullable().default(null),
   notes: z.string().nullable().default(null),
-  exercises: z.array(performedExerciseSchema),
+  blocks: z.array(performedBlockSchema),
 });
 export type WorkoutSession = z.infer<typeof workoutSessionSchema>;

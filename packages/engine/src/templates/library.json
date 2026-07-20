@@ -758,5 +758,553 @@
         ]
       }
     ]
+  },
+  {
+    "id": "low-volume-beginner-fullbody-2x",
+    "name": "Início Suave Full-Body 2x (Baixo Volume)",
+    "goal": "health",
+    "level": "beginner",
+    "daysPerWeek": 2,
+    "rationale": "Dose mínima efetiva pra quem nunca treinou ou está retomando após pausa longa: 2 sessões/semana, 2 séries por exercício, RIR alto. Menos volume que o minimalist-health-2x — prioriza aderência e ausência de dor muscular tardia sobre estímulo, deixando espaço pra progredir depois sem overwhelm inicial.",
+    "progressionRule": "Dupla progressão bem conservadora 10->15 reps com RIR>=3. Só sobe carga após 2 sessões seguidas completando 15 reps em todas as séries. Sem deload programado — o volume já é baixo o suficiente pra sustentar por 6+ semanas.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "intro",
+        "progressionModel": "double_progression",
+        "includesDeload": false,
+        "microcycleNote": "2x/semana não-consecutivas (ex.: ter/sex). Sessões idênticas em estrutura, cargas evoluem independentemente.",
+        "workouts": [
+          {
+            "name": "Sessão A",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "goblet squat", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "flexão inclinada ou supino halteres", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada elástico ou halter", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 2, "repsMin": 15, "repsMax": 30, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Sessão B",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "terra romeno halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento halteres sentado", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada assistida", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 3, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "dead bug", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 3, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "high-volume-veteran-ppl-6x",
+    "name": "PPL 6x Alto Volume (Veterano)",
+    "goal": "hypertrophy",
+    "level": "advanced",
+    "daysPerWeek": 6,
+    "rationale": "Pra quem já treina há anos e tem MRV (volume máximo recuperável) alto, o PPL padrão de 16-22 séries/músculo já não é estímulo suficiente. Estrutura inspirada em German Volume Training e no split Arnold: mais séries por exercício (5-6) e mais exercícios por grupo, mirando 24-28 séries/músculo/semana — só recomendado pra quem já esgotou ganhos em volumes moderados.",
+    "progressionRule": "Dupla progressão em todos os exercícios; a cada 2 semanas sem sinais de queda de performance (RPE subindo pra mesma carga, sono ruim, dor persistente), adicionar 1 série no primeiro exercício de cada sessão. Ao primeiro sinal de estagnação ou queda, deload imediato em vez de esperar o fim do bloco.",
+    "mesocycles": [
+      {
+        "weeks": 4,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "weeklyIntensityWave": "Volume sobe progressivamente sem 1->3 (+1 série/exercício principal a cada 2 semanas); sem 4 = deload.",
+        "deloadNote": "Semana 4: 50% das séries, RIR 4, sem adicionar séries.",
+        "workouts": [
+          {
+            "name": "Push (Alto Volume)",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento militar", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 5, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps corda", "priorityEquipment": "cable", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pull (Alto Volume)",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "pull_v", "suggestedVariant": "barra fixa com carga", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "face pull", "priorityEquipment": "cable", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca direta", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Legs (Alto Volume)",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "levantamento terra romeno", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "extensora", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha em pé", "priorityEquipment": "machine", "setScheme": { "setCount": 5, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Push B (Alto Volume)",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino inclinado halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 5, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo no cross", "priorityEquipment": "cable", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "elevação lateral no cabo", "priorityEquipment": "cable", "setScheme": { "setCount": 5, "repsMin": 12, "repsMax": 20, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "tríceps testa", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Pull B (Alto Volume)",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "pull_h", "suggestedVariant": "remada cavalinho", "priorityEquipment": "machine", "setScheme": { "setCount": 5, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada alta pegada neutra", "priorityEquipment": "cable", "setScheme": { "setCount": 5, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "crucifixo inverso", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "rosca inclinada", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Legs B (Alto Volume)",
+            "suggestedWeekday": 6,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "hack squat ou leg press", "priorityEquipment": "machine", "setScheme": { "setCount": 5, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "hip thrust", "priorityEquipment": "barbell", "setScheme": { "setCount": 4, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "flexora sentada", "priorityEquipment": "machine", "setScheme": { "setCount": 4, "repsMin": 12, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "isolation", "suggestedVariant": "panturrilha sentado", "priorityEquipment": "machine", "setScheme": { "setCount": 5, "repsMin": 10, "repsMax": 15, "loadMethod": "rir", "targetRir": 1, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "deload-standalone-reset-week",
+    "name": "Semana de Reset (Deload Standalone)",
+    "goal": "health",
+    "level": "intermediate",
+    "daysPerWeek": 3,
+    "rationale": "Bloco de deload autônomo — não embutido dentro de outro mesociclo — pra quem precisa dissipar fadiga acumulada (viagem, doença leve, sono ruim persistente, pico de estresse) sem perder o hábito de treinar. Todo o bloco já nasce com emphasis 'deload': volume e intensidade baixos de propósito, sem meta de progressão.",
+    "progressionRule": "Nenhuma progressão nesta semana — carga fixa em 50-60% do que o atleta usa normalmente, RIR alto (4-5). Objetivo é recuperação ativa, não estímulo. Ao final, retomar o plano anterior do ponto onde parou.",
+    "mesocycles": [
+      {
+        "weeks": 1,
+        "emphasis": "deload",
+        "progressionModel": "linear",
+        "includesDeload": true,
+        "deloadNote": "Semana inteira em deload: ~50% do volume habitual, RIR 4-5, sem exercícios novos ou variantes desconhecidas.",
+        "workouts": [
+          {
+            "name": "Full-Body Leve A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "goblet squat", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "flexão ou supino leve", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada leve", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body Leve B",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "terra romeno leve", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "desenvolvimento leve", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 2, "repsMin": 15, "repsMax": 20, "loadMethod": "bodyweight", "targetRir": 4, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body Leve C",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "lunge", "suggestedVariant": "afundo leve", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "puxada leve", "priorityEquipment": "cable", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 4, "restSeconds": 90, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "power-block-triphasic-4x",
+    "name": "Bloco de Potência Triphasic 4x",
+    "goal": "power",
+    "level": "intermediate",
+    "daysPerWeek": 4,
+    "rationale": "Treino triphasic clássico (força máxima -> velocidade -> balístico/pliométrico) pra desenvolver taxa de produção de força (RFD), relevante pra quem pratica esporte que exige potência (saltos, arremessos, sprints). Combina levantamentos pesados de baixa rep com variantes explosivas/pliométricas no mesmo dia.",
+    "progressionRule": "Semanas 1-2 (força): +2.5% do 1RM por semana nos básicos a 85-90%. Semanas 3-4 (velocidade): %1RM cai pra 60-70% mas a barra deve mover o mais rápido possível; falha em manter velocidade = reduzir carga, não aumentar. Reavaliar e1RM ao fim do bloco.",
+    "mesocycles": [
+      {
+        "weeks": 4,
+        "emphasis": "power",
+        "progressionModel": "undulating",
+        "includesDeload": false,
+        "weeklyIntensityWave": "Sem 1-2: força a 85-90% do 1RM, poucas reps. Sem 3-4: velocidade a 60-70% do 1RM, ênfase na velocidade da barra/salto, mesmas reps.",
+        "workouts": [
+          {
+            "name": "Squat + Salto",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "back squat", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 2, "repsMax": 3, "loadMethod": "percent_1rm", "loadValue": 87.5, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "box jump ou afundo com salto", "priorityEquipment": "bodyweight", "note": "explosivo, foco em altura/velocidade, não fadiga", "setScheme": { "setCount": 4, "repsMin": 3, "repsMax": 5, "loadMethod": "bodyweight", "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Upper Força + Arremesso",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "push_h", "suggestedVariant": "supino reto", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 2, "repsMax": 3, "loadMethod": "percent_1rm", "loadValue": 87.5, "restSeconds": 210, "lastSetAmrap": false } },
+              { "slot": "push_v", "suggestedVariant": "push press explosivo", "priorityEquipment": "barbell", "note": "empurrar a barra o mais rápido possível", "setScheme": { "setCount": 4, "repsMin": 3, "repsMax": 3, "loadMethod": "percent_1rm", "loadValue": 65, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada curvada", "priorityEquipment": "barbell", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 8, "loadMethod": "rir", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Hinge + Velocidade",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "levantamento terra", "priorityEquipment": "barbell", "setScheme": { "setCount": 5, "repsMin": 2, "repsMax": 3, "loadMethod": "percent_1rm", "loadValue": 87.5, "restSeconds": 240, "lastSetAmrap": false } },
+              { "slot": "hinge", "suggestedVariant": "hip thrust explosivo", "priorityEquipment": "barbell", "note": "subida o mais rápido possível", "setScheme": { "setCount": 4, "repsMin": 3, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 65, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "pallof press", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 10, "loadMethod": "rir", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body Explosivo",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "jump squat com carga leve", "priorityEquipment": "barbell", "note": "carga leve, foco 100% em velocidade", "setScheme": { "setCount": 4, "repsMin": 3, "repsMax": 5, "loadMethod": "percent_1rm", "loadValue": 40, "restSeconds": 150, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa explosiva", "priorityEquipment": "bodyweight", "note": "puxar o mais rápido possível", "setScheme": { "setCount": 4, "repsMin": 3, "repsMax": 5, "loadMethod": "bodyweight", "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "carry", "suggestedVariant": "sprint em rampa ou farmer walk rápido", "priorityEquipment": "bodyweight", "note": "reps = metros/segundos, esforço máximo curto", "setScheme": { "setCount": 4, "repsMin": 15, "repsMax": 20, "loadMethod": "bodyweight", "restSeconds": 120, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fat-loss-metabolic-circuit-3x",
+    "name": "Força Metabólica em Circuito 3x (Emagrecimento)",
+    "goal": "fat_loss",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Primeiro template pra objetivo fat_loss da biblioteca: combina blocos de força tradicional (preserva massa magra em déficit calórico) com um finisher em circuito de alta densidade (gasto calórico extra, conditioning). Bloco misto (ADR-0001) — exercícios isolados para os básicos, circuito pros últimos minutos da sessão.",
+    "progressionRule": "Exercícios de força: dupla progressão padrão. Circuito: meta é completar mais rounds no mesmo tempo total (aumentar densidade) antes de trocar por variantes mais difíceis dos movimentos.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": true,
+        "deloadNote": "Semana 6: metade das séries de força, circuito com metade dos rounds, RIR alto.",
+        "workouts": [
+          {
+            "name": "Full-Body + Circuito A",
+            "suggestedWeekday": 1,
+            "blocks": [
+              { "kind": "exercise", "slot": "squat", "suggestedVariant": "goblet squat", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "exercise", "slot": "push_h", "suggestedVariant": "supino halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "exercise", "slot": "pull_h", "suggestedVariant": "remada halter", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "circuit", "movementPatterns": ["squat", "push_h", "core"], "rounds": 4, "workSeconds": 40, "restSeconds": 20, "targetRpe": 8, "note": "Finisher: agachamento, flexão, prancha — 40s trabalho/20s descanso, 4 rounds" }
+            ]
+          },
+          {
+            "name": "Full-Body + Circuito B",
+            "suggestedWeekday": 3,
+            "blocks": [
+              { "kind": "exercise", "slot": "hinge", "suggestedVariant": "terra romeno halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "exercise", "slot": "push_v", "suggestedVariant": "desenvolvimento halteres", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "exercise", "slot": "pull_v", "suggestedVariant": "puxada alta", "priorityEquipment": "cable", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "circuit", "movementPatterns": ["lunge", "pull_h", "core"], "rounds": 4, "workSeconds": 40, "restSeconds": 20, "targetRpe": 8, "note": "Finisher: afundo, remada, dead bug — 40s trabalho/20s descanso, 4 rounds" }
+            ]
+          },
+          {
+            "name": "Full-Body + Circuito C",
+            "suggestedWeekday": 5,
+            "blocks": [
+              { "kind": "exercise", "slot": "squat", "suggestedVariant": "afundo búlgaro", "priorityEquipment": "dumbbell", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 12, "loadMethod": "rir", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "kind": "exercise", "slot": "core", "suggestedVariant": "ab wheel", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } },
+              { "kind": "circuit", "movementPatterns": ["squat", "push_h", "pull_h", "core"], "rounds": 5, "workSeconds": 40, "restSeconds": 20, "targetRpe": 8, "note": "Circuito full-body: agachamento, flexão, remada, prancha — 40s/20s, 5 rounds" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "running-beginner-c25k-9wk",
+    "name": "Corrida Iniciante — Do Zero aos 5K (9 semanas)",
+    "goal": "endurance",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Adaptação do modelo Couch-to-5K: intervalos de corrida/caminhada que aumentam progressivamente até correr 5km contínuos, em 9 semanas com 3 sessões/semana não-consecutivas. Ideal pra quem nunca correu — o corpo adapta impacto e capacidade aeróbica sem o risco de lesão de sair correndo 5km no primeiro dia.",
+    "progressionRule": "A cada 3 semanas (uma fase), reduzir a caminhada e aumentar o trote contínuo. Se uma semana for muito difícil, repetir antes de avançar — não existe pressa, só progressão sustentável.",
+    "mesocycles": [
+      {
+        "weeks": 3,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "fase 1 — intervalos curtos",
+        "microcycleNote": "3x/semana não-consecutivas (ex.: seg/qua/sex). Cada sessão: 5min caminhada de aquecimento antes, 5min de volta antes de encerrar.",
+        "workouts": [
+          {
+            "name": "Corrida Intervalada",
+            "suggestedWeekday": 1,
+            "blocks": [
+              { "kind": "activity", "activityType": "running", "durationMinutes": 20, "targetRpe": 5, "note": "Alterne 60s trotando / 90s caminhando por 20min (após aquecimento). Sem 2-3: aumentar pra 90s trote / 90s caminhada." }
+            ]
+          }
+        ]
+      },
+      {
+        "weeks": 3,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "fase 2 — trotes mais longos",
+        "microcycleNote": "Mesma estrutura 3x/semana. Intervalos de trote crescem, caminhada encolhe.",
+        "workouts": [
+          {
+            "name": "Corrida Intervalada",
+            "suggestedWeekday": 1,
+            "blocks": [
+              { "kind": "activity", "activityType": "running", "durationMinutes": 25, "targetRpe": 5, "note": "Alterne 3min trotando / 90s caminhando por 25min. Sem 3 desta fase: 2 blocos de 8min trote com 1 caminhada de 2min no meio." }
+            ]
+          }
+        ]
+      },
+      {
+        "weeks": 3,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "fase 3 — trote contínuo até 5k",
+        "microcycleNote": "Mesma estrutura 3x/semana. Meta final: 30min de trote contínuo (~5km pra maioria dos iniciantes).",
+        "workouts": [
+          {
+            "name": "Corrida Contínua",
+            "suggestedWeekday": 1,
+            "blocks": [
+              { "kind": "activity", "activityType": "running", "durationMinutes": 30, "targetRpe": 5, "note": "Trote contínuo sem pausas de caminhada. Semana final: tentar 5km contínuos no ritmo confortável." }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "half-marathon-beginner-12wk",
+    "name": "Meia-Maratona Iniciante (12 semanas)",
+    "goal": "endurance",
+    "level": "intermediate",
+    "daysPerWeek": 3,
+    "rationale": "Estrutura clássica de treino de meia-maratona (modelo Hal Higdon Novice) em 3 fases de 4 semanas: base (volume fácil), construção (ritmo/tempo run) e polimento com taper. Pressupõe que o atleta já corre ~10-15km/semana confortavelmente — não é plano de corrida do zero (ver 'Corrida Iniciante — Do Zero aos 5K' pra isso).",
+    "progressionRule": "A corrida longa cresce ~1-1.5km por semana dentro de cada fase, com uma semana de volume reduzido a cada 3-4 semanas pra absorver a carga. Ritmo das corridas fáceis: conversação confortável (RPE 4-5); tempo run: desconfortável mas sustentável (RPE 7).",
+    "mesocycles": [
+      {
+        "weeks": 4,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "base",
+        "microcycleNote": "3 corridas/semana: fácil, fácil, longa. Volume da longa cresce de 6km até 8km ao longo da fase.",
+        "workouts": [
+          { "name": "Corrida Fácil", "suggestedWeekday": 2, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 5, "targetRpe": 4, "note": "Ritmo de conversa, sem pressa." }] },
+          { "name": "Corrida Fácil 2", "suggestedWeekday": 4, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 5, "targetRpe": 4, "note": "Ritmo de conversa, sem pressa." }] },
+          { "name": "Corrida Longa", "suggestedWeekday": 6, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 7, "targetRpe": 5, "note": "Cresce de 6km (sem1) até 8km (sem4). Ritmo bem confortável, o objetivo é tempo em pé, não velocidade." }] }
+        ]
+      },
+      {
+        "weeks": 4,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "phase": "construção",
+        "microcycleNote": "Introduz 1 corrida de ritmo/tempo por semana no lugar de uma fácil. Longa continua crescendo.",
+        "workouts": [
+          { "name": "Corrida Fácil", "suggestedWeekday": 2, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 6, "targetRpe": 4, "note": "Ritmo de conversa." }] },
+          { "name": "Treino de Ritmo (Tempo Run)", "suggestedWeekday": 4, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 6, "targetRpe": 7, "note": "15-20min no ritmo desconfortável-mas-sustentável, com aquecimento/volta fáceis antes/depois." }] },
+          { "name": "Corrida Longa", "suggestedWeekday": 6, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 12, "targetRpe": 5, "note": "Cresce de 9km (sem5) até 12km (sem8). Ritmo confortável." }] }
+        ]
+      },
+      {
+        "weeks": 4,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": true,
+        "phase": "polimento e taper",
+        "microcycleNote": "Longa atinge o pico (~16-18km) na semana 10-11, depois reduz drasticamente nas 2 semanas antes da prova (taper).",
+        "deloadNote": "Semanas 11-12 (taper): volume total cai ~40-60% pra chegar descansado no dia da prova, mantendo frequência.",
+        "workouts": [
+          { "name": "Corrida Fácil", "suggestedWeekday": 2, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 6, "targetRpe": 4, "note": "Ritmo de conversa. Reduzir pela metade na semana da prova." }] },
+          { "name": "Treino de Ritmo (Tempo Run)", "suggestedWeekday": 4, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 6, "targetRpe": 7, "note": "Manter 15min de ritmo até 2 semanas antes da prova; última semana só corridas leves." }] },
+          { "name": "Corrida Longa", "suggestedWeekday": 6, "blocks": [{ "kind": "activity", "activityType": "running", "distanceKm": 16, "targetRpe": 5, "note": "Pico ~16-18km na sem 10-11, depois taper: 10km (sem12), descanso, prova (21.1km)." }] }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cycling-base-endurance-3x",
+    "name": "Ciclismo Base Aeróbica 3x",
+    "goal": "endurance",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Bloco de base aeróbica pra ciclismo (Zona 2 / 55-75% FTP), 6-12 semanas conforme a literatura de treino de base — aqui usamos 8. Volume dominado por esforço fácil (RPE 4, ritmo de conversa) constrói o 'motor aeróbico' antes de qualquer trabalho de intensidade, reduzindo risco de overtraining em quem está começando ou retomando o ciclismo.",
+    "progressionRule": "A cada 2 semanas, aumentar a duração da pedalada longa em 10-15min, mantendo a intensidade fácil constante (RPE 4). Não introduzir intervalos de alta intensidade neste bloco — o objetivo é volume, não velocidade.",
+    "mesocycles": [
+      {
+        "weeks": 8,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "microcycleNote": "3x/semana: 2 pedaladas curtas fáceis + 1 longa. Zona 2 = consegue manter conversa em frases completas.",
+        "workouts": [
+          { "name": "Pedalada Fácil A", "suggestedWeekday": 2, "blocks": [{ "kind": "activity", "activityType": "cycling", "durationMinutes": 35, "targetRpe": 4, "note": "Zona 2 constante, cadência confortável 80-90rpm." }] },
+          { "name": "Pedalada Fácil B", "suggestedWeekday": 4, "blocks": [{ "kind": "activity", "activityType": "cycling", "durationMinutes": 45, "targetRpe": 4, "note": "Zona 2 constante. Pode ser indoor (rolo) ou outdoor plano." }] },
+          { "name": "Pedalada Longa", "suggestedWeekday": 6, "blocks": [{ "kind": "activity", "activityType": "cycling", "durationMinutes": 75, "targetRpe": 4, "note": "Cresce de 60min (sem1-2) até 90-105min (sem7-8), sempre Zona 2." }] }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bodyweight-fullbody-beginner-3x",
+    "name": "Calistenia Full-Body Iniciante 3x",
+    "goal": "health",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Treino 100% peso do corpo pra quem não tem acesso a academia — progressão por dupla progressão de reps e, ao esgotar a faixa, troca pra variante mais difícil (progressão de alavanca) em vez de adicionar carga externa, o padrão mais efetivo pra calistenia segundo a literatura (push-up de joelhos -> inclinado -> solo -> pés elevados, etc).",
+    "progressionRule": "Dupla progressão 8->15 reps com RIR>=2. Ao completar 15 reps em todas as séries por 2 sessões seguidas, trocar pra variante mais difícil do mesmo padrão de movimento e reiniciar em 8 reps.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "hypertrophy",
+        "progressionModel": "double_progression",
+        "includesDeload": false,
+        "microcycleNote": "3x/semana não-consecutivas (seg/qua/sex). Mesma estrutura nas 3 sessões — o volume acumulado é o que importa em calistenia.",
+        "workouts": [
+          {
+            "name": "Full-Body A",
+            "suggestedWeekday": 1,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "agachamento livre ou bulgaro peso do corpo", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "flexão de braço (progressão de alavanca)", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada australiana (inverted row)", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 3, "repsMin": 20, "repsMax": 45, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body B",
+            "suggestedWeekday": 3,
+            "exercises": [
+              { "slot": "hinge", "suggestedVariant": "ponte de glúteo unilateral", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "pull_v", "suggestedVariant": "barra fixa (assistida se necessário)", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 5, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 120, "lastSetAmrap": false } },
+              { "slot": "lunge", "suggestedVariant": "afundo estático", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "dead bug", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 10, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Full-Body C",
+            "suggestedWeekday": 5,
+            "exercises": [
+              { "slot": "squat", "suggestedVariant": "pistol squat assistido ou afundo búlgaro", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 6, "repsMax": 12, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "push_h", "suggestedVariant": "flexão com pés elevados", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "pull_h", "suggestedVariant": "remada australiana pés elevados", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 3, "repsMin": 8, "repsMax": 15, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 90, "lastSetAmrap": false } },
+              { "slot": "core", "suggestedVariant": "prancha lateral", "priorityEquipment": "bodyweight", "note": "reps = segundos por lado", "setScheme": { "setCount": 3, "repsMin": 15, "repsMax": 30, "loadMethod": "bodyweight", "targetRir": 2, "restSeconds": 60, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hiit-tabata-full-body-3x",
+    "name": "HIIT Tabata Full-Body 3x",
+    "goal": "fat_loss",
+    "level": "intermediate",
+    "daysPerWeek": 3,
+    "rationale": "Protocolo Tabata clássico: 20s de esforço máximo / 10s de descanso, proporção 2:1, mínimo 8 rounds por bloco — o mais estudado dos protocolos HIIT, empurra os sistemas aeróbico e anaeróbico ao limite simultaneamente. Sessões de ~20min (2 blocos Tabata de exercícios diferentes) pra quem quer condicionamento em pouco tempo.",
+    "progressionRule": "Nenhuma progressão de carga — a intensidade já é máxima por definição. Progredir trocando por variantes mais difíceis do movimento (ex.: agachamento -> agachamento com salto) quando os rounds finais deixarem de ser desafiadores.",
+    "mesocycles": [
+      {
+        "weeks": 4,
+        "emphasis": "hypertrophy",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "microcycleNote": "3x/semana não-consecutivas. Aquecer 5min antes de qualquer bloco Tabata — a intensidade é máxima desde o primeiro round.",
+        "workouts": [
+          {
+            "name": "Tabata A — Inferior/Core",
+            "suggestedWeekday": 1,
+            "blocks": [
+              { "kind": "circuit", "movementPatterns": ["squat"], "rounds": 8, "workSeconds": 20, "restSeconds": 10, "targetRpe": 9, "note": "Agachamento com salto — protocolo Tabata clássico, 8 rounds de 20s/10s." },
+              { "kind": "circuit", "movementPatterns": ["core"], "rounds": 8, "workSeconds": 20, "restSeconds": 10, "targetRpe": 9, "note": "Mountain climber ou similar — 8 rounds de 20s/10s." }
+            ]
+          },
+          {
+            "name": "Tabata B — Superior",
+            "suggestedWeekday": 3,
+            "blocks": [
+              { "kind": "circuit", "movementPatterns": ["push_h"], "rounds": 8, "workSeconds": 20, "restSeconds": 10, "targetRpe": 9, "note": "Flexão de braço — 8 rounds de 20s/10s." },
+              { "kind": "circuit", "movementPatterns": ["pull_h"], "rounds": 8, "workSeconds": 20, "restSeconds": 10, "targetRpe": 9, "note": "Remada australiana ou elástico — 8 rounds de 20s/10s." }
+            ]
+          },
+          {
+            "name": "Tabata C — Full-Body",
+            "suggestedWeekday": 5,
+            "blocks": [
+              { "kind": "circuit", "movementPatterns": ["squat", "push_h", "pull_h", "core"], "rounds": 8, "workSeconds": 20, "restSeconds": 10, "targetRpe": 9, "note": "Circuito rotativo entre os 4 padrões — 8 rounds de 20s/10s cada." }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mobility-daily-recovery-3x",
+    "name": "Mobilidade Diária — Recuperação e Amplitude",
+    "goal": "health",
+    "level": "beginner",
+    "daysPerWeek": 3,
+    "rationale": "Rotina de mobilidade estruturada (5-10 exercícios cobrindo quadril, coluna e ombros, cada um 1-2x) — a literatura recomenda 10-20min quase diários em vez de uma sessão longa no fim de semana. Modelada como Exercise com movementPattern 'mobility' (não Activity): é catalogada e prescrita como qualquer treino de força, só que o padrão de movimento é outro.",
+    "progressionRule": "Sem progressão de carga — o alvo é aumentar a amplitude de movimento e reduzir desconforto ao longo das semanas. Aumentar o tempo de sustentação (segundos) gradualmente conforme a mobilidade melhora; nunca forçar além do leve desconforto.",
+    "mesocycles": [
+      {
+        "weeks": 6,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "microcycleNote": "Pode ser feito diariamente — aqui estruturado 3x/semana como mínimo, encaixado em dias de descanso do treino de força. Aquecer levemente antes (mobilidade estática rende mais com o corpo já morno).",
+        "workouts": [
+          {
+            "name": "Mobilidade — Quadril e Coluna",
+            "suggestedWeekday": 2,
+            "exercises": [
+              { "slot": "mobility", "suggestedVariant": "90/90 hip switch", "priorityEquipment": "bodyweight", "note": "reps = repetições lentas por lado", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "bodyweight", "restSeconds": 30, "lastSetAmrap": false } },
+              { "slot": "mobility", "suggestedVariant": "gato-camelo (cat-cow)", "priorityEquipment": "bodyweight", "note": "reps = repetições lentas", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "bodyweight", "restSeconds": 15, "lastSetAmrap": false } },
+              { "slot": "mobility", "suggestedVariant": "alongamento de flexor de quadril (couch stretch)", "priorityEquipment": "bodyweight", "note": "reps = segundos por lado", "setScheme": { "setCount": 2, "repsMin": 30, "repsMax": 60, "loadMethod": "bodyweight", "restSeconds": 15, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Mobilidade — Ombros e Torácica",
+            "suggestedWeekday": 4,
+            "exercises": [
+              { "slot": "mobility", "suggestedVariant": "rotação torácica em quatro apoios", "priorityEquipment": "bodyweight", "note": "reps = repetições lentas por lado", "setScheme": { "setCount": 2, "repsMin": 8, "repsMax": 10, "loadMethod": "bodyweight", "restSeconds": 15, "lastSetAmrap": false } },
+              { "slot": "mobility", "suggestedVariant": "band distraction de ombro", "priorityEquipment": "band", "note": "reps = segundos por lado", "setScheme": { "setCount": 2, "repsMin": 30, "repsMax": 45, "loadMethod": "bodyweight", "restSeconds": 20, "lastSetAmrap": false } },
+              { "slot": "mobility", "suggestedVariant": "wall slide", "priorityEquipment": "bodyweight", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "bodyweight", "restSeconds": 15, "lastSetAmrap": false } }
+            ]
+          },
+          {
+            "name": "Mobilidade — Tornozelo e Posterior",
+            "suggestedWeekday": 6,
+            "exercises": [
+              { "slot": "mobility", "suggestedVariant": "dorsiflexão de tornozelo na parede", "priorityEquipment": "bodyweight", "note": "reps = repetições por lado", "setScheme": { "setCount": 2, "repsMin": 10, "repsMax": 12, "loadMethod": "bodyweight", "restSeconds": 15, "lastSetAmrap": false } },
+              { "slot": "mobility", "suggestedVariant": "alongamento de posterior de coxa em pé", "priorityEquipment": "bodyweight", "note": "reps = segundos por lado", "setScheme": { "setCount": 2, "repsMin": 30, "repsMax": 45, "loadMethod": "bodyweight", "restSeconds": 15, "lastSetAmrap": false } },
+              { "slot": "mobility", "suggestedVariant": "agachamento profundo sustentado (deep squat hold)", "priorityEquipment": "bodyweight", "note": "reps = segundos", "setScheme": { "setCount": 2, "repsMin": 30, "repsMax": 60, "loadMethod": "bodyweight", "restSeconds": 30, "lastSetAmrap": false } }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]

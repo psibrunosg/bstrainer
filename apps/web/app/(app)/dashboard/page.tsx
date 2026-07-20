@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Bar,
   BarChart,
@@ -13,6 +14,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { isPerformedExercise } from "@bstrainer/domain";
 import type { AthleteProfile } from "@bstrainer/domain";
 import type { WorkoutSession } from "@bstrainer/domain";
 import {
@@ -29,6 +31,8 @@ import {
 import { loadSessions } from "@/lib/data/sessions";
 import { loadExerciseNames } from "@/lib/data/exercise-names";
 import { getMyAthleteProfile } from "@/lib/data/athlete";
+import { canManageClients } from "@/lib/data/memberships";
+import { listClientLinks, type ClientLink } from "@/lib/data/clients";
 import {
   createGoal,
   deleteGoal,
@@ -55,7 +59,7 @@ function bestE1rmByExercise(sessions: WorkoutSession[]): Map<string, E1rmPoint[]
   const byExercise = new Map<string, Map<string, number>>();
   for (const s of sessions) {
     const day = s.startedAt.slice(0, 10);
-    for (const ex of s.exercises) {
+    for (const ex of s.blocks.filter(isPerformedExercise)) {
       for (const set of ex.sets) {
         if (set.isWarmup || set.loadKg == null || set.reps <= 0) continue;
         const e1rm =
@@ -98,6 +102,18 @@ function weeklyTonnage(sessions: WorkoutSession[]) {
 }
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
+  const searchParams = useSearchParams();
+  const clientId = searchParams.get("client") ?? undefined;
+  const clientName = searchParams.get("name");
+
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
@@ -110,16 +126,27 @@ export default function DashboardPage() {
   const [goalTarget, setGoalTarget] = useState("");
   const [goalPending, setGoalPending] = useState(false);
   const [goalError, setGoalError] = useState<string | null>(null);
+  const [isTrainer, setIsTrainer] = useState(false);
+  const [clients, setClients] = useState<ClientLink[]>([]);
 
   useEffect(() => {
-    loadSessions().then((s) => {
+    canManageClients().then((trainer) => {
+      setIsTrainer(trainer);
+      if (trainer && !clientId) listClientLinks().then(setClients);
+    });
+  }, [clientId]);
+
+  useEffect(() => {
+    loadSessions(clientId).then((s) => {
       setSessions(s);
       setLoaded(true);
     });
     loadExerciseNames().then((fn) => setNameOf(() => fn));
-    getMyAthleteProfile().then(setProfile);
-    listGoals().then(setGoals);
-  }, []);
+    if (!clientId) {
+      getMyAthleteProfile().then(setProfile);
+      listGoals().then(setGoals);
+    }
+  }, [clientId]);
 
   const e1rmSeries = useMemo(() => bestE1rmByExercise(sessions), [sessions]);
   const tonnageSeries = useMemo(() => weeklyTonnage(sessions), [sessions]);
@@ -180,6 +207,42 @@ export default function DashboardPage() {
       ? selectedExercise
       : exerciseIds[0] ?? null;
 
+  if (isTrainer && !clientId) {
+    const active = clients.filter((c) => c.status === "active");
+    return (
+      <div className="mx-auto max-w-lg space-y-4 p-4">
+        <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+          Progresso
+        </h1>
+        <p className="text-sm text-mute">Escolha um aluno pra ver o progresso.</p>
+        {active.length === 0 ? (
+          <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">
+            Nenhum aluno ativo ainda.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {active.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center justify-between rounded-lg border border-line bg-surface p-4"
+              >
+                <span className="text-text">{c.name ?? "Aluno"}</span>
+                {c.client_id && (
+                  <Link
+                    href={`/dashboard?client=${c.client_id}&name=${encodeURIComponent(c.name ?? "Aluno")}`}
+                    className="caps-label text-signal"
+                  >
+                    Ver progresso
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
   if (!loaded) {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-4">
@@ -193,16 +256,18 @@ export default function DashboardPage() {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-4">
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
-          Progresso
+          {clientId ? `Progresso de ${clientName ?? "aluno"}` : "Progresso"}
         </h1>
         <div className="rounded-lg border border-line bg-surface p-6 text-center">
           <p className="text-sm text-mute">Nenhum treino registrado ainda.</p>
-          <Link
-            href="/train"
-            className="mt-4 inline-flex h-12 items-center justify-center rounded-lg bg-signal px-6 text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
-          >
-            Registrar primeiro treino
-          </Link>
+          {!clientId && (
+            <Link
+              href="/train"
+              className="mt-4 inline-flex h-12 items-center justify-center rounded-lg bg-signal px-6 text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
+            >
+              Registrar primeiro treino
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -210,14 +275,22 @@ export default function DashboardPage() {
 
   const totalSets = sessions.reduce(
     (acc, s) =>
-      acc + s.exercises.reduce((a, ex) => a + ex.sets.filter((st) => !st.isWarmup).length, 0),
+      acc +
+      s.blocks
+        .filter(isPerformedExercise)
+        .reduce((a, ex) => a + ex.sets.filter((st) => !st.isWarmup).length, 0),
     0,
   );
 
   return (
     <div className="mx-auto max-w-lg space-y-6 p-4">
+      {clientId && (
+        <Link href="/dashboard" className="text-sm text-mute transition-colors duration-200 hover:text-text">
+          ← Alunos
+        </Link>
+      )}
       <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
-        Progresso
+        {clientId ? `Progresso de ${clientName ?? "aluno"}` : "Progresso"}
       </h1>
 
       <div className="grid grid-cols-4 gap-3">
@@ -293,6 +366,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {!clientId && (
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="caps-label font-display font-semibold text-mute">
@@ -390,6 +464,7 @@ export default function DashboardPage() {
           );
         })}
       </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="caps-label font-display font-semibold text-mute">

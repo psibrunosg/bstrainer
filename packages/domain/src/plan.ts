@@ -74,12 +74,53 @@ export const prescribedExerciseSchema = z.object({
 });
 export type PrescribedExercise = z.infer<typeof prescribedExerciseSchema>;
 
+/** Prescrição de esforço contínuo (corrida, bike Z2) — duração, distância e/ou pace. */
+export const prescribedActivitySchema = z.object({
+  id: z.string().uuid(),
+  activityId: z.string().uuid(),
+  order: z.number().int().min(1),
+  durationSeconds: z.number().int().min(1).nullable().default(null),
+  distanceKm: z.number().min(0).nullable().default(null),
+  targetPaceMinPerKm: z.number().min(0).nullable().default(null),
+  targetRpe: z.number().min(1).max(10).nullable().default(null),
+  notes: z.string().nullable().default(null),
+});
+export type PrescribedActivity = z.infer<typeof prescribedActivitySchema>;
+
+/** Prescrição de circuito por rounds (HIIT) — rounds de exercícios com work/rest fixos. */
+export const prescribedCircuitSchema = z.object({
+  id: z.string().uuid(),
+  order: z.number().int().min(1),
+  exerciseIds: z.array(z.string().uuid()).min(1),
+  rounds: z.number().int().min(1),
+  workSeconds: z.number().int().min(1),
+  restSeconds: z.number().int().min(0),
+  targetRpe: z.number().min(1).max(10).nullable().default(null),
+  notes: z.string().nullable().default(null),
+});
+export type PrescribedCircuit = z.infer<typeof prescribedCircuitSchema>;
+
+/** Um item da lista ordenada de um WorkoutTemplate — exercício, atividade contínua ou circuito. */
+export const workoutBlockSchema = z.discriminatedUnion("kind", [
+  prescribedExerciseSchema.extend({ kind: z.literal("exercise") }),
+  prescribedActivitySchema.extend({ kind: z.literal("activity") }),
+  prescribedCircuitSchema.extend({ kind: z.literal("circuit") }),
+]);
+export type WorkoutBlock = z.infer<typeof workoutBlockSchema>;
+
+/** Narrowing helper — testes e telas que só lidam com força usam isso pra filtrar blocks. */
+export function isPrescribedExercise(
+  block: WorkoutBlock,
+): block is PrescribedExercise & { kind: "exercise" } {
+  return block.kind === "exercise";
+}
+
 export const workoutTemplateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1), // "Treino A"
   suggestedWeekday: z.number().int().min(0).max(6).nullable().default(null),
   order: z.number().int().min(1),
-  exercises: z.array(prescribedExerciseSchema),
+  blocks: z.array(workoutBlockSchema),
 });
 export type WorkoutTemplate = z.infer<typeof workoutTemplateSchema>;
 

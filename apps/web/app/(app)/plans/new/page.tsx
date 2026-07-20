@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createManualPlan,
   searchExercises,
@@ -34,7 +34,18 @@ interface DraftExercise extends ManualPlanExercise {
 }
 
 export default function NewManualPlanPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewManualPlanForm />
+    </Suspense>
+  );
+}
+
+function NewManualPlanForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const clientId = searchParams.get("client") ?? undefined;
+  const clientName = searchParams.get("name");
   const [goal, setGoal] = useState("hypertrophy");
   const [workoutName, setWorkoutName] = useState("Treino A");
   const [exercises, setExercises] = useState<DraftExercise[]>([]);
@@ -102,11 +113,14 @@ export default function NewManualPlanPage() {
   function save() {
     setError(null);
     startTransition(async () => {
-      const result = await createManualPlan({
-        goal,
-        workoutName,
-        exercises: exercises.map(({ name: _name, mediaUrl: _mediaUrl, ...rest }) => rest),
-      });
+      const result = await createManualPlan(
+        {
+          goal,
+          workoutName,
+          exercises: exercises.map(({ name: _name, mediaUrl: _mediaUrl, ...rest }) => rest),
+        },
+        clientId,
+      );
       if (result.ok) {
         router.push("/plans");
       } else {
@@ -130,6 +144,11 @@ export default function NewManualPlanPage() {
         <p className="mt-1 text-sm text-mute">
           Um treino, um mesociclo linear de 4 semanas. Monte os exercícios à mão.
         </p>
+        {clientId && (
+          <p className="mt-2 rounded-lg border border-signal/30 bg-signal/5 px-3 py-2 text-sm text-signal">
+            Criando ficha para {clientName ?? "aluno"}
+          </p>
+        )}
       </div>
 
       {/* Objetivo + nome do treino */}

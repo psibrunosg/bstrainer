@@ -1,4 +1,4 @@
-import type { WorkoutSession } from "@bstrainer/domain";
+import { isPerformedExercise, type WorkoutSession } from "@bstrainer/domain";
 import { e1rmEpley } from "@bstrainer/engine";
 import { loadSessionHistory } from "./storage";
 
@@ -20,7 +20,7 @@ export async function lastPerformanceFor(
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
   for (const session of history) {
-    for (const ex of session.exercises) {
+    for (const ex of session.blocks.filter(isPerformedExercise)) {
       if (ex.exerciseId !== exerciseId) continue;
       const workSets = ex.sets.filter((s) => !s.isWarmup);
       const last = workSets[workSets.length - 1];
@@ -45,7 +45,7 @@ export async function bestHistoricalE1rm(
   );
   let best = 0;
   for (const session of sessions) {
-    for (const ex of session.exercises) {
+    for (const ex of session.blocks.filter(isPerformedExercise)) {
       if (ex.exerciseId !== exerciseId) continue;
       for (const set of ex.sets) {
         if (set.isWarmup || set.loadKg == null) continue;

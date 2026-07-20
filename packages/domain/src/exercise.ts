@@ -12,6 +12,7 @@ export const movementPatternSchema = z.enum([
   "carry",
   "core",
   "isolation",
+  "mobility",
 ]);
 export type MovementPattern = z.infer<typeof movementPatternSchema>;
 
