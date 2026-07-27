@@ -1,14 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { isClientOnly } from "@/lib/data/memberships";
 import { getMyTrainerProfile, setTrainerListing } from "@/lib/data/trainers";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [acceptingClients, setAcceptingClients] = useState(false);
   const [clientOnly, setClientOnly] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    await createClient().auth.signOut();
+    router.replace("/login");
+  }
 
   useEffect(() => {
     isClientOnly().then(setClientOnly);
@@ -64,6 +74,15 @@ export default function SettingsPage() {
         {message && <p className="mt-3 text-sm text-mute">{message}</p>}
       </section>
       )}
+
+      <button
+        type="button"
+        disabled={signingOut}
+        onClick={handleSignOut}
+        className="h-11 w-full rounded-lg border border-line text-sm font-semibold text-err transition active:bg-surface-2 disabled:opacity-50"
+      >
+        {signingOut ? "Saindo…" : "Sair da conta"}
+      </button>
     </div>
   );
 }
