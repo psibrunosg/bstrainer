@@ -6,7 +6,6 @@ import {
   isPerformedExercise,
   type PerformedActivity,
   type PerformedCircuit,
-  type PerformedExercise,
 } from "@bstrainer/domain";
 import { exerciseName, loadCatalogExercises, type ExerciseOption as CatalogExerciseOption } from "@/lib/workout/exercises";
 import { publicAssetPath } from "@/lib/public-asset";
@@ -48,14 +47,10 @@ function TrainSessionContent() {
     loadCatalogExercises().then(setExercises);
   }, []);
 
-  // ponytail: the one coupling appendSet used to own (start rest after a set
-  // is logged) — hook dropped it, so the page wires it back for both append paths.
-  const confirmSet = (rowId: string, exerciseId: string) => {
-    s.confirmSet(rowId, exerciseId);
-    rest.start();
-  };
-  const repeatLastSet = (ex: PerformedExercise) => {
-    s.repeatLastSet(ex);
+  // ponytail: the one coupling confirmActiveRow used to own (start rest after
+  // a set is logged) — hook doesn't own timers, so the page wires it back.
+  const confirmActiveRow = (rowId: string, exerciseId: string) => {
+    s.confirmActiveRow(rowId, exerciseId);
     rest.start();
   };
 
@@ -170,14 +165,14 @@ function TrainSessionContent() {
             mediaSrc={publicAssetPath(
               s.substituteOverride[ex.exerciseId]?.mediaUrl ?? exercises.find((e) => e.id === ex.exerciseId)?.mediaUrl,
             )}
-            target={s.targetSetFor(ex.id)}
             last={s.lastPerf[ex.exerciseId] ?? null}
             prE1rm={s.prHit[ex.exerciseId]}
-            draft={s.draftFor(ex.id, ex.exerciseId)}
-            onDraftChange={(patch) => s.setDraft(ex.id, ex.exerciseId, patch)}
-            onConfirmSet={() => confirmSet(ex.id, ex.exerciseId)}
-            onRepeatLastSet={() => repeatLastSet(ex)}
-            onRemoveSet={(setId) => s.removeSet(ex.id, setId)}
+            rows={s.rowsFor(ex.id, ex.exerciseId)}
+            onDraftChange={(index, patch) => s.setDraftAt(ex.id, ex.exerciseId, index, patch)}
+            onConfirmActive={() => confirmActiveRow(ex.id, ex.exerciseId)}
+            onEditLast={() => s.editLastConfirmedRow(ex.id)}
+            onAddRow={() => s.addRow(ex.id)}
+            onRemoveTrailingRow={() => s.removeTrailingRow(ex.id)}
             onRemove={() => s.removeExercise(ex.id)}
             onOpenPlateCalc={setPlateTarget}
             onSubstitute={(opt) => s.applySubstitute(ex.id, opt)}
