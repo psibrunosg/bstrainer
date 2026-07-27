@@ -18,8 +18,10 @@ import { syncSession } from "@/lib/workout/sync";
 import {
   bestHistoricalE1rm,
   lastPerformanceFor,
+  lastSessionSetsFor,
   type LastPerformance,
 } from "@/lib/workout/history-lookup";
+import { buildSetRows, type SetDraft, type SetRow } from "@/lib/workout/set-rows";
 import {
   appendToSessionHistory,
   clearActiveSession,
@@ -27,11 +29,7 @@ import {
   saveActiveSession,
 } from "@/lib/workout/storage";
 
-export interface SetDraft {
-  reps: number;
-  load: string;
-  rpe: string;
-}
+export type { SetDraft, SetRow } from "@/lib/workout/set-rows";
 
 function parseLoad(raw: string): number | null {
   const trimmed = raw.trim().replace(",", ".");
@@ -43,10 +41,13 @@ function parseLoad(raw: string): number | null {
 export function useWorkoutSession() {
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
+  const [drafts, setDrafts] = useState<Record<string, Record<number, SetDraft>>>({});
+  const [rowCounts, setRowCounts] = useState<Record<string, number>>({});
 
   // Última performance por exercício (histórico) — ghost/prefill
   const [lastPerf, setLastPerf] = useState<Record<string, LastPerformance | null>>({});
+  // Todas as séries da última sessão por exercício — "anterior" por linha na tabela
+  const [lastSessionSets, setLastSessionSets] = useState<Record<string, LastPerformance[] | null>>({});
   // Melhor e1RM histórico por exercício (baseline de PR, congelado no add)
   const prBaseline = useRef<Record<string, number>>({});
   // Exercícios que bateram PR nesta sessão -> valor do PR
@@ -73,11 +74,14 @@ export function useWorkoutSession() {
       // pré-carrega última performance e baseline de PR dos exercícios já na sessão
       if (active) {
         const perf: Record<string, LastPerformance | null> = {};
+        const perfSets: Record<string, LastPerformance[] | null> = {};
         for (const ex of active.blocks.filter(isPerformedExercise)) {
           perf[ex.exerciseId] = await lastPerformanceFor(ex.exerciseId);
+          perfSets[ex.exerciseId] = await lastSessionSetsFor(ex.exerciseId);
           prBaseline.current[ex.exerciseId] = await bestHistoricalE1rm(ex.exerciseId);
         }
         setLastPerf(perf);
+        setLastSessionSets(perfSets);
 
         if (active.workoutTemplateId) {
           const workout = await fetchWorkoutTemplate(active.workoutTemplateId);
@@ -99,18 +103,30 @@ export function useWorkoutSession() {
     }
   }, [session]);
 
-  function targetSetFor(rowId: string): PrescribedSet | undefined {
+  function targetSetAt(rowId: string, index: number): PrescribedSet | undefined {
     const block = session?.blocks.find((b) => b.id === rowId);
     if (!block || block.kind !== "exercise" || !block.prescribedExerciseId) return undefined;
     const prescribed = prescribedById[block.prescribedExerciseId];
     if (!prescribed || prescribed.kind !== "exercise") return undefined;
-    return prescribed.sets[block.sets.length] ?? prescribed.sets[prescribed.sets.length - 1];
+    return prescribed.sets[index] ?? prescribed.sets[prescribed.sets.length - 1];
   }
 
-  function draftFor(rowId: string, exerciseId: string): SetDraft {
-    const existing = drafts[rowId];
+  function plannedRowCount(rowId: string): number {
+    const block = session?.blocks.find((b) => b.id === rowId);
+    if (!block || block.kind !== "exercise" || !block.prescribedExerciseId) return 1;
+    const prescribed = prescribedById[block.prescribedExerciseId];
+    if (!prescribed || prescribed.kind !== "exercise") return 1;
+    return Math.max(prescribed.sets.length, 1);
+  }
+
+  function rowCountFor(rowId: string): number {
+    return rowCounts[rowId] ?? plannedRowCount(rowId);
+  }
+
+  function draftForIndex(rowId: string, exerciseId: string, index: number): SetDraft {
+    const existing = drafts[rowId]?.[index];
     if (existing) return existing;
-    const target = targetSetFor(rowId);
+    const target = targetSetAt(rowId, index);
     if (target) {
       return {
         reps: target.repsMin,
@@ -121,20 +137,57 @@ export function useWorkoutSession() {
         rpe: target.targetRpe != null ? String(target.targetRpe) : "",
       };
     }
+    const anterior = lastSessionSets[exerciseId]?.[index];
+    if (anterior) {
+      return {
+        reps: anterior.reps,
+        load: anterior.loadKg != null ? String(anterior.loadKg) : "",
+        rpe: "",
+      };
+    }
     const last = lastPerf[exerciseId];
     return { reps: last?.reps ?? 8, load: "", rpe: "" };
   }
 
-  function setDraft(rowId: string, exerciseId: string, patch: Partial<SetDraft>) {
+  function setDraftAt(rowId: string, exerciseId: string, index: number, patch: Partial<SetDraft>) {
     setDrafts((prev) => ({
       ...prev,
-      [rowId]: { ...draftFor(rowId, exerciseId), ...patch },
+      [rowId]: {
+        ...(prev[rowId] ?? {}),
+        [index]: { ...draftForIndex(rowId, exerciseId, index), ...patch },
+      },
     }));
+  }
+
+  function rowsFor(rowId: string, exerciseId: string): SetRow[] {
+    const block = session?.blocks.find((b) => b.id === rowId);
+    if (!block || block.kind !== "exercise") return [];
+    return buildSetRows({
+      confirmedSets: block.sets,
+      rowCount: rowCountFor(rowId),
+      targetAt: (index) => targetSetAt(rowId, index),
+      anteriorAt: (index) => lastSessionSets[exerciseId]?.[index],
+      draftAt: (index) => draftForIndex(rowId, exerciseId, index),
+    });
+  }
+
+  function addRow(rowId: string) {
+    setRowCounts((prev) => ({ ...prev, [rowId]: (prev[rowId] ?? plannedRowCount(rowId)) + 1 }));
+  }
+
+  function removeTrailingRow(rowId: string) {
+    const block = session?.blocks.find((b) => b.id === rowId);
+    if (!block || block.kind !== "exercise") return;
+    const count = rowCountFor(rowId);
+    if (count - 1 <= block.sets.length) return;
+    setRowCounts((prev) => ({ ...prev, [rowId]: count - 1 }));
   }
 
   async function addExercise(exerciseId: string) {
     const last = await lastPerformanceFor(exerciseId);
     setLastPerf((prev) => ({ ...prev, [exerciseId]: last }));
+    const lastSets = await lastSessionSetsFor(exerciseId);
+    setLastSessionSets((prev) => ({ ...prev, [exerciseId]: lastSets }));
     prBaseline.current[exerciseId] = await bestHistoricalE1rm(exerciseId);
     setSession((prev) => {
       if (!prev) return prev;
@@ -210,8 +263,12 @@ export function useWorkoutSession() {
     checkPr(exerciseId, newSet);
   }
 
-  function confirmSet(rowId: string, exerciseId: string) {
-    const d = draftFor(rowId, exerciseId);
+  function confirmActiveRow(rowId: string, exerciseId: string) {
+    const block = session?.blocks.find((b) => b.id === rowId);
+    if (!block || block.kind !== "exercise") return;
+    const index = block.sets.length;
+    const d = draftForIndex(rowId, exerciseId, index);
+    if (d.reps <= 0) return;
     appendSet(rowId, exerciseId, {
       reps: d.reps,
       loadKg: parseLoad(d.load),
@@ -222,20 +279,40 @@ export function useWorkoutSession() {
       timeSeconds: null,
       notes: null,
     });
+    setDrafts((prev) => {
+      const rowDrafts = { ...(prev[rowId] ?? {}) };
+      delete rowDrafts[index];
+      return { ...prev, [rowId]: rowDrafts };
+    });
   }
 
-  function repeatLastSet(exercise: PerformedExercise) {
-    const last = exercise.sets[exercise.sets.length - 1];
-    if (!last) return;
-    appendSet(exercise.id, exercise.exerciseId, {
-      reps: last.reps,
-      loadKg: last.loadKg,
-      rpe: last.rpe,
-      rir: last.rir,
-      isFailure: false,
-      isWarmup: last.isWarmup,
-      timeSeconds: last.timeSeconds,
-      notes: null,
+  // ponytail: só a série confirmada mais recente pode reabrir pra edição —
+  // reabrir "sobe" um índice arbitrário no meio da lista exigiria reordenar
+  // sets com furos, fora de escopo. Editar uma série antiga exige apagar as
+  // posteriores primeiro.
+  function editLastConfirmedRow(rowId: string) {
+    const block = session?.blocks.find((b) => b.id === rowId);
+    if (!block || block.kind !== "exercise" || block.sets.length === 0) return;
+    const index = block.sets.length - 1;
+    const popped = block.sets[index];
+    if (!popped) return;
+    setDrafts((prev) => ({
+      ...prev,
+      [rowId]: {
+        ...(prev[rowId] ?? {}),
+        [index]: {
+          reps: popped.reps,
+          load: popped.loadKg != null ? String(popped.loadKg) : "",
+          rpe: popped.rpe != null ? String(popped.rpe) : "",
+        },
+      },
+    }));
+    setSession((prev) => {
+      if (!prev) return prev;
+      const blocks = prev.blocks.map((e) =>
+        e.kind === "exercise" && e.id === rowId ? { ...e, sets: e.sets.slice(0, -1) } : e,
+      );
+      return { ...prev, blocks };
     });
   }
 
@@ -265,20 +342,6 @@ export function useWorkoutSession() {
     });
   }
 
-  function removeSet(rowId: string, setId: string) {
-    setSession((prev) => {
-      if (!prev) return prev;
-      const blocks = prev.blocks.map((e) => {
-        if (e.kind !== "exercise" || e.id !== rowId) return e;
-        const sets = e.sets
-          .filter((s) => s.id !== setId)
-          .map((s, i) => ({ ...s, order: i + 1 }));
-        return { ...e, sets };
-      });
-      return { ...prev, blocks };
-    });
-  }
-
   async function finishSession(srpe: number) {
     if (!session) return;
     const done: WorkoutSession = {
@@ -299,19 +362,20 @@ export function useWorkoutSession() {
     loaded,
     finished,
     lastPerf,
+    lastSessionSets,
     prHit,
     substituteOverride,
     prescribedById,
     activityInfo,
-    draftFor,
-    setDraft,
-    targetSetFor,
+    rowsFor,
+    setDraftAt,
+    addRow,
+    removeTrailingRow,
     addExercise,
     removeExercise,
     applySubstitute,
-    confirmSet,
-    repeatLastSet,
-    removeSet,
+    confirmActiveRow,
+    editLastConfirmedRow,
     updateActivity,
     updateCircuit,
     finishSession,
