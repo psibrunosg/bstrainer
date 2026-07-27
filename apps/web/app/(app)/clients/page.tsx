@@ -158,10 +158,16 @@ export default function ClientsPage() {
                       {l.client_id && (
                         <>
                           <Link
+                            href={`/plans/templates?client=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}
+                            className="caps-label text-signal"
+                          >
+                            Template
+                          </Link>
+                          <Link
                             href={`/plans/new?client=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}
                             className="caps-label text-signal"
                           >
-                            Novo plano
+                            Manual
                           </Link>
                           <Link
                             href={`/messages?id=${l.client_id}&name=${encodeURIComponent(l.name ?? "Aluno")}`}

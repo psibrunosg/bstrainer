@@ -4,12 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   isPerformedExercise,
+  type PerformedActivity,
+  type PerformedCircuit,
   type PerformedExercise,
   type PerformedSet,
+  type PrescribedSet,
+  type WorkoutBlock,
   type WorkoutSession,
 } from "@bstrainer/domain";
+import { fetchWorkoutTemplate, type NextWorkout } from "@/lib/data/active-plan";
 import { e1rmEpley, sessionTonnage } from "@bstrainer/engine";
-import { EXERCISES, exerciseName } from "@/lib/workout/exercises";
+import { exerciseName, loadCatalogExercises, type ExerciseOption as CatalogExerciseOption } from "@/lib/workout/exercises";
 import { getSubstitutes } from "@/lib/data/substitutions";
 import type { ExerciseOption } from "@/lib/data/plans";
 import { syncSession } from "@/lib/workout/sync";
@@ -78,6 +83,7 @@ function TrainSessionContent() {
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [exercises, setExercises] = useState<CatalogExerciseOption[]>([]);
   const [search, setSearch] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
@@ -111,7 +117,13 @@ function TrainSessionContent() {
     Record<string, { name: string; mediaUrl: string | null }>
   >({});
 
+  // Meta prescrita (quando a sessão vem de um treino atribuído) — id do block
+  // prescrito -> block, pra mostrar reps/carga/RPE alvo e pré-preencher o draft.
+  const [prescribedById, setPrescribedById] = useState<Record<string, WorkoutBlock>>({});
+  const [activityInfo, setActivityInfo] = useState<NextWorkout["activityInfo"]>({});
+
   useEffect(() => {
+    loadCatalogExercises().then(setExercises);
     loadActiveSession().then(async (active) => {
       setSession(active);
       setLoaded(true);
@@ -123,6 +135,16 @@ function TrainSessionContent() {
           prBaseline.current[ex.exerciseId] = await bestHistoricalE1rm(ex.exerciseId);
         }
         setLastPerf(perf);
+
+        if (active.workoutTemplateId) {
+          const workout = await fetchWorkoutTemplate(active.workoutTemplateId);
+          if (workout) {
+            const byId: Record<string, WorkoutBlock> = {};
+            for (const block of workout.template.blocks) byId[block.id] = block;
+            setPrescribedById(byId);
+            setActivityInfo(workout.activityInfo);
+          }
+        }
       }
     });
   }, []);
@@ -170,9 +192,28 @@ function TrainSessionContent() {
     });
   }
 
+  function targetSetFor(rowId: string): PrescribedSet | undefined {
+    const block = session?.blocks.find((b) => b.id === rowId);
+    if (!block || block.kind !== "exercise" || !block.prescribedExerciseId) return undefined;
+    const prescribed = prescribedById[block.prescribedExerciseId];
+    if (!prescribed || prescribed.kind !== "exercise") return undefined;
+    return prescribed.sets[block.sets.length] ?? prescribed.sets[prescribed.sets.length - 1];
+  }
+
   function draftFor(rowId: string, exerciseId: string): SetDraft {
     const existing = drafts[rowId];
     if (existing) return existing;
+    const target = targetSetFor(rowId);
+    if (target) {
+      return {
+        reps: target.repsMin,
+        load:
+          target.loadMethod === "absolute" && target.loadValue != null
+            ? String(target.loadValue)
+            : "",
+        rpe: target.targetRpe != null ? String(target.targetRpe) : "",
+      };
+    }
     const last = lastPerf[exerciseId];
     return { reps: last?.reps ?? 8, load: "", rpe: "" };
   }
@@ -310,6 +351,32 @@ function TrainSessionContent() {
     });
   }
 
+  function updateActivity(
+    rowId: string,
+    patch: Partial<Pick<PerformedActivity, "durationSeconds" | "distanceKm" | "avgPaceMinPerKm" | "rpe">>,
+  ) {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const blocks = prev.blocks.map((b) =>
+        b.kind === "activity" && b.id === rowId ? { ...b, ...patch } : b,
+      );
+      return { ...prev, blocks };
+    });
+  }
+
+  function updateCircuit(
+    rowId: string,
+    patch: Partial<Pick<PerformedCircuit, "roundsCompleted" | "rpe">>,
+  ) {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const blocks = prev.blocks.map((b) =>
+        b.kind === "circuit" && b.id === rowId ? { ...b, ...patch } : b,
+      );
+      return { ...prev, blocks };
+    });
+  }
+
   function removeSet(rowId: string, setId: string) {
     setSession((prev) => {
       if (!prev) return prev;
@@ -440,7 +507,7 @@ function TrainSessionContent() {
 
   // ---- Sessão ativa ----
 
-  const filtered = EXERCISES.filter((e) =>
+  const filtered = exercises.filter((e) =>
     e.name.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")),
   );
   const restActive = restEndsAt != null;
@@ -513,9 +580,10 @@ function TrainSessionContent() {
           const pr = prHit[exercise.exerciseId];
           const parsedLoad = parseLoad(draft.load);
           const override = substituteOverride[exercise.exerciseId];
-          const option = EXERCISES.find((e) => e.id === exercise.exerciseId);
+          const option = exercises.find((e) => e.id === exercise.exerciseId);
           const displayName = override?.name ?? exerciseName(exercise.exerciseId);
           const mediaSrc = publicAssetPath(override?.mediaUrl ?? option?.mediaUrl);
+          const target = targetSetFor(exercise.id);
           return (
             <section
               key={exercise.id}
@@ -547,6 +615,17 @@ function TrainSessionContent() {
                     {last?.loadKg != null && (
                       <span className="tnum text-xs text-mute">
                         Última: {formatKg(last.loadKg)} kg × {last.reps}
+                      </span>
+                    )}
+                    {target && (
+                      <span className="tnum rounded-full border border-signal/30 bg-signal/5 px-2 py-0.5 text-xs text-signal">
+                        Meta: {target.repsMin}
+                        {target.repsMax !== target.repsMin && `–${target.repsMax}`}
+                        {target.loadMethod === "rir" && target.targetRir != null && ` · RIR ${target.targetRir}`}
+                        {target.loadMethod === "rpe" && target.targetRpe != null && ` · RPE ${target.targetRpe}`}
+                        {target.loadMethod === "percent_1rm" && target.loadValue != null && ` · ${target.loadValue}% 1RM`}
+                        {" · "}
+                        desc {target.restSeconds}s
                       </span>
                     )}
                   </div>
@@ -771,6 +850,79 @@ function TrainSessionContent() {
             </section>
           );
         })}
+
+        {/* Blocks de atividade contínua (corrida, bike) */}
+        {session.blocks
+          .filter((b): b is PerformedActivity & { kind: "activity" } => b.kind === "activity")
+          .map((activity) => {
+            const prescribed = activity.prescribedActivityId
+              ? prescribedById[activity.prescribedActivityId]
+              : undefined;
+            const target = prescribed?.kind === "activity" ? prescribed : undefined;
+            const info = activityInfo[activity.activityId];
+            const minutes = activity.durationSeconds != null ? Math.round(activity.durationSeconds / 60) : null;
+            return (
+              <section key={activity.id} className="space-y-3 rounded-lg border border-line bg-surface p-4">
+                <h2 className="font-display text-lg font-semibold">{info?.name ?? "Atividade"}</h2>
+                {target && (
+                  <p className="text-xs text-mute">
+                    Meta:{target.durationSeconds ? ` ${Math.round(target.durationSeconds / 60)}min` : ""}
+                    {target.distanceKm ? ` ${target.distanceKm}km` : ""}
+                    {target.targetRpe ? ` · RPE ${target.targetRpe}` : ""}
+                    {target.notes ? ` — ${target.notes}` : ""}
+                  </p>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="min"
+                    value={minutes ?? ""}
+                    onChange={(e) =>
+                      updateActivity(activity.id, {
+                        durationSeconds: e.target.value ? Number(e.target.value) * 60 : null,
+                      })
+                    }
+                    aria-label="Duração em minutos"
+                    className="tnum h-11 w-24 rounded border border-line bg-ink px-3 text-center font-display text-lg font-semibold outline-none focus:border-signal"
+                  />
+                  <span className="text-sm text-mute">min realizados</span>
+                </div>
+              </section>
+            );
+          })}
+
+        {/* Blocks de circuito (HIIT) */}
+        {session.blocks
+          .filter((b): b is PerformedCircuit & { kind: "circuit" } => b.kind === "circuit")
+          .map((circuit) => {
+            const prescribed = circuit.prescribedCircuitId
+              ? prescribedById[circuit.prescribedCircuitId]
+              : undefined;
+            const target = prescribed?.kind === "circuit" ? prescribed : undefined;
+            return (
+              <section key={circuit.id} className="space-y-3 rounded-lg border border-line bg-surface p-4">
+                <h2 className="font-display text-lg font-semibold">Circuito</h2>
+                {target && (
+                  <p className="text-xs text-mute">
+                    Meta: {target.rounds}× {target.workSeconds}s/{target.restSeconds}s
+                    {target.notes ? ` — ${target.notes}` : ""}
+                  </p>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-mute">Rounds completos</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={circuit.roundsCompleted}
+                    onChange={(e) => updateCircuit(circuit.id, { roundsCompleted: Number(e.target.value) || 0 })}
+                    aria-label="Rounds completos"
+                    className="tnum h-11 w-16 rounded border border-line bg-ink text-center font-display text-lg font-semibold outline-none focus:border-signal"
+                  />
+                </div>
+              </section>
+            );
+          })}
 
         {/* Adicionar exercício */}
         {showPicker ? (

@@ -1,5 +1,10 @@
 import { openDB, type IDBPDatabase } from "idb";
-import { workoutSessionSchema, type WorkoutSession } from "@bstrainer/domain";
+import {
+  workoutSessionSchema,
+  type PerformedBlock,
+  type WorkoutSession,
+  type WorkoutTemplate,
+} from "@bstrainer/domain";
 
 /**
  * Persistência local do logger — IndexedDB (era localStorage).
@@ -80,5 +85,56 @@ export function createFreeSession(): WorkoutSession {
     readiness: null,
     notes: null,
     blocks: [],
+  };
+}
+
+/** Sessão pré-carregada a partir de um treino prescrito — blocks vazios prontos pra registrar, com o link pro prescrito preservado. */
+export function startSessionFromTemplate(template: WorkoutTemplate): WorkoutSession {
+  const blocks: PerformedBlock[] = template.blocks.map((block) => {
+    if (block.kind === "exercise") {
+      return {
+        kind: "exercise",
+        id: crypto.randomUUID(),
+        exerciseId: block.exerciseId,
+        prescribedExerciseId: block.id,
+        order: block.order,
+        wasSubstituted: false,
+        sets: [],
+      };
+    }
+    if (block.kind === "activity") {
+      return {
+        kind: "activity",
+        id: crypto.randomUUID(),
+        activityId: block.activityId,
+        prescribedActivityId: block.id,
+        order: block.order,
+        durationSeconds: null,
+        distanceKm: null,
+        avgPaceMinPerKm: null,
+        rpe: null,
+      };
+    }
+    return {
+      kind: "circuit",
+      id: crypto.randomUUID(),
+      prescribedCircuitId: block.id,
+      order: block.order,
+      roundsCompleted: 0,
+      rpe: null,
+    };
+  });
+
+  return {
+    id: crypto.randomUUID(),
+    clientId: LOCAL_CLIENT_ID,
+    workoutTemplateId: template.id,
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    status: "in_progress",
+    sessionRpe: null,
+    readiness: null,
+    notes: null,
+    blocks,
   };
 }

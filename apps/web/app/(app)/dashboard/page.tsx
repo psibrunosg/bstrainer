@@ -2,18 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { isPerformedExercise } from "@bstrainer/domain";
 import type { AthleteProfile } from "@bstrainer/domain";
 import type { WorkoutSession } from "@bstrainer/domain";
@@ -40,15 +30,15 @@ import {
   type Goal,
   type GoalKind,
 } from "@/lib/data/goals";
-import { EXERCISES, exerciseName as localName } from "@/lib/workout/exercises";
+import { exerciseName as localName, loadCatalogExercises, type ExerciseOption } from "@/lib/workout/exercises";
 import { Heatmap } from "@/components/Heatmap";
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const ProgressCharts = dynamic(
+  () => import("@/components/dashboard/ProgressCharts").then((m) => m.ProgressCharts),
+  { ssr: false, loading: () => <div className="h-52 animate-pulse rounded-lg bg-surface-2" /> },
+);
 
-const CHART_SIGNAL = "#FF4D00";
-const CHART_LINE = "#2E2924";
-const CHART_MUTE = "#8A817A";
-const CHART_SURFACE = "#171412";
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface E1rmPoint {
   date: string;
@@ -122,7 +112,8 @@ function DashboardContent() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [addingGoal, setAddingGoal] = useState(false);
   const [goalKind, setGoalKind] = useState<GoalKind>("exercise_1rm");
-  const [goalExerciseId, setGoalExerciseId] = useState(EXERCISES[0]?.id ?? "");
+  const [exercises, setExercises] = useState<ExerciseOption[]>([]);
+  const [goalExerciseId, setGoalExerciseId] = useState("");
   const [goalTarget, setGoalTarget] = useState("");
   const [goalPending, setGoalPending] = useState(false);
   const [goalError, setGoalError] = useState<string | null>(null);
@@ -142,6 +133,10 @@ function DashboardContent() {
       setLoaded(true);
     });
     loadExerciseNames().then((fn) => setNameOf(() => fn));
+    loadCatalogExercises().then((list) => {
+      setExercises(list);
+      setGoalExerciseId((prev) => prev || list[0]?.id || "");
+    });
     if (!clientId) {
       getMyAthleteProfile().then(setProfile);
       listGoals().then(setGoals);
@@ -397,7 +392,7 @@ function DashboardContent() {
                 onChange={(e) => setGoalExerciseId(e.target.value)}
                 className="h-10 w-full rounded border border-line bg-ink px-2 text-sm outline-none focus:border-signal"
               >
-                {EXERCISES.map((ex) => (
+                {exercises.map((ex) => (
                   <option key={ex.id} value={ex.id}>
                     {ex.name}
                   </option>
@@ -475,75 +470,14 @@ function DashboardContent() {
         </div>
       </section>
 
-      {activeExercise && (
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="caps-label font-display font-semibold text-mute">
-              e1RM (kg)
-            </h2>
-            <select
-              value={activeExercise}
-              onChange={(e) => setSelectedExercise(e.target.value)}
-              className="rounded border border-line bg-surface px-2 py-1 text-sm text-text outline-none focus:border-signal"
-            >
-              {exerciseIds.map((id) => (
-                <option key={id} value={id}>
-                  {nameOf(id)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="h-52 rounded-lg border border-line bg-surface p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={e1rmSeries.get(activeExercise) ?? []}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_LINE} />
-                <XAxis dataKey="date" stroke={CHART_MUTE} fontSize={11} />
-                <YAxis stroke={CHART_MUTE} fontSize={11} domain={["auto", "auto"]} />
-                <Tooltip
-                  contentStyle={{
-                    background: CHART_SURFACE,
-                    border: `1px solid ${CHART_LINE}`,
-                    borderRadius: 8,
-                    color: "#F5F2EE",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="e1rm"
-                  stroke={CHART_SIGNAL}
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: CHART_SIGNAL, stroke: CHART_SIGNAL }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
-
-      <section className="space-y-2">
-        <h2 className="caps-label font-display font-semibold text-mute">
-          Tonelagem semanal (kg)
-        </h2>
-        <div className="h-52 rounded-lg border border-line bg-surface p-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={tonnageSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke={CHART_LINE} />
-              <XAxis dataKey="week" stroke={CHART_MUTE} fontSize={11} />
-              <YAxis stroke={CHART_MUTE} fontSize={11} />
-              <Tooltip
-                cursor={{ fill: "rgba(255,77,0,0.08)" }}
-                contentStyle={{
-                  background: CHART_SURFACE,
-                  border: `1px solid ${CHART_LINE}`,
-                  borderRadius: 8,
-                  color: "#F5F2EE",
-                }}
-              />
-              <Bar dataKey="tonnage" fill={CHART_SIGNAL} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
+      <ProgressCharts
+        e1rmSeries={e1rmSeries}
+        tonnageSeries={tonnageSeries}
+        activeExercise={activeExercise}
+        exerciseIds={exerciseIds}
+        nameOf={nameOf}
+        onSelectExercise={setSelectedExercise}
+      />
     </div>
   );
 }

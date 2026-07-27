@@ -3,6 +3,8 @@
  * IDs fixos (UUID v4) para que o histórico continue válido quando
  * a tabela de exercícios migrar para o Supabase.
  */
+import { publicAssetPath } from "@/lib/public-asset";
+
 export interface ExerciseOption {
   id: string;
   name: string;
@@ -32,17 +34,27 @@ function hasaneyldrmMediaUrl(id: string): string | null {
   return externalId ? `/exercise-media/bstrainer/${externalId.slice(-4)}.gif` : null;
 }
 
-export const EXERCISES: ExerciseOption[] = [
-  ...LOCAL_EXERCISES,
-  ...CATALOG_EXERCISES.map((exercise) => ({
-    ...exercise,
-    mediaUrl: hasaneyldrmMediaUrl(exercise.id),
-  })),
-];
+let cache: ExerciseOption[] | null = null;
+
+// ponytail: catalog moved to public/exercises.json to keep it out of the JS
+// bundle; fetched once and cached in-memory for the session.
+export async function loadCatalogExercises(): Promise<ExerciseOption[]> {
+  if (cache) return cache;
+  const res = await fetch(publicAssetPath("/exercises.json")!);
+  const catalog = (await res.json()) as { id: string; name: string }[];
+  cache = [
+    ...LOCAL_EXERCISES,
+    ...catalog.map((exercise) => ({
+      ...exercise,
+      mediaUrl: hasaneyldrmMediaUrl(exercise.id),
+    })),
+  ];
+  return cache;
+}
 
 export function exerciseName(exerciseId: string): string {
   return (
-    EXERCISES.find((e) => e.id === exerciseId)?.name ?? "Exercício removido"
+    (cache ?? LOCAL_EXERCISES).find((e) => e.id === exerciseId)?.name ??
+    "Exercício removido"
   );
 }
-import { CATALOG_EXERCISES } from "./exercises.catalog";

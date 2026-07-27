@@ -1,4 +1,8 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { templateLibrary } from "@bstrainer/engine";
 
 const GOAL_LABEL: Record<string, string> = {
@@ -16,7 +20,11 @@ const LEVEL_LABEL: Record<string, string> = {
   advanced: "Avançado",
 };
 
-export default function TemplatesPage() {
+function TemplatesList() {
+  const searchParams = useSearchParams();
+  const client = searchParams.get("client") ?? undefined;
+  const name = searchParams.get("name") ?? undefined;
+  const qs = client ? `?client=${client}&name=${encodeURIComponent(name ?? "")}` : "";
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
       <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
@@ -26,11 +34,16 @@ export default function TemplatesPage() {
         Modelos baseados em literatura de treinamento. Escolha um e o sistema
         monta a ficha pro seu equipamento.
       </p>
+      {client && (
+        <p className="rounded-lg border border-signal/30 bg-signal/5 px-3 py-2 text-sm text-signal">
+          Escolhendo template para {name || "aluno"}
+        </p>
+      )}
       <ul className="space-y-3">
         {templateLibrary.map((t) => (
           <li key={t.id}>
             <Link
-              href={`/plans/templates/${t.id}`}
+              href={`/plans/templates/${t.id}${qs}`}
               className="block rounded-lg border border-line bg-surface p-4 transition-colors duration-200 hover:bg-surface-2"
             >
               <div className="flex items-start justify-between gap-2">
@@ -51,5 +64,13 @@ export default function TemplatesPage() {
         ))}
       </ul>
     </div>
+  );
+}
+
+export default function TemplatesPage() {
+  return (
+    <Suspense fallback={null}>
+      <TemplatesList />
+    </Suspense>
   );
 }

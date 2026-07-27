@@ -74,12 +74,20 @@ export default function PlansPage() {
               >
                 <span className="text-text">{c.name ?? "Aluno"}</span>
                 {c.client_id && (
-                  <Link
-                    href={`/plans/new?client=${c.client_id}&name=${encodeURIComponent(c.name ?? "Aluno")}`}
-                    className="caps-label text-signal"
-                  >
-                    Criar ficha
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/plans/templates?client=${c.client_id}&name=${encodeURIComponent(c.name ?? "Aluno")}`}
+                      className="caps-label text-signal"
+                    >
+                      Usar template
+                    </Link>
+                    <Link
+                      href={`/plans/new?client=${c.client_id}&name=${encodeURIComponent(c.name ?? "Aluno")}`}
+                      className="caps-label text-signal"
+                    >
+                      Criar manual
+                    </Link>
+                  </div>
                 )}
               </li>
             ))}

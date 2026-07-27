@@ -91,6 +91,37 @@ async function pushSession(session: WorkoutSession): Promise<void> {
       if (setErr) throw setErr;
     }
   }
+
+  for (const activity of session.blocks.filter(
+    (b): b is Extract<typeof b, { kind: "activity" }> => b.kind === "activity",
+  )) {
+    const { error: aErr } = await supabase.from("performed_activities").insert({
+      id: activity.id,
+      session_id: session.id,
+      activity_id: activity.activityId,
+      prescribed_activity_id: activity.prescribedActivityId,
+      position: activity.order,
+      duration_seconds: activity.durationSeconds,
+      distance_km: activity.distanceKm,
+      avg_pace_min_per_km: activity.avgPaceMinPerKm,
+      rpe: activity.rpe,
+    });
+    if (aErr) throw aErr;
+  }
+
+  for (const circuit of session.blocks.filter(
+    (b): b is Extract<typeof b, { kind: "circuit" }> => b.kind === "circuit",
+  )) {
+    const { error: cErr } = await supabase.from("performed_circuits").insert({
+      id: circuit.id,
+      session_id: session.id,
+      prescribed_circuit_id: circuit.prescribedCircuitId,
+      position: circuit.order,
+      rounds_completed: circuit.roundsCompleted,
+      rpe: circuit.rpe,
+    });
+    if (cErr) throw cErr;
+  }
 }
 
 /** Tenta sincronizar uma sessão agora; em falha, enfileira. */

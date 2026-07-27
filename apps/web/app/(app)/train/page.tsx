@@ -9,8 +9,10 @@ import {
   createFreeSession,
   loadActiveSession,
   saveActiveSession,
+  startSessionFromTemplate,
 } from "@/lib/workout/storage";
 import { loadSessions } from "@/lib/data/sessions";
+import { getNextWorkout, type NextWorkout } from "@/lib/data/active-plan";
 import { RequireAthlete } from "@/components/RequireAthlete";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -41,6 +43,8 @@ export default function TrainPage() {
     energy: null,
   });
   const [deloadWarning, setDeloadWarning] = useState<string | null>(null);
+  const [pendingKind, setPendingKind] = useState<"free" | "plan">("free");
+  const [nextWorkout, setNextWorkout] = useState<NextWorkout | null>(null);
   const [streak, setStreak] = useState(0);
   // ponytail: janela móvel de 7 dias como proxy de "treinou essa semana" —
   // mais simples que replicar o corte por segunda-feira do weeklyStreak().
@@ -51,6 +55,10 @@ export default function TrainPage() {
       setActive(s);
       setLoaded(true);
     });
+  }, []);
+
+  useEffect(() => {
+    getNextWorkout().then(setNextWorkout);
   }, []);
 
   useEffect(() => {
@@ -69,7 +77,7 @@ export default function TrainPage() {
     return () => clearInterval(t);
   }, [active]);
 
-  async function startFreeSession() {
+  function checkDeload(kind: "free" | "plan"): boolean {
     // ponytail: sem histórico de sessão anterior ainda, então lastSessionRpe/recentE1rmTrend
     // ficam null — upgrade path é ler a última sessão de loadSessionHistory() quando existir.
     const { recommendation, reason } = suggestAdjustment({
@@ -79,14 +87,31 @@ export default function TrainPage() {
     });
     if (recommendation === "deload") {
       setDeloadWarning(reason);
-      return;
+      setPendingKind(kind);
+      return true;
     }
+    return false;
+  }
+
+  async function startFreeSession() {
+    if (checkDeload("free")) return;
     await saveActiveSession({ ...createFreeSession(), readiness });
     router.push("/train/session");
   }
 
+  async function startPlanSession() {
+    if (!nextWorkout) return;
+    if (checkDeload("plan")) return;
+    await saveActiveSession({ ...startSessionFromTemplate(nextWorkout.template), readiness });
+    router.push("/train/session");
+  }
+
   async function confirmDeloadAndStart() {
-    await saveActiveSession({ ...createFreeSession(), readiness });
+    const session =
+      pendingKind === "plan" && nextWorkout
+        ? startSessionFromTemplate(nextWorkout.template)
+        : createFreeSession();
+    await saveActiveSession({ ...session, readiness });
     router.push("/train/session");
   }
 
@@ -177,19 +202,46 @@ export default function TrainPage() {
             </p>
           )}
 
-          <button
-            type="button"
-            onClick={deloadWarning ? confirmDeloadAndStart : startFreeSession}
-            className="h-16 w-full rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
-          >
-            {deloadWarning ? "Começar mesmo assim" : "Começar treino"}
-          </button>
+          {nextWorkout ? (
+            <>
+              <div className="rounded-lg border border-line bg-surface p-4">
+                <p className="caps-label font-display font-semibold text-mute">Hoje</p>
+                <h2 className="mt-1 font-display text-xl font-semibold">
+                  {nextWorkout.template.name}
+                </h2>
+                <p className="mt-1 text-sm text-mute">
+                  {nextWorkout.template.blocks.length} bloco
+                  {nextWorkout.template.blocks.length > 1 ? "s" : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={deloadWarning ? confirmDeloadAndStart : startPlanSession}
+                className="h-16 w-full rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
+              >
+                {deloadWarning
+                  ? "Começar mesmo assim"
+                  : `Começar ${nextWorkout.template.name}`}
+              </button>
+              <button
+                type="button"
+                onClick={startFreeSession}
+                className="h-11 w-full rounded-lg border border-line text-sm text-mute transition active:bg-surface-2"
+              >
+                Treino livre
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={deloadWarning ? confirmDeloadAndStart : startFreeSession}
+              className="h-16 w-full rounded-lg bg-signal text-lg font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
+            >
+              {deloadWarning ? "Começar mesmo assim" : "Começar treino"}
+            </button>
+          )}
         </div>
       )}
-
-      <p className="text-sm text-mute">
-        Ficha do dia chega em breve — por enquanto, registre um treino livre.
-      </p>
     </div>
     </RequireAthlete>
   );

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { exerciseName as localName } from "@/lib/workout/exercises";
+import { exerciseName as localName, loadCatalogExercises } from "@/lib/workout/exercises";
 
 /**
  * Mapa id->nome do banco (exercícios globais + da org), com fallback pros
@@ -8,6 +8,7 @@ import { exerciseName as localName } from "@/lib/workout/exercises";
 export async function loadExerciseNames(): Promise<
   (id: string) => string
 > {
+  await loadCatalogExercises();
   const supabase = createClient();
   const { data } = await supabase.from("exercises").select("id, name");
   const map = new Map<string, string>();

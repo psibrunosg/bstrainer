@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTemplate, templateLibrary } from "@bstrainer/engine";
@@ -114,7 +115,9 @@ export default async function TemplateDetailPage({
         </section>
       ))}
 
-      <UseTemplateButton templateId={template.id} />
+      <Suspense fallback={null}>
+        <UseTemplateButton templateId={template.id} />
+      </Suspense>
     </div>
   );
 }
