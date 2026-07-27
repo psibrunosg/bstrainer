@@ -33,6 +33,33 @@ export async function lastPerformanceFor(
 }
 
 /**
+ * Todas as séries de trabalho (sem warmup) da última sessão completa que
+ * registrou este exercício, em ordem — usado como "anterior" por linha no
+ * logger em tabela (série N mostra o que foi feito na série N da última vez).
+ */
+export async function lastSessionSetsFor(
+  exerciseId: string,
+): Promise<LastPerformance[] | null> {
+  const history = (await loadSessionHistory())
+    .filter((s) => s.status === "completed")
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+
+  for (const session of history) {
+    for (const ex of session.blocks.filter(isPerformedExercise)) {
+      if (ex.exerciseId !== exerciseId) continue;
+      const workSets = ex.sets.filter((s) => !s.isWarmup);
+      if (workSets.length === 0) continue;
+      return workSets.map((s) => ({
+        loadKg: s.loadKg,
+        reps: s.reps,
+        date: session.startedAt,
+      }));
+    }
+  }
+  return null;
+}
+
+/**
  * Melhor e1RM histórico de um exercício (para detectar PR).
  * Ignora a sessão ativa — comparação é só contra o passado consolidado.
  */
