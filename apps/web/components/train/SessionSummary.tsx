@@ -5,10 +5,7 @@ import { isPerformedExercise, type WorkoutSession } from "@bstrainer/domain";
 import { sessionTonnage } from "@bstrainer/engine";
 import { exerciseName } from "@/lib/workout/exercises";
 import { shareOrDownloadCard } from "@/lib/workout/share-card";
-
-function formatKg(kg: number): string {
-  return kg % 1 === 0 ? String(kg) : kg.toFixed(1).replace(".", ",");
-}
+import { formatKg } from "@/lib/workout/exercise-utils";
 
 export function SessionSummary({
   session,

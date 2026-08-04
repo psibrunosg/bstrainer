@@ -9,6 +9,8 @@ export interface ExerciseOption {
   id: string;
   name: string;
   mediaUrl?: string | null;
+  primaryMuscles?: string[];
+  loadType?: string;
 }
 
 const LOCAL_EXERCISES: ExerciseOption[] = [
@@ -40,14 +42,43 @@ let cache: ExerciseOption[] | null = null;
 // bundle; fetched once and cached in-memory for the session.
 export async function loadCatalogExercises(): Promise<ExerciseOption[]> {
   if (cache) return cache;
-  const res = await fetch(publicAssetPath("/exercises.json")!);
-  const catalog = (await res.json()) as { id: string; name: string }[];
+
+  const [jsonRes, dbRes] = await Promise.all([
+    fetch(publicAssetPath("/exercises.json")!),
+    (async () => {
+      try {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("exercises")
+          .select("id, primary_muscles, load_type");
+        return data ?? [];
+      } catch {
+        return [];
+      }
+    })(),
+  ]);
+
+  const catalog = (await jsonRes.json()) as { id: string; name: string }[];
+  const metaMap = new Map<string, { primaryMuscles: string[]; loadType: string }>();
+  for (const row of dbRes as { id: string; primary_muscles: string[] | null; load_type: string | null }[]) {
+    metaMap.set(row.id, {
+      primaryMuscles: row.primary_muscles ?? [],
+      loadType: row.load_type ?? "barbell",
+    });
+  }
+
   cache = [
     ...LOCAL_EXERCISES,
-    ...catalog.map((exercise) => ({
-      ...exercise,
-      mediaUrl: hasaneyldrmMediaUrl(exercise.id),
-    })),
+    ...catalog.map((exercise) => {
+      const meta = metaMap.get(exercise.id);
+      return {
+        ...exercise,
+        mediaUrl: hasaneyldrmMediaUrl(exercise.id),
+        primaryMuscles: meta?.primaryMuscles,
+        loadType: meta?.loadType,
+      };
+    }),
   ];
   return cache;
 }

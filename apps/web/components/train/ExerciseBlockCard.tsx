@@ -2,34 +2,13 @@
 
 import { useState } from "react";
 import type { PerformedExercise, PrescribedSet } from "@bstrainer/domain";
-import { e1rmEpley } from "@bstrainer/engine";
 import { getSubstitutes } from "@/lib/data/substitutions";
 import type { ExerciseOption } from "@/lib/data/plans";
 import type { LastPerformance } from "@/lib/workout/history-lookup";
 import type { SetDraft, SetRow } from "@/lib/workout/use-workout-session";
 import { publicAssetPath } from "@/lib/public-asset";
-
-const RPE_OPTIONS = ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"];
-const ROW_GRID = "grid-cols-[24px_58px_1fr_1fr_52px_40px]";
-
-function formatKg(kg: number): string {
-  return kg % 1 === 0 ? String(kg) : kg.toFixed(1).replace(".", ",");
-}
-
-function anteriorLabel(a?: LastPerformance): string {
-  if (!a) return "—";
-  return a.loadKg != null ? `${formatKg(a.loadKg)}kg×${a.reps}` : `${a.reps} reps`;
-}
-
-function bestE1rm(exercise: PerformedExercise): number {
-  let best = 0;
-  for (const set of exercise.sets) {
-    if (set.isWarmup || set.loadKg == null) continue;
-    const e = e1rmEpley(set.loadKg, set.reps);
-    if (e > best) best = e;
-  }
-  return best;
-}
+import { RPE_OPTIONS, ROW_GRID, formatKg, anteriorLabel, bestE1rm } from "@/lib/workout/exercise-utils";
+import { SetRowComponent } from "./SetRow";
 
 export function ExerciseBlockCard({
   exercise,
@@ -37,6 +16,9 @@ export function ExerciseBlockCard({
   mediaSrc,
   last,
   prE1rm,
+  supersetGroup,
+  restSeconds,
+  notes,
   rows,
   onDraftChange,
   onConfirmActive,
@@ -46,12 +28,16 @@ export function ExerciseBlockCard({
   onRemove,
   onOpenPlateCalc,
   onSubstitute,
+  onNotesChange,
 }: {
   exercise: PerformedExercise;
   displayName: string;
   mediaSrc: string | null;
   last: LastPerformance | null;
   prE1rm?: number;
+  supersetGroup?: number | null;
+  restSeconds?: number;
+  notes?: string | null;
   rows: SetRow[];
   onDraftChange: (index: number, patch: Partial<SetDraft>) => void;
   onConfirmActive: () => void;
@@ -61,10 +47,8 @@ export function ExerciseBlockCard({
   onRemove: () => void;
   onOpenPlateCalc: (kg: number) => void;
   onSubstitute: (option: ExerciseOption) => void;
+  onNotesChange?: (notes: string) => void;
 }) {
-  // ponytail: picker state is now per-card (was page-level before this
-  // extraction), so opening the picker on a second card no longer closes
-  // the first one — a deliberate, harmless behavior change.
   const [pickerOpen, setPickerOpen] = useState(false);
   const [options, setOptions] = useState<ExerciseOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,7 +72,7 @@ export function ExerciseBlockCard({
   const e1rm = bestE1rm(exercise);
   const activeRow = rows.find((r) => r.state === "active");
   const target: PrescribedSet | undefined = activeRow?.target;
-  const lastRowIndex = rows.at(-1)?.index ?? -1; // ponytail: noUncheckedIndexedAccess needs the optional chain here
+  const lastRowIndex = rows.at(-1)?.index ?? -1;
 
   return (
     <section className="overflow-hidden rounded-lg border border-line bg-surface lg:grid lg:grid-cols-[minmax(240px,340px)_1fr]">
@@ -110,6 +94,11 @@ export function ExerciseBlockCard({
             {displayName}
           </h2>
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
+            {supersetGroup != null && (
+              <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-semibold text-violet-400">
+                Superset
+              </span>
+            )}
             {e1rm > 0 && (
               <span className="tnum text-xs text-mute">
                 e1RM {formatKg(Math.round(e1rm * 10) / 10)} kg
@@ -158,6 +147,29 @@ export function ExerciseBlockCard({
           )}
         </div>
       </header>
+
+      {restSeconds != null && restSeconds > 0 && (
+        <div className="flex items-center gap-1.5 text-xs text-signal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 3" strokeLinecap="round" />
+          </svg>
+          Descanso: {Math.floor(restSeconds / 60)}min {restSeconds % 60 > 0 ? `${restSeconds % 60}s` : ""}
+        </div>
+      )}
+
+      {/* Notes */}
+      {onNotesChange && (
+        <div>
+          <input
+            type="text"
+            placeholder="Adicionar notas aqui..."
+            value={notes ?? ""}
+            onChange={(e) => onNotesChange(e.target.value)}
+            className="w-full bg-transparent text-sm text-mute placeholder:text-mute/50 outline-none"
+          />
+        </div>
+      )}
 
       {/* Trocar exercício */}
       {pickerOpen && (
@@ -217,141 +229,20 @@ export function ExerciseBlockCard({
           <span />
         </div>
 
-        {rows.map((row) => {
-          if (row.state === "confirmed") {
-            const canEdit = row.index === exercise.sets.length - 1;
-            return (
-              <div
-                key={row.index}
-                className={`grid h-11 ${ROW_GRID} items-center gap-1.5 rounded border border-line/60 bg-ink/40 px-1 text-sm`}
-              >
-                <span className="caps-label text-mute">{row.index + 1}</span>
-                <span className="tnum text-xs text-mute">{anteriorLabel(row.anterior)}</span>
-                <span className="tnum text-center font-display font-semibold text-mute">
-                  {row.confirmedSet?.loadKg != null ? formatKg(row.confirmedSet.loadKg) : "—"}
-                </span>
-                <span className="tnum text-center font-display font-semibold text-mute">
-                  {row.confirmedSet?.reps}
-                </span>
-                <span className="tnum text-center text-xs text-mute">
-                  {row.confirmedSet?.rpe ?? "—"}
-                </span>
-                {canEdit ? (
-                  <button
-                    type="button"
-                    onClick={onEditLast}
-                    aria-label={`Editar série ${row.index + 1}`}
-                    className="flex h-9 w-9 items-center justify-center justify-self-end rounded-full bg-signal text-sm font-bold text-ink transition active:scale-95"
-                  >
-                    ✓
-                  </button>
-                ) : (
-                  <span className="flex h-9 w-9 items-center justify-center justify-self-end rounded-full bg-signal/40 text-sm font-bold text-ink">
-                    ✓
-                  </span>
-                )}
-              </div>
-            );
-          }
-
-          if (row.state === "preview") {
-            const canRemove = row.index === lastRowIndex;
-            return (
-              <div
-                key={row.index}
-                className={`grid h-11 ${ROW_GRID} items-center gap-1.5 px-1 text-sm text-mute/60`}
-              >
-                <span className="caps-label">{row.index + 1}</span>
-                <span className="tnum text-xs">{anteriorLabel(row.anterior)}</span>
-                <span className="tnum text-center">
-                  {row.target?.loadMethod === "absolute" && row.target.loadValue != null
-                    ? formatKg(row.target.loadValue)
-                    : "—"}
-                </span>
-                <span className="tnum text-center">{row.target?.repsMin ?? "—"}</span>
-                <span className="tnum text-center">{row.target?.targetRpe ?? "—"}</span>
-                {canRemove ? (
-                  <button
-                    type="button"
-                    onClick={onRemoveTrailingRow}
-                    aria-label={`Remover linha ${row.index + 1}`}
-                    className="flex h-9 w-9 items-center justify-center justify-self-end rounded text-mute transition active:bg-surface-2"
-                  >
-                    ✕
-                  </button>
-                ) : (
-                  <span />
-                )}
-              </div>
-            );
-          }
-
-          // active
-          const draft = row.draft ?? { reps: 0, load: "", rpe: "" };
-          const parsedLoad = Number(draft.load.trim().replace(",", "."));
-          return (
-            <div
-              key={row.index}
-              className={`grid ${ROW_GRID} items-center gap-1.5 rounded border border-signal/40 bg-ink px-1 py-1`}
-            >
-              <span className="caps-label text-signal">{row.index + 1}</span>
-              <span className="tnum text-xs text-mute">{anteriorLabel(row.anterior)}</span>
-              <div className="relative">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder={row.anterior?.loadKg != null ? formatKg(row.anterior.loadKg) : "kg"}
-                  value={draft.load}
-                  onChange={(e) => onDraftChange(row.index, { load: e.target.value })}
-                  className="h-10 w-full rounded border border-line bg-surface px-1 pr-6 text-center font-display text-sm font-semibold outline-none transition-colors placeholder:font-body placeholder:text-xs placeholder:font-normal placeholder:text-mute focus:border-signal"
-                />
-                {Number.isFinite(parsedLoad) && parsedLoad > 20 && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenPlateCalc(parsedLoad)}
-                    aria-label="Calcular anilhas"
-                    className="absolute right-0 top-1/2 flex h-8 w-6 -translate-y-1/2 items-center justify-center text-mute"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                      <path d="M3 12h2" strokeLinecap="round" />
-                      <path d="M19 12h2" strokeLinecap="round" />
-                      <rect x="6" y="8" width="3" height="8" rx="0.5" />
-                      <rect x="15" y="8" width="3" height="8" rx="0.5" />
-                      <path d="M9 12h6" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="reps"
-                value={draft.reps === 0 ? "" : String(draft.reps)}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/[^0-9]/g, "");
-                  onDraftChange(row.index, { reps: digits === "" ? 0 : Number(digits) });
-                }}
-                className="h-10 w-full rounded border border-line bg-surface px-1 text-center font-display text-sm font-semibold outline-none transition-colors placeholder:font-body placeholder:text-xs placeholder:font-normal placeholder:text-mute focus:border-signal"
-              />
-              <button
-                type="button"
-                onClick={() => setPseRowIndex(row.index)}
-                className="h-10 rounded border border-line bg-surface text-xs font-semibold text-mute transition active:bg-surface-2"
-              >
-                {draft.rpe || "PSE"}
-              </button>
-              <button
-                type="button"
-                onClick={onConfirmActive}
-                disabled={draft.reps <= 0}
-                aria-label={`Confirmar série ${row.index + 1}`}
-                className="flex h-9 w-9 items-center justify-center justify-self-end rounded-full border border-signal text-sm font-bold text-signal transition active:scale-95 active:bg-signal/10 disabled:opacity-30"
-              >
-                ✓
-              </button>
-            </div>
-          );
-        })}
+        {rows.map((row) => (
+          <SetRowComponent
+            key={row.index}
+            row={row}
+            isLastRow={row.index === lastRowIndex}
+            canEditLast={row.index === exercise.sets.length - 1}
+            onDraftChange={onDraftChange}
+            onConfirmActive={onConfirmActive}
+            onEditLast={onEditLast}
+            onRemoveTrailingRow={onRemoveTrailingRow}
+            onOpenPlateCalc={onOpenPlateCalc}
+            onOpenPse={setPseRowIndex}
+          />
+        ))}
 
         <button
           type="button"

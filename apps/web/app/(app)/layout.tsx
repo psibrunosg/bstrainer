@@ -78,6 +78,15 @@ function IconSettings() {
   );
 }
 
+function IconMeasurements() {
+  return (
+    <svg {...ICON_PROPS} aria-hidden>
+      <path d="M3 20h18" />
+      <path d="M5 16l4-6 4 4 4-8 4 6" />
+    </svg>
+  );
+}
+
 interface NavItem {
   href: string;
   label: string;
@@ -86,6 +95,7 @@ interface NavItem {
 
 const LEFT: NavItem[] = [
   { href: "/dashboard", label: "Progresso", icon: IconProgress },
+  { href: "/measurements", label: "Medições", icon: IconMeasurements },
   { href: "/plans", label: "Fichas", icon: IconPlans },
 ];
 

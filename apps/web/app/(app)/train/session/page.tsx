@@ -16,8 +16,35 @@ import { useWorkoutSession } from "@/lib/workout/use-workout-session";
 import { ExerciseBlockCard } from "@/components/train/ExerciseBlockCard";
 import { ActivityBlockCard, CircuitBlockCard } from "@/components/train/BlockCards";
 import { SessionSummary } from "@/components/train/SessionSummary";
+import { formatKg } from "@/lib/workout/exercise-utils";
 
 const SRPE_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+const MUSCLE_LABEL: Record<string, string> = {
+  chest: "Peito",
+  back: "Costas",
+  shoulders: "Ombros",
+  biceps: "Bíceps",
+  triceps: "Tríceps",
+  forearms: "Antebraços",
+  quads: "Quadríceps",
+  hamstrings: "Isquiotibiais",
+  glutes: "Glúteos",
+  calves: "Panturrilhas",
+  core: "Core",
+  full_body: "Corpo todo",
+};
+
+const LOAD_LABEL: Record<string, string> = {
+  barbell: "Barra",
+  dumbbell: "Haltere",
+  machine: "Máquina",
+  cable: "Polia",
+  bodyweight: "Peso corporal",
+  band: "Elástico",
+  kettlebell: "Kettlebell",
+  time: "Tempo",
+};
 
 function formatClock(totalSec: number): string {
   const m = Math.floor(totalSec / 60);
@@ -42,6 +69,8 @@ function TrainSessionContent() {
   const [showPicker, setShowPicker] = useState(false);
   const [askingSrpe, setAskingSrpe] = useState(false);
   const [plateTarget, setPlateTarget] = useState<number | null>(null);
+  const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
+  const [loadFilter, setLoadFilter] = useState<string | null>(null);
 
   useEffect(() => {
     loadCatalogExercises().then(setExercises);
@@ -92,9 +121,14 @@ function TrainSessionContent() {
 
   // ---- Sessão ativa ----
 
-  const filtered = exercises.filter((e) =>
-    e.name.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")),
-  );
+  const filtered = exercises.filter((e) => {
+    const matchesSearch = e.name.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"));
+    const matchesMuscle = !muscleFilter || (e.primaryMuscles ?? []).includes(muscleFilter);
+    const matchesLoad = !loadFilter || e.loadType === loadFilter;
+    return matchesSearch && matchesMuscle && matchesLoad;
+  });
+  const availableMuscles = [...new Set(exercises.flatMap((e) => e.primaryMuscles ?? []))].sort();
+  const availableLoadTypes = [...new Set(exercises.map((e) => e.loadType).filter((v): v is string => Boolean(v)))].sort();
   const restCritical = rest.isActive && rest.secondsLeft <= 10;
 
   return (
@@ -157,27 +191,55 @@ function TrainSessionContent() {
       </div>
 
       <div className="space-y-4 p-4 lg:p-6">
-        {s.session.blocks.filter(isPerformedExercise).map((ex) => (
-          <ExerciseBlockCard
-            key={ex.id}
-            exercise={ex}
-            displayName={s.substituteOverride[ex.exerciseId]?.name ?? exerciseName(ex.exerciseId)}
-            mediaSrc={publicAssetPath(
-              s.substituteOverride[ex.exerciseId]?.mediaUrl ?? exercises.find((e) => e.id === ex.exerciseId)?.mediaUrl,
-            )}
-            last={s.lastPerf[ex.exerciseId] ?? null}
-            prE1rm={s.prHit[ex.exerciseId]}
-            rows={s.rowsFor(ex.id, ex.exerciseId)}
-            onDraftChange={(index, patch) => s.setDraftAt(ex.id, ex.exerciseId, index, patch)}
-            onConfirmActive={() => confirmActiveRow(ex.id, ex.exerciseId)}
-            onEditLast={() => s.editLastConfirmedRow(ex.id)}
-            onAddRow={() => s.addRow(ex.id)}
-            onRemoveTrailingRow={() => s.removeTrailingRow(ex.id)}
-            onRemove={() => s.removeExercise(ex.id)}
-            onOpenPlateCalc={setPlateTarget}
-            onSubstitute={(opt) => s.applySubstitute(ex.id, opt)}
-          />
-        ))}
+        {/* Workout stats bar */}
+        {(() => {
+          const durationSec = Math.floor((Date.now() - Date.parse(s.session.startedAt)) / 1000);
+          const durationMin = Math.max(1, Math.round(durationSec / 60));
+          const finishedEx = s.session.blocks.filter(isPerformedExercise);
+          const totalSets = finishedEx.reduce((acc, e) => acc + e.sets.length, 0);
+          const totalKg = finishedEx.reduce((acc, e) => {
+            const exKg = e.sets.reduce((sa, set) => {
+              if (set.loadKg == null) return sa;
+              return sa + set.loadKg * set.reps;
+            }, 0);
+            return acc + exKg;
+          }, 0);
+          return (
+            <div className="flex items-center justify-between rounded-lg border border-line bg-surface px-4 py-2 text-xs text-mute">
+              <span>Duração<span className="tnum ml-1 font-display font-semibold text-text">{durationMin}min</span></span>
+              <span>Volume<span className="tnum ml-1 font-display font-semibold text-text">{formatKg(totalKg)} kg</span></span>
+              <span>Séries<span className="tnum ml-1 font-display font-semibold text-text">{totalSets}</span></span>
+            </div>
+          );
+        })()}
+        {s.session.blocks.filter(isPerformedExercise).map((ex) => {
+          const prescribed = ex.prescribedExerciseId ? s.prescribedById[ex.prescribedExerciseId] : undefined;
+          const pBlock = prescribed?.kind === "exercise" ? prescribed : undefined;
+          return (
+            <ExerciseBlockCard
+              key={ex.id}
+              exercise={ex}
+              displayName={s.substituteOverride[ex.exerciseId]?.name ?? exerciseName(ex.exerciseId)}
+              mediaSrc={publicAssetPath(
+                s.substituteOverride[ex.exerciseId]?.mediaUrl ?? exercises.find((e) => e.id === ex.exerciseId)?.mediaUrl,
+              )}
+              last={s.lastPerf[ex.exerciseId] ?? null}
+              prE1rm={s.prHit[ex.exerciseId]}
+              supersetGroup={pBlock?.supersetGroup}
+              restSeconds={pBlock?.sets[0]?.restSeconds}
+              notes={pBlock?.notes}
+              rows={s.rowsFor(ex.id, ex.exerciseId)}
+              onDraftChange={(index, patch) => s.setDraftAt(ex.id, ex.exerciseId, index, patch)}
+              onConfirmActive={() => confirmActiveRow(ex.id, ex.exerciseId)}
+              onEditLast={() => s.editLastConfirmedRow(ex.id)}
+              onAddRow={() => s.addRow(ex.id)}
+              onRemoveTrailingRow={() => s.removeTrailingRow(ex.id)}
+              onRemove={() => s.removeExercise(ex.id)}
+              onOpenPlateCalc={setPlateTarget}
+              onSubstitute={(opt) => s.applySubstitute(ex.id, opt)}
+            />
+          );
+        })}
 
         {/* Blocks de atividade contínua (corrida, bike) */}
         {s.session.blocks
@@ -221,12 +283,58 @@ function TrainSessionContent() {
                 onClick={() => {
                   setShowPicker(false);
                   setSearch("");
+                  setMuscleFilter(null);
+                  setLoadFilter(null);
                 }}
                 aria-label="Fechar busca"
                 className="h-11 w-11 rounded-lg text-mute transition active:bg-surface-2"
               >
                 ✕
               </button>
+            </div>
+            <div className="space-y-2">
+              {availableMuscles.length > 0 && (
+                <div>
+                  <p className="mb-1 text-[10px] uppercase tracking-wide text-mute">Músculos</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableMuscles.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMuscleFilter(muscleFilter === m ? null : m)}
+                        className={`h-8 rounded-full px-3 text-xs font-medium transition active:scale-95 ${
+                          muscleFilter === m
+                            ? "bg-signal text-ink"
+                            : "border border-line bg-surface text-mute hover:border-signal/40"
+                        }`}
+                      >
+                        {MUSCLE_LABEL[m] ?? m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {availableLoadTypes.length > 0 && (
+                <div>
+                  <p className="mb-1 text-[10px] uppercase tracking-wide text-mute">Equipamento</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableLoadTypes.map((l) => (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => setLoadFilter(loadFilter === l ? null : l)}
+                        className={`h-8 rounded-full px-3 text-xs font-medium transition active:scale-95 ${
+                          loadFilter === l
+                            ? "bg-signal text-ink"
+                            : "border border-line bg-surface text-mute hover:border-signal/40"
+                        }`}
+                      >
+                        {LOAD_LABEL[l] ?? l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <ul className="max-h-64 space-y-px overflow-y-auto lg:grid lg:max-h-[28rem] lg:grid-cols-2 lg:gap-1 lg:space-y-0">
               {filtered.map((e) => (
@@ -240,6 +348,8 @@ function TrainSessionContent() {
                       s.addExercise(e.id);
                       setShowPicker(false);
                       setSearch("");
+                      setMuscleFilter(null);
+                      setLoadFilter(null);
                     }}
                     className="flex min-h-14 w-full items-center gap-3 rounded px-2 py-2 text-left text-sm transition active:bg-surface-2"
                   >
