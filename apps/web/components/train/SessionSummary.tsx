@@ -11,10 +11,12 @@ export function SessionSummary({
   session,
   prCount,
   onBack,
+  nameOverrides = {},
 }: {
   session: WorkoutSession;
   prCount: number;
   onBack: () => void;
+  nameOverrides?: Record<string, { name: string; mediaUrl: string | null }>;
 }) {
   const [sharing, setSharing] = useState(false);
 
@@ -65,7 +67,9 @@ export function SessionSummary({
             key={e.id}
             className="flex items-center justify-between border-b border-line px-1 py-3 text-sm"
           >
-            <span className="text-text">{exerciseName(e.exerciseId)}</span>
+            <span className="text-text">
+              {nameOverrides[e.exerciseId]?.name ?? exerciseName(e.exerciseId)}
+            </span>
             <span className="tnum text-mute">{e.sets.length} séries</span>
           </li>
         ))}

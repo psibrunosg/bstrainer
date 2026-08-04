@@ -12,6 +12,7 @@ import {
   type WorkoutSession,
 } from "@bstrainer/domain";
 import { fetchWorkoutTemplate, type NextWorkout } from "@/lib/data/active-plan";
+import { loadRemoteExerciseCatalog } from "@/lib/data/exercise-names";
 import { e1rmEpley } from "@bstrainer/engine";
 import type { ExerciseOption } from "@/lib/data/plans";
 import { syncSession } from "@/lib/workout/sync";
@@ -82,6 +83,19 @@ export function useWorkoutSession() {
         }
         setLastPerf(perf);
         setLastSessionSets(perfSets);
+
+        // Exercícios prescritos via template/plano referenciam o catálogo
+        // "custom" do Supabase, que não existe no catálogo estático do
+        // logger — resolve nome/mídia direto do banco pra esses casos.
+        const remoteCatalog = await loadRemoteExerciseCatalog();
+        const remoteOverrides: Record<string, { name: string; mediaUrl: string | null }> = {};
+        for (const ex of active.blocks.filter(isPerformedExercise)) {
+          const info = remoteCatalog.get(ex.exerciseId);
+          if (info) remoteOverrides[ex.exerciseId] = info;
+        }
+        if (Object.keys(remoteOverrides).length > 0) {
+          setSubstituteOverride((prev) => ({ ...remoteOverrides, ...prev }));
+        }
 
         if (active.workoutTemplateId) {
           const workout = await fetchWorkoutTemplate(active.workoutTemplateId);

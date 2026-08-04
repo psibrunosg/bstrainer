@@ -97,6 +97,7 @@ function TrainSessionContent() {
         session={s.finished}
         prCount={Object.keys(s.prHit).length}
         onBack={() => router.push("/train")}
+        nameOverrides={s.substituteOverride}
       />
     );
   }
