@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { RequireAthlete } from "@/components/RequireAthlete";
+import { EmptyState } from "@/components/EmptyState";
 import {
   listMeasurements,
   saveMeasurement,
@@ -246,9 +247,17 @@ function MeasurementsContent() {
           Registros
         </h2>
         {entries.length === 0 ? (
-          <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">
-            Nenhuma medição registrada.
-          </p>
+          <EmptyState
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                <path d="M3 20h18" strokeLinecap="round" />
+                <path d="M5 16l4-6 4 4 4-8 4 6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            }
+            title="Nenhuma medição ainda"
+            description="Registre peso, fotos ou circunferências pra acompanhar sua evolução ao longo do tempo."
+            action={{ label: "Nova medição", onClick: openAdd }}
+          />
         ) : (
           <div className="space-y-2">
             {entries.map((e) => (

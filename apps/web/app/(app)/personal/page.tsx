@@ -9,6 +9,7 @@ import {
 } from "@/lib/data/trainers";
 import { getMyActiveTrainerLink, type ActiveTrainerLink } from "@/lib/data/clients";
 import { RequireAthlete } from "@/components/RequireAthlete";
+import { EmptyState } from "@/components/EmptyState";
 
 export default function PersonalPage() {
   const [trainers, setTrainers] = useState<TrainerProfile[]>([]);
@@ -70,9 +71,16 @@ export default function PersonalPage() {
       )}
 
       {trainers.length === 0 ? (
-        <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">
-          Ainda não há personais disponíveis. Peça para seu personal ativar o perfil profissional em Ajustes.
-        </p>
+        <EmptyState
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+              <circle cx="9" cy="8" r="3.5" />
+              <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+            </svg>
+          }
+          title="Ainda não há personais disponíveis"
+          description="Peça pro seu personal ativar o perfil profissional em Ajustes."
+        />
       ) : (
         <div className="space-y-3">
           {trainers.map((trainer) => (

@@ -10,6 +10,7 @@ import {
 import { exerciseName, loadCatalogExercises, type ExerciseOption as CatalogExerciseOption } from "@/lib/workout/exercises";
 import { publicAssetPath } from "@/lib/public-asset";
 import { RequireAthlete } from "@/components/RequireAthlete";
+import { EmptyState } from "@/components/EmptyState";
 import { PlateCalculator } from "@/components/PlateCalculator";
 import { REST_DEFAULT_SEC, useRestTimer } from "@/lib/workout/use-rest-timer";
 import { useWorkoutSession } from "@/lib/workout/use-workout-session";
@@ -104,18 +105,20 @@ function TrainSessionContent() {
 
   if (!s.session) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4 p-4 lg:p-6">
-        <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
-          Sessão
-        </h1>
-        <p className="text-sm text-mute">Nenhum treino em andamento.</p>
-        <button
-          type="button"
-          onClick={() => router.push("/train")}
-          className="h-12 w-full rounded-lg bg-signal text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
-        >
-          Ir para Treinar
-        </button>
+      <div className="mx-auto max-w-6xl p-4 lg:p-6">
+        <EmptyState
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+              <path d="M2 12h2" strokeLinecap="round" />
+              <path d="M20 12h2" strokeLinecap="round" />
+              <rect x="4" y="8" width="3" height="8" rx="0.5" />
+              <rect x="17" y="8" width="3" height="8" rx="0.5" />
+              <path d="M7 12h10" strokeLinecap="round" />
+            </svg>
+          }
+          title="Nenhum treino em andamento"
+          action={{ label: "Ir para Treinar", href: "/train" }}
+        />
       </div>
     );
   }

@@ -32,6 +32,7 @@ import {
 } from "@/lib/data/goals";
 import { exerciseName as localName, loadCatalogExercises, type ExerciseOption } from "@/lib/workout/exercises";
 import { Heatmap } from "@/components/Heatmap";
+import { EmptyState } from "@/components/EmptyState";
 
 const ProgressCharts = dynamic(
   () => import("@/components/dashboard/ProgressCharts").then((m) => m.ProgressCharts),
@@ -253,17 +254,19 @@ function DashboardContent() {
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
           {clientId ? `Progresso de ${clientName ?? "aluno"}` : "Progresso"}
         </h1>
-        <div className="rounded-lg border border-line bg-surface p-6 text-center">
-          <p className="text-sm text-mute">Nenhum treino registrado ainda.</p>
-          {!clientId && (
-            <Link
-              href="/train"
-              className="mt-4 inline-flex h-12 items-center justify-center rounded-lg bg-signal px-6 text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press"
-            >
-              Registrar primeiro treino
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+              <path d="M4 19V10" strokeLinecap="round" />
+              <path d="M10 19V5" strokeLinecap="round" />
+              <path d="M16 19v-7" strokeLinecap="round" />
+              <path d="M22 19H2" strokeLinecap="round" />
+            </svg>
+          }
+          title="Nenhum treino registrado ainda"
+          description={clientId ? undefined : "Seu progresso aparece aqui assim que você registrar o primeiro treino."}
+          action={!clientId ? { label: "Registrar primeiro treino", href: "/train" } : undefined}
+        />
       </div>
     );
   }
@@ -420,7 +423,16 @@ function DashboardContent() {
         )}
 
         {goals.length === 0 && !addingGoal && (
-          <p className="text-sm text-mute">Nenhuma meta definida ainda.</p>
+          <EmptyState
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                <circle cx="12" cy="12" r="8" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            }
+            title="Nenhuma meta definida ainda"
+            description="Defina uma meta de carga ou frequência pra acompanhar seu avanço."
+          />
         )}
 
         {goals.map((g) => {
