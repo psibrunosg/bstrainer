@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  /* Ferro Editorial — docs/DESIGN.md */
+  /* bstrainer — docs/DESIGN.md. Valores padrão (claro); modo escuro
+     redefine as mesmas custom properties abaixo, fora do @theme, pra
+     cascatear em runtime sem duplicar utilitário nenhum. */
   --color-ink: #f8f4ed;
   --color-surface: #fffdf9;
   --color-surface-2: #e5ede9;
@@ -19,6 +21,51 @@
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Modo escuro — segue o SO por padrão, [data-theme] força uma escolha
+   explícita do usuário (ver lib/theme/use-theme.ts) e sempre vence a
+   media query, nos dois sentidos. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink: #10201d;
+    --color-surface: #16302b;
+    --color-surface-2: #1c3a33;
+    --color-line: #2b4a42;
+    --color-text: #eef6f2;
+    --color-mute: #8fada5;
+    --color-signal: #4fd0c4;
+    --color-signal-press: #38b3a8;
+    --color-gold: #d8ea9c;
+    --color-ok: #5cbf95;
+    --color-err: #e17b6a;
+  }
+}
+:root[data-theme="dark"] {
+  --color-ink: #10201d;
+  --color-surface: #16302b;
+  --color-surface-2: #1c3a33;
+  --color-line: #2b4a42;
+  --color-text: #eef6f2;
+  --color-mute: #8fada5;
+  --color-signal: #4fd0c4;
+  --color-signal-press: #38b3a8;
+  --color-gold: #d8ea9c;
+  --color-ok: #5cbf95;
+  --color-err: #e17b6a;
+}
+:root[data-theme="light"] {
+  --color-ink: #f8f4ed;
+  --color-surface: #fffdf9;
+  --color-surface-2: #e5ede9;
+  --color-line: #c2d0c8;
+  --color-text: #174b48;
+  --color-mute: #63807a;
+  --color-signal: #287b78;
+  --color-signal-press: #1c625f;
+  --color-gold: #a8c84d;
+  --color-ok: #3f8d6d;
+  --color-err: #c45a4b;
 }
 
 body {
@@ -66,6 +113,16 @@ body {
     background-color: color-mix(in srgb, var(--color-signal) 30%, transparent);
   }
 }
+/* Exceção pontual à regra "zero gradiente" do DESIGN.md — decorativo não,
+   funcional: comunica "carregando" no lugar do bg-surface-2 chapado. */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -150% 0;
+  }
+  100% {
+    background-position: 150% 0;
+  }
+}
 .animate-pr-pop {
   animation: pr-pop 400ms var(--ease-spring);
 }
@@ -74,6 +131,16 @@ body {
 }
 .animate-timer-pulse {
   animation: timer-pulse 300ms ease-in-out 2;
+}
+.skeleton-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-surface-2) 40%,
+    color-mix(in srgb, var(--color-signal) 14%, var(--color-surface-2)) 50%,
+    var(--color-surface-2) 60%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
