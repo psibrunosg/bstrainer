@@ -17,16 +17,26 @@ export function resolveTheme(
 
 function readStoredPreference(): ThemePreference {
   if (typeof window === "undefined") return "system";
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  return raw === "light" || raw === "dark" ? raw : "system";
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw === "light" || raw === "dark" ? raw : "system";
+  } catch {
+    // localStorage can throw (private mode, disabled storage, etc.); fall
+    // back to the system preference rather than crashing the hook.
+    return "system";
+  }
 }
 
 export function useTheme() {
-  const [preference, setPreference] = useState<ThemePreference>("system");
-
-  useEffect(() => {
-    setPreference(readStoredPreference());
-  }, []);
+  // Lazily initialize from the stored preference so the very first render
+  // (and the very first run of the effect below) already has the correct
+  // value. Defaulting to "system" and correcting it in a mount-only effect
+  // caused a race: both effects run in the same initial commit, so the
+  // data-theme effect would apply the OS preference before the stored
+  // preference had a chance to load, producing a flash of the wrong theme.
+  const [preference, setPreference] = useState<ThemePreference>(() =>
+    readStoredPreference(),
+  );
 
   useEffect(() => {
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
@@ -43,10 +53,16 @@ export function useTheme() {
 
   const setTheme = useCallback((next: ThemePreference) => {
     setPreference(next);
-    if (next === "system") {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } else {
-      window.localStorage.setItem(STORAGE_KEY, next);
+    try {
+      if (next === "system") {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } else {
+        window.localStorage.setItem(STORAGE_KEY, next);
+      }
+    } catch {
+      // Storage write failures (quota exceeded, private mode, disabled
+      // storage) shouldn't crash the hook; the in-memory preference still
+      // updates above, it just won't persist across reloads.
     }
   }, []);
 
