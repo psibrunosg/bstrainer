@@ -28,14 +28,31 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#f8f4ed",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8f4ed" },
+    { media: "(prefers-color-scheme: dark)", color: "#10201d" },
+  ],
 };
+
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = localStorage.getItem("bstrainer-theme");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var resolved = stored === "light" || stored === "dark" ? stored : (prefersDark ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", resolved);
+  } catch (e) {}
+})();
+`;
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={`${cormorant.variable} ${inter.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-screen antialiased">
         <RegisterServiceWorker />
         {children}
