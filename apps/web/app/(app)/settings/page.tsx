@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { isClientOnly } from "@/lib/data/memberships";
 import { getMyTrainerProfile, setTrainerListing } from "@/lib/data/trainers";
 import { createClient } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -46,6 +47,13 @@ export default function SettingsPage() {
       <div>
         <h1 className="font-display text-4xl font-bold tracking-tight">Ajustes</h1>
         <p className="mt-1 text-sm leading-relaxed text-mute">Perfil, organização e assinatura.</p>
+      </div>
+
+      <div className="rounded-lg border border-line bg-surface p-5">
+        <p className="caps-label font-display font-semibold text-mute">Aparência</p>
+        <div className="mt-3">
+          <ThemeToggle />
+        </div>
       </div>
 
       {clientOnly ? (
