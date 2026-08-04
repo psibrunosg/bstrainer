@@ -1,7 +1,64 @@
 "use client";
 
+import { useState } from "react";
 import type { SetDraft, SetRow as SetRowData } from "@/lib/workout/set-rows";
-import { anteriorLabel, formatKg, ROW_GRID } from "@/lib/workout/exercise-utils";
+import { anteriorLabel, formatKg, ROW_GRID, RPE_OPTIONS } from "@/lib/workout/exercise-utils";
+
+function PseInlinePicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="h-10 w-full rounded border border-line bg-surface text-xs font-semibold text-mute transition duration-150 ease-out-quart active:bg-surface-2"
+      >
+        {value || "PSE"}
+      </button>
+      {open && (
+        <div
+          className="absolute bottom-full left-1/2 z-10 mb-1.5 w-max -translate-x-1/2 rounded-lg border border-line bg-surface p-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)]"
+          onMouseLeave={() => setOpen(false)}
+        >
+          <div className="grid grid-cols-5 gap-1">
+            {RPE_OPTIONS.map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => {
+                  onChange(o);
+                  setOpen(false);
+                }}
+                className={`h-8 w-8 rounded text-xs font-semibold transition duration-150 ease-out-quart active:scale-[0.95] ${
+                  value === o ? "bg-signal text-ink" : "text-mute active:bg-surface-2"
+                }`}
+              >
+                {o}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="col-span-5 mt-1 h-7 rounded text-[11px] text-mute active:bg-surface-2"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function SetRowComponent({
   row,
@@ -12,7 +69,6 @@ export function SetRowComponent({
   onEditLast,
   onRemoveTrailingRow,
   onOpenPlateCalc,
-  onOpenPse,
 }: {
   row: SetRowData;
   isLastRow: boolean;
@@ -22,7 +78,6 @@ export function SetRowComponent({
   onEditLast?: () => void;
   onRemoveTrailingRow?: () => void;
   onOpenPlateCalc?: (kg: number) => void;
-  onOpenPse?: (index: number) => void;
 }) {
   if (row.state === "confirmed") {
     return (
@@ -137,13 +192,10 @@ export function SetRowComponent({
         }}
         className="h-10 w-full rounded border border-line bg-surface px-1 text-center font-display text-sm font-semibold outline-none transition-colors placeholder:font-body placeholder:text-xs placeholder:font-normal placeholder:text-mute focus:border-signal"
       />
-      <button
-        type="button"
-        onClick={() => onOpenPse?.(row.index)}
-        className="h-10 rounded border border-line bg-surface text-xs font-semibold text-mute transition active:bg-surface-2"
-      >
-        {draft.rpe || "PSE"}
-      </button>
+      <PseInlinePicker
+        value={draft.rpe}
+        onChange={(v) => onDraftChange?.(row.index, { rpe: v })}
+      />
       <button
         type="button"
         onClick={onConfirmActive}

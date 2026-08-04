@@ -7,7 +7,7 @@ import type { ExerciseOption } from "@/lib/data/plans";
 import type { LastPerformance } from "@/lib/workout/history-lookup";
 import type { SetDraft, SetRow } from "@/lib/workout/use-workout-session";
 import { publicAssetPath } from "@/lib/public-asset";
-import { RPE_OPTIONS, ROW_GRID, formatKg, anteriorLabel, bestE1rm } from "@/lib/workout/exercise-utils";
+import { ROW_GRID, formatKg, anteriorLabel, bestE1rm } from "@/lib/workout/exercise-utils";
 import { SetRowComponent } from "./SetRow";
 
 export function ExerciseBlockCard({
@@ -52,7 +52,6 @@ export function ExerciseBlockCard({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [options, setOptions] = useState<ExerciseOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pseRowIndex, setPseRowIndex] = useState<number | null>(null);
 
   function openPicker() {
     setPickerOpen(true);
@@ -240,7 +239,6 @@ export function ExerciseBlockCard({
             onEditLast={onEditLast}
             onRemoveTrailingRow={onRemoveTrailingRow}
             onOpenPlateCalc={onOpenPlateCalc}
-            onOpenPse={setPseRowIndex}
           />
         ))}
 
@@ -252,45 +250,6 @@ export function ExerciseBlockCard({
           + Adicionar Série
         </button>
       </div>
-
-      {pseRowIndex != null && (
-        <div
-          className="fixed inset-0 z-30 flex items-end bg-ink/60"
-          onClick={() => setPseRowIndex(null)}
-        >
-          <div
-            className="w-full space-y-2 rounded-t-xl border-t border-line bg-surface p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="caps-label text-mute">PSE (esforço percebido)</p>
-            <div className="grid grid-cols-3 gap-2">
-              {RPE_OPTIONS.map((o) => (
-                <button
-                  key={o}
-                  type="button"
-                  onClick={() => {
-                    onDraftChange(pseRowIndex, { rpe: o });
-                    setPseRowIndex(null);
-                  }}
-                  className="h-14 rounded-lg border border-line font-display text-lg font-semibold transition active:bg-surface-2"
-                >
-                  {o}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                onDraftChange(pseRowIndex, { rpe: "" });
-                setPseRowIndex(null);
-              }}
-              className="h-11 w-full rounded-lg text-sm text-mute transition active:bg-surface-2"
-            >
-              Limpar
-            </button>
-          </div>
-        </div>
-      )}
       </div>
     </section>
   );
