@@ -111,7 +111,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors duration-200 ${
+      className={`relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors duration-200 ${
         active ? "text-text" : "text-mute hover:text-text"
       }`}
     >
@@ -135,6 +135,12 @@ export default function AppLayout({
     canManageClients().then(setShowClients);
   }, []);
 
+  const rightItems = RIGHT.filter((item) =>
+    showClients ? item.href !== "/personal" : item.href !== "/clients",
+  );
+  const flatItems = [...LEFT, ...rightItems];
+  const activeFlatIndex = flatItems.findIndex((item) => isActive(item.href));
+
   return (
     <div className="flex min-h-screen flex-col bg-ink text-text">
       <main className="flex-1 pb-24">
@@ -143,9 +149,21 @@ export default function AppLayout({
       {/* Nav inferior — logger é o coração do app */}
       <nav className="fixed inset-x-0 bottom-0 z-30 h-16 border-t border-line bg-ink/95 backdrop-blur-sm">
         <div className="mx-auto flex h-full max-w-5xl items-stretch px-2">
-          {LEFT.map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item.href)} />
-          ))}
+          <div className="relative flex flex-1 items-stretch">
+            {activeFlatIndex >= 0 && activeFlatIndex < LEFT.length && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-2 rounded-lg bg-surface-2 transition-transform duration-300 ease-out-quart"
+                style={{
+                  width: `${100 / LEFT.length}%`,
+                  transform: `translateX(${activeFlatIndex * 100}%)`,
+                }}
+              />
+            )}
+            {LEFT.map((item) => (
+              <NavLink key={item.href} item={item} active={isActive(item.href)} />
+            ))}
+          </div>
           {!showClients && (
             <Link
               href="/train"
@@ -153,7 +171,7 @@ export default function AppLayout({
               aria-current={isActive("/train") ? "page" : undefined}
               className="flex flex-1 flex-col items-center justify-center gap-0.5"
             >
-              <span className="flex h-12 w-12 -translate-y-3 items-center justify-center rounded-full bg-signal text-ink transition active:scale-[0.98] active:bg-signal-press">
+              <span className="flex h-12 w-12 -translate-y-3 items-center justify-center rounded-full bg-signal text-ink transition duration-150 ease-out-quart active:scale-[0.98] active:bg-signal-press">
                 <IconTrain />
               </span>
               <span
@@ -165,11 +183,21 @@ export default function AppLayout({
               </span>
             </Link>
           )}
-          {RIGHT.filter((item) =>
-            showClients ? item.href !== "/personal" : item.href !== "/clients",
-          ).map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item.href)} />
-          ))}
+          <div className="relative flex flex-1 items-stretch">
+            {activeFlatIndex >= LEFT.length && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-2 rounded-lg bg-surface-2 transition-transform duration-300 ease-out-quart"
+                style={{
+                  width: `${100 / rightItems.length}%`,
+                  transform: `translateX(${(activeFlatIndex - LEFT.length) * 100}%)`,
+                }}
+              />
+            )}
+            {rightItems.map((item) => (
+              <NavLink key={item.href} item={item} active={isActive(item.href)} />
+            ))}
+          </div>
         </div>
       </nav>
     </div>
