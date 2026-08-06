@@ -1,6 +1,7 @@
 export * from "./progression/e1rm";
 export * from "./progression/session-load";
 export * from "./progression/autoregulation";
+export * from "./progression/deterministic-engine";
 export * from "./audit/weekly-volume";
 export * from "./audit/frequency";
 export * from "./templates/types";

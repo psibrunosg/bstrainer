@@ -1,0 +1,17 @@
+[2026-07-27T17:27:47.186Z] RESULT
+============================================================
+{
+  "success": false,
+  "output": "Failed to authenticate: OAuth session expired and could not be refreshed\n",
+  "parsedOutput": {
+    "sections": [],
+    "codeBlocks": []
+  },
+  "durationMs": 8842,
+  "model": "sonnet",
+  "sandboxMode": "permissive",
+  "workerType": "optimize",
+  "timestamp": "2026-07-27T17:27:47.186Z",
+  "executionId": "optimize_1785173258344_mfh5by",
+  "error": "Process exited with code 1"
+}

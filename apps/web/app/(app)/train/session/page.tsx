@@ -22,17 +22,56 @@ import { formatKg } from "@/lib/workout/exercise-utils";
 const SRPE_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const MUSCLE_LABEL: Record<string, string> = {
-  chest: "Peito",
+  abdominals: "Abdominais",
+  abductors: "Abdutores",
+  abs: "Abdômen",
+  adductors: "Adutores",
+  "ankle stabilizers": "Estabilizadores do tornozelo",
+  ankles: "Tornozelos",
   back: "Costas",
-  shoulders: "Ombros",
   biceps: "Bíceps",
-  triceps: "Tríceps",
-  forearms: "Antebraços",
-  quads: "Quadríceps",
-  hamstrings: "Isquiotibiais",
-  glutes: "Glúteos",
+  brachialis: "Braquial",
   calves: "Panturrilhas",
+  "cardiovascular system": "Sistema cardiovascular",
+  chest: "Peito",
   core: "Core",
+  deltoids: "Deltoides",
+  delts: "Deltoides",
+  feet: "Pés",
+  forearms: "Antebraços",
+  glutes: "Glúteos",
+  "grip muscles": "Músculos da pegada",
+  groin: "Virilha",
+  hamstrings: "Isquiotibiais",
+  hands: "Mãos",
+  "hip flexors": "Flexores do quadril",
+  "inner thighs": "Parte interna das coxas",
+  "latissimus dorsi": "Grande dorsal",
+  lats: "Dorsais",
+  "levator scapulae": "Elevador da escápula",
+  "lower abs": "Abdômen inferior",
+  "lower back": "Lombar",
+  obliques: "Oblíquos",
+  pectorals: "Peitorais",
+  quadriceps: "Quadríceps",
+  quads: "Quadríceps",
+  "rear deltoids": "Deltoides posteriores",
+  rhomboids: "Romboides",
+  "rotator cuff": "Manguito rotador",
+  "serratus anterior": "Serrátil anterior",
+  shins: "Canelas",
+  shoulders: "Ombros",
+  soleus: "Sóleo",
+  spine: "Coluna",
+  sternocleidomastoid: "Esternocleidomastóideo",
+  trapezius: "Trapézio",
+  traps: "Trapézio",
+  triceps: "Tríceps",
+  "upper back": "Parte superior das costas",
+  "upper chest": "Peitoral superior",
+  "wrist extensors": "Extensores do punho",
+  "wrist flexors": "Flexores do punho",
+  wrists: "Punhos",
   full_body: "Corpo todo",
 };
 
@@ -145,13 +184,31 @@ function TrainSessionContent() {
       >
         {rest.isActive ? (
           <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => rest.adjust(-15)}
-              className="h-11 rounded-lg border border-line px-3 text-sm font-semibold text-mute transition active:bg-surface-2"
-            >
-              −15s
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => rest.adjust(-15)}
+                className="h-11 rounded-lg border border-line px-3 text-sm font-semibold text-mute transition active:bg-surface-2"
+              >
+                −15s
+              </button>
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-text">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    s.syncStatus === "synced"
+                      ? "bg-emerald-500"
+                      : s.syncStatus === "syncing"
+                        ? "bg-amber-500 animate-pulse"
+                        : "bg-sky-500"
+                  }`}
+                />
+                {s.syncStatus === "synced"
+                  ? "Sincronizado"
+                  : s.syncStatus === "syncing"
+                    ? "Sincronizando"
+                    : "Salvo no aparelho"}
+              </span>
+            </div>
             <p
               className={`tnum font-display text-4xl font-bold ${
                 restCritical ? "text-signal" : "text-text"
@@ -178,9 +235,27 @@ function TrainSessionContent() {
           </div>
         ) : (
           <div className="flex h-11 items-center justify-between">
-            <p className="caps-label font-display font-semibold text-mute">
-              {rest.justFinished ? "Descanso concluído" : "Treino livre"}
-            </p>
+            <div className="flex items-center gap-2.5">
+              <p className="caps-label font-display font-semibold text-mute">
+                {rest.justFinished ? "Descanso concluído" : "Treino livre"}
+              </p>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-text">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    s.syncStatus === "synced"
+                      ? "bg-emerald-500"
+                      : s.syncStatus === "syncing"
+                        ? "bg-amber-500 animate-pulse"
+                        : "bg-sky-500"
+                  }`}
+                />
+                {s.syncStatus === "synced"
+                  ? "Sincronizado"
+                  : s.syncStatus === "syncing"
+                    ? "Sincronizando"
+                    : "Salvo no aparelho"}
+              </span>
+            </div>
             {!rest.justFinished && (
               <button
                 type="button"

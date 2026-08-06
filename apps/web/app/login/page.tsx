@@ -33,7 +33,7 @@ export default function LoginPage() {
       new URLSearchParams(window.location.search).get("type") === "recovery";
 
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session && !isRecovery()) router.replace("/dashboard");
+      if (data.session && !isRecovery()) router.replace("/today");
     });
 
     const {
@@ -43,7 +43,7 @@ export default function LoginPage() {
         setMode("update-password");
         setMessage("Defina uma nova senha para concluir a recuperação.");
       } else if (session) {
-        router.replace("/dashboard");
+        router.replace("/today");
       }
     });
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
     } else if (mode === "reset") {
       setMessage("Se o e-mail estiver cadastrado, enviamos um link para redefinir sua senha.");
     } else if (mode === "update-password") {
-      router.replace("/dashboard");
+      router.replace("/today");
     }
   }
 

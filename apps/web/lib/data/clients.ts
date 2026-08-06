@@ -106,7 +106,7 @@ export async function getMyActiveTrainerLink(): Promise<ActiveTrainerLink | null
 
   if (!data) return null;
   const row = data as unknown as { trainer_id: string; profiles: { name: string } | null };
-  return { trainerId: row.trainer_id, name: row.profiles?.name ?? "Seu personal" };
+  return { trainerId: row.trainer_id, name: row.profiles?.name || "Personal sem nome cadastrado" };
 }
 
 /** Confirma vínculo ativo trainer->client antes de deixar o trainer criar plano pro aluno. */

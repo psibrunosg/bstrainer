@@ -13,9 +13,10 @@ import {
  * sessão fosse anexada duas vezes.
  */
 const DB_NAME = "bstrainer";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 export const ACTIVE_SESSION_STORE = "activeSession";
 export const SESSION_HISTORY_STORE = "sessionHistory";
+export const SYNC_QUEUE_STORE = "syncQueue";
 const ACTIVE_SESSION_KEY = "current";
 
 /** clientId placeholder até existir auth/Supabase. */
@@ -23,13 +24,22 @@ export const LOCAL_CLIENT_ID = "00000000-0000-4000-8000-000000000001";
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
+export function resetDbPromiseForTest() {
+  dbPromise = null;
+}
+
 function getDb(): Promise<IDBPDatabase> | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" && typeof globalThis.indexedDB === "undefined") return null;
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        db.createObjectStore(ACTIVE_SESSION_STORE);
-        db.createObjectStore(SESSION_HISTORY_STORE);
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          db.createObjectStore(ACTIVE_SESSION_STORE);
+          db.createObjectStore(SESSION_HISTORY_STORE);
+        }
+        if (oldVersion < 2) {
+          db.createObjectStore(SYNC_QUEUE_STORE, { keyPath: "id" });
+        }
       },
     });
   }
@@ -71,6 +81,28 @@ export async function appendToSessionHistory(session: WorkoutSession): Promise<v
   const db = await getDb();
   if (!db) return;
   await db.put(SESSION_HISTORY_STORE, session, session.id);
+}
+
+export async function loadSyncQueue(): Promise<WorkoutSession[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.getAll(SYNC_QUEUE_STORE);
+  return rows
+    .map((item) => workoutSessionSchema.safeParse(item))
+    .filter((r) => r.success)
+    .map((r) => r.data);
+}
+
+export async function enqueueSyncSession(session: WorkoutSession): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.put(SYNC_QUEUE_STORE, session);
+}
+
+export async function dequeueSyncSession(id: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(SYNC_QUEUE_STORE, id);
 }
 
 export function createFreeSession(): WorkoutSession {

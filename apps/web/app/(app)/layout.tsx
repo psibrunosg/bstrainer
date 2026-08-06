@@ -78,6 +78,18 @@ function IconSettings() {
   );
 }
 
+function IconToday() {
+  return (
+    <svg {...ICON_PROPS} aria-hidden>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <circle cx="12" cy="15" r="2" />
+    </svg>
+  );
+}
+
 function IconMeasurements() {
   return (
     <svg {...ICON_PROPS} aria-hidden>
@@ -94,8 +106,8 @@ interface NavItem {
 }
 
 const LEFT: NavItem[] = [
+  { href: "/today", label: "Hoje", icon: IconToday },
   { href: "/dashboard", label: "Progresso", icon: IconProgress },
-  { href: "/measurements", label: "Medições", icon: IconMeasurements },
   { href: "/plans", label: "Fichas", icon: IconPlans },
 ];
 

@@ -61,7 +61,7 @@ export default function SettingsPage() {
           <p className="caps-label font-display font-semibold text-signal">Perfil de aluno</p>
           <h2 className="mt-1 font-display text-2xl font-semibold">Acompanhamento ativo</h2>
           <p className="mt-2 text-sm leading-relaxed text-mute">
-            Esta conta esta vinculada como aluno. A area de convidar alunos fica oculta neste perfil.
+            Esta conta está vinculada como aluno. A área de convidar alunos fica oculta neste perfil.
           </p>
         </section>
       ) : (

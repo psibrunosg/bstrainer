@@ -33,10 +33,11 @@ import {
 import { exerciseName as localName, loadCatalogExercises, type ExerciseOption } from "@/lib/workout/exercises";
 import { Heatmap } from "@/components/Heatmap";
 import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/Button";
 
 const ProgressCharts = dynamic(
   () => import("@/components/dashboard/ProgressCharts").then((m) => m.ProgressCharts),
-  { ssr: false, loading: () => <div className="h-52 animate-pulse rounded-lg bg-surface-2" /> },
+  { ssr: false, loading: () => <div className="h-52 rounded-lg skeleton-shimmer" /> },
 );
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -242,8 +243,8 @@ function DashboardContent() {
   if (!loaded) {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-4">
-        <div className="h-8 w-40 animate-pulse rounded bg-surface-2" />
-        <div className="h-52 animate-pulse rounded-lg bg-surface-2" />
+        <div className="h-8 w-40 rounded skeleton-shimmer" />
+        <div className="h-52 rounded-lg skeleton-shimmer" />
       </div>
     );
   }
@@ -287,17 +288,26 @@ function DashboardContent() {
           ← Alunos
         </Link>
       )}
-      <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
-        {clientId ? `Progresso de ${clientName ?? "aluno"}` : "Progresso"}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
+          {clientId ? `Progresso de ${clientName ?? "aluno"}` : "Progresso"}
+        </h1>
+        <Link
+          href={clientId ? `/measurements?client=${clientId}&name=${encodeURIComponent(clientName ?? "aluno")}` : "/measurements"}
+          className="inline-flex h-9 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-signal transition active:scale-95 hover:bg-surface-2"
+        >
+          Medições →
+        </Link>
+      </div>
 
       <div className="grid grid-cols-4 gap-3">
         <Stat label="Treinos" value={String(sessions.length)} />
         <Stat label="Séries" value={String(totalSets)} />
-        <Stat
-          label="Tonelagem"
-          value={`${Math.round(sessions.reduce((a, s) => a + sessionTonnage(s), 0) / 1000)}t`}
-        />
+        {(() => {
+          const totalKg = Math.round(sessions.reduce((a, s) => a + sessionTonnage(s), 0));
+          const val = totalKg < 1000 ? `${totalKg}kg` : `${Math.round(totalKg / 1000)}t`;
+          return <Stat label="Tonelagem" value={val} />;
+        })()}
         <Stat label="Sequência" value={`${streak}sem`} accent={streak > 0} />
       </div>
 
@@ -411,14 +421,15 @@ function DashboardContent() {
               className="h-10 w-full rounded border border-line bg-ink px-3 text-sm outline-none placeholder:text-mute focus:border-signal"
             />
             {goalError && <p className="text-sm text-err">{goalError}</p>}
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="sm"
               onClick={submitGoal}
               disabled={goalPending}
-              className="h-10 w-full rounded-lg bg-signal text-sm font-semibold text-ink transition active:scale-[0.98] disabled:opacity-50"
+              className="w-full"
             >
               {goalPending ? "Salvando…" : "Criar meta"}
-            </button>
+            </Button>
           </div>
         )}
 

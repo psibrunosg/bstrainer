@@ -1,0 +1,17 @@
+[2026-07-21T15:38:21.425Z] RESULT
+============================================================
+{
+  "success": false,
+  "output": "Failed to authenticate: OAuth session expired and could not be refreshed\n",
+  "parsedOutput": {
+    "parseError": true,
+    "rawOutput": "Failed to authenticate: OAuth session expired and could not be refreshed\n"
+  },
+  "durationMs": 6272,
+  "model": "haiku",
+  "sandboxMode": "strict",
+  "workerType": "audit",
+  "timestamp": "2026-07-21T15:38:21.425Z",
+  "executionId": "audit_1784648295153_2pdp7t",
+  "error": "Process exited with code 1"
+}

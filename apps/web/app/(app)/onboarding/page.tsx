@@ -83,7 +83,7 @@ export default function OnboardingPage() {
         equipment,
       });
       if (result.ok) {
-        router.push("/dashboard");
+        router.push("/today");
       } else {
         setError(result.error ?? "Falha ao salvar perfil.");
       }

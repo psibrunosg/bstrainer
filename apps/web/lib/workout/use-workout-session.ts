@@ -15,7 +15,7 @@ import { fetchWorkoutTemplate, type NextWorkout } from "@/lib/data/active-plan";
 import { loadRemoteExerciseCatalog } from "@/lib/data/exercise-names";
 import { e1rmEpley } from "@bstrainer/engine";
 import type { ExerciseOption } from "@/lib/data/plans";
-import { syncSession } from "@/lib/workout/sync";
+import { drainPending, syncSession } from "@/lib/workout/sync";
 import {
   bestHistoricalE1rm,
   lastPerformanceFor,
@@ -45,6 +45,8 @@ export function useWorkoutSession() {
   const [drafts, setDrafts] = useState<Record<string, Record<number, SetDraft>>>({});
   const [rowCounts, setRowCounts] = useState<Record<string, number>>({});
 
+  const [syncStatus, setSyncStatus] = useState<"saved_locally" | "syncing" | "synced">("saved_locally");
+
   // Última performance por exercício (histórico) — ghost/prefill
   const [lastPerf, setLastPerf] = useState<Record<string, LastPerformance | null>>({});
   // Todas as séries da última sessão por exercício — "anterior" por linha na tabela
@@ -67,6 +69,13 @@ export function useWorkoutSession() {
 
   // Finalização
   const [finished, setFinished] = useState<WorkoutSession | null>(null);
+
+  function persistImmediate(next: WorkoutSession | null) {
+    if (next && next.status === "in_progress") {
+      setSyncStatus("saved_locally");
+      void saveActiveSession(next);
+    }
+  }
 
   useEffect(() => {
     loadActiveSession().then(async (active) => {
@@ -112,10 +121,31 @@ export function useWorkoutSession() {
 
   useEffect(() => {
     if (session && session.status === "in_progress") {
-      // fire-and-forget: escrita no IndexedDB não deve travar o input a cada série
       void saveActiveSession(session);
     }
   }, [session]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setSyncStatus("syncing");
+      drainPending()
+        .then((count) => {
+          if (count > 0 || (typeof navigator !== "undefined" && navigator.onLine)) {
+            setSyncStatus("synced");
+          }
+        })
+        .catch(() => setSyncStatus("saved_locally"));
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      if (navigator.onLine) {
+        drainPending().then((count) => {
+          if (count > 0) setSyncStatus("synced");
+        });
+      }
+      return () => window.removeEventListener("online", handleOnline);
+    }
+  }, []);
 
   function targetSetAt(rowId: string, index: number): PrescribedSet | undefined {
     const block = session?.blocks.find((b) => b.id === rowId);
@@ -214,7 +244,9 @@ export function useWorkoutSession() {
         wasSubstituted: false,
         sets: [],
       };
-      return { ...prev, blocks: [...prev.blocks, row] };
+      const updated = { ...prev, blocks: [...prev.blocks, row] };
+      persistImmediate(updated);
+      return updated;
     });
   }
 
@@ -230,7 +262,9 @@ export function useWorkoutSession() {
           ? { ...e, exerciseId: option.id, wasSubstituted: true }
           : e,
       );
-      return { ...prev, blocks };
+      const updated = { ...prev, blocks };
+      persistImmediate(updated);
+      return updated;
     });
   }
 
@@ -240,7 +274,9 @@ export function useWorkoutSession() {
       const blocks = prev.blocks
         .filter((e) => e.id !== rowId)
         .map((e, i) => ({ ...e, order: i + 1 }));
-      return { ...prev, blocks };
+      const updated = { ...prev, blocks };
+      persistImmediate(updated);
+      return updated;
     });
   }
 
@@ -272,7 +308,9 @@ export function useWorkoutSession() {
           sets: [...e.sets, { ...newSet, order: e.sets.length + 1 }],
         };
       });
-      return { ...prev, blocks };
+      const updated = { ...prev, blocks };
+      persistImmediate(updated);
+      return updated;
     });
     checkPr(exerciseId, newSet);
   }
@@ -326,7 +364,9 @@ export function useWorkoutSession() {
       const blocks = prev.blocks.map((e) =>
         e.kind === "exercise" && e.id === rowId ? { ...e, sets: e.sets.slice(0, -1) } : e,
       );
-      return { ...prev, blocks };
+      const updated = { ...prev, blocks };
+      persistImmediate(updated);
+      return updated;
     });
   }
 
@@ -339,7 +379,9 @@ export function useWorkoutSession() {
       const blocks = prev.blocks.map((b) =>
         b.kind === "activity" && b.id === rowId ? { ...b, ...patch } : b,
       );
-      return { ...prev, blocks };
+      const updated = { ...prev, blocks };
+      persistImmediate(updated);
+      return updated;
     });
   }
 
@@ -352,7 +394,9 @@ export function useWorkoutSession() {
       const blocks = prev.blocks.map((b) =>
         b.kind === "circuit" && b.id === rowId ? { ...b, ...patch } : b,
       );
-      return { ...prev, blocks };
+      const updated = { ...prev, blocks };
+      persistImmediate(updated);
+      return updated;
     });
   }
 
@@ -368,13 +412,16 @@ export function useWorkoutSession() {
     await clearActiveSession();
     setFinished(done);
     setSession(done);
-    void syncSession(done);
+    setSyncStatus("syncing");
+    const success = await syncSession(done);
+    setSyncStatus(success ? "synced" : "saved_locally");
   }
 
   return {
     session,
     loaded,
     finished,
+    syncStatus,
     lastPerf,
     lastSessionSets,
     prHit,

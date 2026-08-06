@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { RequireAthlete } from "@/components/RequireAthlete";
 import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/Button";
 import {
   listMeasurements,
   saveMeasurement,
@@ -176,8 +177,8 @@ function MeasurementsContent() {
   if (loading) {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-4">
-        <div className="h-8 w-40 animate-pulse rounded bg-surface-2" />
-        <div className="h-52 animate-pulse rounded-lg bg-surface-2" />
+        <div className="h-8 w-40 rounded skeleton-shimmer" />
+        <div className="h-52 rounded-lg skeleton-shimmer" />
       </div>
     );
   }
@@ -359,21 +360,23 @@ function MeasurementsContent() {
 
             {error && <p className="text-sm text-err">{error}</p>}
 
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="md"
               onClick={handleSubmit}
               disabled={pending}
-              className="h-12 w-full rounded-lg bg-signal text-[15px] font-semibold text-ink transition active:scale-[0.98] active:bg-signal-press disabled:opacity-50"
+              className="w-full"
             >
               {pending ? "Salvando…" : "Salvar"}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
               onClick={() => setAdding(false)}
-              className="h-11 w-full rounded-lg text-sm text-mute transition active:bg-surface-2"
+              className="w-full text-mute active:bg-surface-2"
             >
               Cancelar
-            </button>
+            </Button>
           </div>
         </div>
       )}

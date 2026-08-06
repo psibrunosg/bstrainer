@@ -23,7 +23,7 @@ Um lobo em movimento — força tranquila, constância, cuidado consigo. Fundo c
 | ok | #3f8d6d | série concluída, vínculo ativo |
 | err | #c45a4b | falha/deletar |
 
-Regras: signal é o único accent saturado por tela. gold só existe se houve PR.
+Regras: signal é o único accent saturado por tela. gold só existe se houve PR. Modo escuro com suporte completo via redefinição destas mesmas variáveis em globals.css por sistema ou seletor em runtime ([data-theme]).
 
 ### Tipografia
 - Display: Cormorant Garamond (`--font-display`, via `next/font`) — headlines, números de carga, timer, hero.
@@ -37,9 +37,7 @@ Regras: signal é o único accent saturado por tela. gold só existe se houve PR
 
 ## 3. Componentes (conferidos no código, não aspiracionais)
 
-- **Botão primário:** `h-12 rounded-lg bg-signal text-ink font-semibold text-[15px] transition active:scale-[0.98] active:bg-signal-press`. Full-width no app; `rounded-full px-8` na landing.
-- **Botão secundário:** `h-12 rounded-lg border border-line bg-surface text-text active:bg-surface-2`.
-- **Ghost:** `text-mute` → `text-text` no hover/active, sem fundo. Cancelar/pular/fechar picker.
+- **Botões unificados (`<Button />`):** Todos os botões das telas do atleta utilizam o componente compartilhado `apps/web/components/ui/Button.tsx` (variantes `primary`, `secondary` ou `ghost`), garantindo alvos de toque >= 44x44px (`h-12`/`h-11`/`h-11 w-11`) e feedback reativo ao toque (`active:scale-[0.98]`).
 - **Card:** `rounded-lg border border-line bg-surface p-4`. Título `caps-label font-display font-semibold text-mute` + valor grande `font-display text-xl font-bold`.
 - **Input:** `h-11`/`h-12 rounded border border-line bg-ink px-4 text-base outline-none focus:border-signal` (sem ring/glow). Placeholder `text-mute`.
 - **Nav inferior** (`(app)/layout.tsx`): item central "Treinar" é um círculo `bg-signal`; demais itens texto+ícone, ativo `text-signal`/`text-text`, inativo `text-mute`. "Alunos" só aparece pra quem é personal.
@@ -54,7 +52,7 @@ Regras: signal é o único accent saturado por tela. gold só existe se houve PR
 1. Confirmar série / PR: `.animate-pr-pop` — scale 0.6→1 + fade, spring 400ms.
 2. Série check: `.animate-set-check` — scale 0.8→1, spring 250ms. Vibrate 30ms em PR (`navigator.vibrate`).
 3. Timer de descanso zerando: `.animate-timer-pulse` — pulsa `surface-2`↔`signal/30%` 2× 300ms + vibrate `[200,100,200]`. Últimos 10s: dígitos `text-signal`.
-4. Loading: skeleton chapado `bg-surface-2 animate-pulse` (Tailwind padrão), sem shimmer customizado.
+4. Loading: skeleton dinâmico usando a classe `.skeleton-shimmer` em loop suave de 1.6s (exceção funcional à regra de gradiente, para comunicar claramente o estado de carregamento sem excessos).
 
 Regra: nada >400ms; `prefers-reduced-motion` zera todas as durações de animação/transição (`globals.css`).
 
@@ -72,7 +70,7 @@ Copy real, não aspiracional — ver `apps/web/app/page.tsx` pra qualquer ajuste
 
 ## 6. Não fazer
 
-1. Nenhum gradiente, glow, blur decorativo fora dos dois blobs `blur-3xl` do hero (decoração de fundo, não de componente).
+1. Nenhum gradiente, glow, blur decorativo fora dos dois blobs `blur-3xl` do hero e da animação funcional `.skeleton-shimmer`.
 2. Nenhum emoji em UI/copy. Celebração = tipografia + gold. (Exceção pontual já em produção: `⇄`/`✕` como glifo de ícone funcional, não emoji decorativo.)
 3. Nenhum laranja/roxo/violeta — a paleta é verde-petróleo sobre creme, não mais "Ferro" laranja-sobre-preto.
 4. Sem `rounded-2xl+`, sem `shadow-xl` empilhada.
@@ -80,4 +78,4 @@ Copy real, não aspiracional — ver `apps/web/app/page.tsx` pra qualquer ajuste
 6. Copy proibida: "eleve seu treino", "desbloqueie potencial", "revolucione", "sem esforço", "tudo em um só lugar".
 7. Um accent saturado por tela — `signal` é o único.
 8. Números sempre `font-display`/`.tnum`.
-9. Claro é o único tema por ora — não reintroduzir o dark "Ferro" sem decisão de produto explícita.
+9. Suporte nativo a modo claro e noturno sob a mesma identidade "Matilha em Movimento" (verde-petróleo), evite reintroduzir paletas antigas ("Ferro" com laranja/preto).

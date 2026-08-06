@@ -240,3 +240,86 @@ export async function getNextWorkout(clientId?: string): Promise<NextWorkout | n
 
   return mapWorkoutRow(rows[nextIndex]!);
 }
+
+export interface ActivePlanWorkouts {
+  planId: string;
+  planGoal: string;
+  mesocyclePosition: number;
+  mesocycleWeeks: number;
+  nextWorkoutId: string | null;
+  workouts: NextWorkout[];
+}
+
+/**
+ * Retorna todos os treinos do mesociclo ativo com a indicação do próximo treino na rotação,
+ * para exibição detalhada no accordion "Sua Ficha" e "O que tem para hoje".
+ */
+export async function getActivePlanWorkouts(clientId?: string): Promise<ActivePlanWorkouts | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const targetClientId = clientId ?? user?.id;
+  if (!targetClientId) return null;
+
+  const { data: planRow } = await supabase
+    .from("training_plans")
+    .select("id, goal, start_date")
+    .eq("client_id", targetClientId)
+    .eq("status", "active")
+    .order("start_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!planRow) return null;
+
+  const { data: mesoRows } = await supabase
+    .from("mesocycles")
+    .select("id, position, weeks")
+    .eq("plan_id", planRow.id)
+    .order("position");
+  if (!mesoRows || mesoRows.length === 0) return null;
+
+  const elapsedWeeks = Math.floor((Date.now() - Date.parse(planRow.start_date)) / (7 * DAY_MS));
+  let cumulative = 0;
+  let currentMeso = mesoRows[mesoRows.length - 1]!;
+  for (const m of mesoRows) {
+    cumulative += m.weeks;
+    if (elapsedWeeks < cumulative) {
+      currentMeso = m;
+      break;
+    }
+  }
+
+  const { data: workoutRows } = await supabase
+    .from("workout_templates")
+    .select(WORKOUT_SELECT)
+    .eq("mesocycle_id", currentMeso.id)
+    .order("position");
+  if (!workoutRows || workoutRows.length === 0) return null;
+
+  const rows = workoutRows as unknown as DbWorkoutRow[];
+  const sessions = await loadSessions(clientId);
+  const rowIds = rows.map((r) => r.id);
+  const lastSession = sessions.find(
+    (s) => s.workoutTemplateId && rowIds.includes(s.workoutTemplateId),
+  );
+
+  let nextIndex = 0;
+  if (lastSession) {
+    const idx = rows.findIndex((r) => r.id === lastSession.workoutTemplateId);
+    if (idx >= 0) nextIndex = (idx + 1) % rows.length;
+  }
+
+  const nextWorkoutId = rows[nextIndex]?.id ?? null;
+  const workouts = rows.map(mapWorkoutRow);
+
+  return {
+    planId: planRow.id,
+    planGoal: planRow.goal,
+    mesocyclePosition: currentMeso.position,
+    mesocycleWeeks: currentMeso.weeks,
+    nextWorkoutId,
+    workouts,
+  };
+}
+
