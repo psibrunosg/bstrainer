@@ -81,6 +81,18 @@ describe("MeasurementsPage", () => {
     expect(listMeasurementsMock).toHaveBeenCalledWith(undefined);
   });
 
+  it("announces loading when the route search params suspend", () => {
+    searchParamsGetMock.mockImplementation(() => {
+      throw new Promise(() => {});
+    });
+
+    render(<MeasurementsPage />);
+
+    expect(
+      screen.getByRole("status", { name: "Carregando medições" }),
+    ).toHaveAttribute("aria-busy", "true");
+  });
+
   it("loads the linked client from the URL and names the trainer view", async () => {
     searchParamsGetMock.mockImplementation((key: string) => {
       if (key === "client") return "client-a";
@@ -266,6 +278,38 @@ describe("MeasurementsPage", () => {
 
     await act(async () => resolveSave({ ok: true }));
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
+  it("restores focus to the stable header action when the EmptyState trigger unmounts", async () => {
+    let resolveSave!: (result: { ok: false; error: string }) => void;
+    saveMeasurementMock.mockReturnValue(
+      new Promise<{ ok: false; error: string }>((resolve) => {
+        resolveSave = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+
+    render(<MeasurementsContent clientId="client-a" clientName="Ana" />);
+    const headerAction = await screen.findByRole("button", {
+      name: /^\+ nova$/i,
+    });
+    const emptyStateAction = screen.getByRole("button", {
+      name: "Nova medição",
+    });
+    await user.click(emptyStateAction);
+    await user.type(screen.getByRole("textbox", { name: /peso/i }), "81");
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(emptyStateAction).not.toBeInTheDocument();
+    await act(async () => {
+      resolveSave({ ok: false, error: "Falha ao salvar medição." });
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Falha ao salvar medição.",
+    );
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+
+    await waitFor(() => expect(headerAction).toHaveFocus());
   });
 
   it("opens editing from an explicit keyboard-accessible control", async () => {

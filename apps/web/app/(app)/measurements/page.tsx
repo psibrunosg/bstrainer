@@ -60,9 +60,23 @@ function fmtNum(n: number | null): string {
   return n % 1 === 0 ? String(n) : n.toFixed(1).replace(".", ",");
 }
 
+function MeasurementsLoading() {
+  return (
+    <div
+      role="status"
+      aria-label="Carregando medições"
+      aria-busy="true"
+      className="mx-auto max-w-lg space-y-4 p-4"
+    >
+      <div className="h-8 w-40 rounded skeleton-shimmer" />
+      <div className="h-52 rounded-lg skeleton-shimmer" />
+    </div>
+  );
+}
+
 function MeasurementsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<MeasurementsLoading />}>
       <MeasurementsRoute />
     </Suspense>
   );
@@ -104,6 +118,7 @@ function MeasurementsContent({
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const headerActionRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async (showLoading = true) => {
@@ -170,7 +185,11 @@ function MeasurementsContent({
   }, [adding, pending]);
 
   function restoreTriggerFocus() {
-    window.setTimeout(() => returnFocusRef.current?.focus(), 0);
+    window.setTimeout(() => {
+      const trigger = returnFocusRef.current;
+      const target = trigger?.isConnected ? trigger : headerActionRef.current;
+      target?.focus();
+    }, 0);
   }
 
   function rememberTrigger() {
@@ -292,17 +311,7 @@ function MeasurementsContent({
   }, [entries, chartField]);
 
   if (loading && entries.length === 0) {
-    return (
-      <div
-        role="status"
-        aria-label="Carregando medições"
-        aria-busy="true"
-        className="mx-auto max-w-lg space-y-4 p-4"
-      >
-        <div className="h-8 w-40 rounded skeleton-shimmer" />
-        <div className="h-52 rounded-lg skeleton-shimmer" />
-      </div>
-    );
+    return <MeasurementsLoading />;
   }
 
   return (
@@ -317,6 +326,7 @@ function MeasurementsContent({
           {clientId ? `Medições de ${clientName ?? "aluno"}` : "Medições"}
         </h1>
         <button
+          ref={headerActionRef}
           type="button"
           onClick={openAdd}
           disabled={pending}
