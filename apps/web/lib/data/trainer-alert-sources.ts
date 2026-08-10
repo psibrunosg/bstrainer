@@ -1,10 +1,8 @@
-import type { WorkoutSession } from "@bstrainer/domain";
 import type { ClientLink } from "./clients";
-import { mapSessionRow } from "./sessions";
 import { createClient } from "../supabase/client";
 
 const SESSION_SELECT =
-  "id, client_id, workout_template_id, started_at, finished_at, status, session_rpe, readiness_sleep, readiness_soreness, readiness_energy, notes, performed_exercises(id, exercise_id, prescribed_exercise_id, position, was_substituted, performed_sets(id, position, reps, load_kg, rpe, rir, is_failure, is_warmup, time_seconds, notes))";
+  "started_at, readiness_soreness, readiness_energy";
 
 type ClientLinkRow = Omit<ClientLink, "name"> & {
   profiles: { name: string } | null;
@@ -14,8 +12,16 @@ export type ClientLinkLoadResult =
   | { ok: true; clients: ClientLink[] }
   | { ok: false; error: string };
 
+export interface AlertSession {
+  startedAt: string;
+  readiness: {
+    soreness: number | null;
+    energy: number | null;
+  } | null;
+}
+
 export type ClientSessionLoadResult =
-  | { ok: true; sessions: WorkoutSession[] }
+  | { ok: true; sessions: AlertSession[] }
   | { ok: false; error: string };
 
 export async function listActiveClientLinksForAlerts(): Promise<ClientLinkLoadResult> {
@@ -52,8 +58,21 @@ export async function loadCompletedClientSessionsForAlerts(
     .select(SESSION_SELECT)
     .eq("client_id", clientId)
     .eq("status", "completed")
-    .order("started_at", { ascending: false });
+    .order("started_at", { ascending: false })
+    .limit(2);
 
   if (error) return { ok: false, error: "Falha ao carregar sessões do aluno." };
-  return { ok: true, sessions: (data ?? []).map(mapSessionRow) };
+  return {
+    ok: true,
+    sessions: (data ?? []).map((session) => ({
+      startedAt: session.started_at,
+      readiness:
+        session.readiness_soreness != null || session.readiness_energy != null
+          ? {
+              soreness: session.readiness_soreness,
+              energy: session.readiness_energy,
+            }
+          : null,
+    })),
+  };
 }
