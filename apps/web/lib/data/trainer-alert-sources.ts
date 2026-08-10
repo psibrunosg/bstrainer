@@ -19,9 +19,16 @@ export type ClientSessionLoadResult =
   | { ok: false; error: string };
 
 export async function listActiveClientLinksForAlerts(): Promise<ClientLinkLoadResult> {
-  const { data, error } = await createClient()
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sessão expirada." };
+
+  const { data, error } = await supabase
     .from("client_links")
     .select("id, status, invite_email, client_id, profiles:client_id(name)")
+    .eq("trainer_id", user.id)
     .eq("status", "active")
     .order("status", { ascending: true });
 
