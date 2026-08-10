@@ -25,6 +25,37 @@ export type AlertLoadResult =
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_CONCURRENT_SESSION_LOADS = 4;
+
+interface ActivePlanRow {
+  id: string;
+  client_id: string;
+  start_date: string;
+}
+
+async function mapWithConcurrency<T, R>(
+  values: readonly T[],
+  concurrency: number,
+  mapper: (value: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(values.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < values.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(values[index]!, index);
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, values.length) },
+    () => worker(),
+  );
+  await Promise.all(workers);
+  return results;
+}
 
 /**
  * Algoritmo de consolidação de alertas de exceção para personal trainers:
@@ -42,12 +73,68 @@ export async function getClientExceptionAlerts(): Promise<AlertLoadResult> {
   if (activeClients.length > 0) {
     const supabase = createClient();
     const now = Date.now();
+    const clientIds = [
+      ...new Set(activeClients.map((client) => client.client_id!)),
+    ];
+    const [sessionResults, planResult] = await Promise.all([
+      mapWithConcurrency(
+        activeClients,
+        MAX_CONCURRENT_SESSION_LOADS,
+        (client) => loadCompletedClientSessionsForAlerts(client.client_id!),
+      ),
+      supabase
+        .from("training_plans")
+        .select("id, client_id, start_date")
+        .in("client_id", clientIds)
+        .eq("status", "active")
+        .order("start_date", { ascending: false }),
+    ]);
 
-    for (const client of activeClients) {
+    for (const sessionResult of sessionResults) {
+      if (!sessionResult.ok) return sessionResult;
+    }
+
+    if (planResult.error) {
+      return { ok: false, error: "Falha ao carregar a ficha ativa do aluno." };
+    }
+
+    const latestPlanByClient = new Map<string, ActivePlanRow>();
+    const sortedPlanRows = [...(planResult.data ?? [])].sort((a, b) => {
+      const startDateDifference =
+        Date.parse(b.start_date) - Date.parse(a.start_date);
+      return startDateDifference || b.id.localeCompare(a.id);
+    });
+    for (const plan of sortedPlanRows) {
+      if (!latestPlanByClient.has(plan.client_id)) {
+        latestPlanByClient.set(plan.client_id, plan);
+      }
+    }
+
+    const planIds = [...latestPlanByClient.values()].map((plan) => plan.id);
+    const totalWeeksByPlan = new Map<string, number>();
+    if (planIds.length > 0) {
+      const { data: mesocycleRows, error: mesocycleError } = await supabase
+        .from("mesocycles")
+        .select("plan_id, weeks")
+        .in("plan_id", planIds);
+
+      if (mesocycleError) {
+        return { ok: false, error: "Falha ao carregar o ciclo do aluno." };
+      }
+
+      for (const mesocycle of mesocycleRows ?? []) {
+        totalWeeksByPlan.set(
+          mesocycle.plan_id,
+          (totalWeeksByPlan.get(mesocycle.plan_id) ?? 0) + mesocycle.weeks,
+        );
+      }
+    }
+
+    for (const [clientIndex, client] of activeClients.entries()) {
       const clientId = client.client_id!;
       const clientName = client.name || "Aluno sem nome";
 
-      const sessionResult = await loadCompletedClientSessionsForAlerts(clientId);
+      const sessionResult = sessionResults[clientIndex]!;
       if (!sessionResult.ok) return sessionResult;
 
       const sortedSessions = [...sessionResult.sessions].sort(
@@ -105,34 +192,10 @@ export async function getClientExceptionAlerts(): Promise<AlertLoadResult> {
         }
       }
 
-      const { data: planRow, error: planError } = await supabase
-        .from("training_plans")
-        .select("id, start_date")
-        .eq("client_id", clientId)
-        .eq("status", "active")
-        .order("start_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (planError) {
-        return { ok: false, error: "Falha ao carregar a ficha ativa do aluno." };
-      }
-
+      const planRow = latestPlanByClient.get(clientId);
       if (planRow) {
-        const { data: mesoRows, error: mesocycleError } = await supabase
-          .from("mesocycles")
-          .select("weeks")
-          .eq("plan_id", planRow.id);
-
-        if (mesocycleError) {
-          return { ok: false, error: "Falha ao carregar o ciclo do aluno." };
-        }
-
-        if (mesoRows && mesoRows.length > 0) {
-          const totalWeeks = mesoRows.reduce(
-            (acc, mesocycle: { weeks: number }) => acc + mesocycle.weeks,
-            0,
-          );
+        const totalWeeks = totalWeeksByPlan.get(planRow.id);
+        if (totalWeeks != null) {
           const elapsedWeeks = Math.floor(
             (now - Date.parse(planRow.start_date)) / (7 * DAY_MS),
           );

@@ -13,6 +13,11 @@ const listActiveClientsMock = vi.mocked(
 const loadSessionsMock = vi.mocked(
   alertSources.loadCompletedClientSessionsForAlerts,
 );
+const fromMock = vi.fn();
+const planInMock = vi.fn();
+const planEqMock = vi.fn();
+const planOrderMock = vi.fn();
+const mesocycleInMock = vi.fn();
 
 const ana = {
   id: "link-ana",
@@ -20,6 +25,14 @@ const ana = {
   client_id: "client-ana",
   name: "Ana Souza",
   invite_email: "ana@example.com",
+};
+
+const bia = {
+  id: "link-bia",
+  status: "active",
+  client_id: "client-bia",
+  name: "Bia Lima",
+  invite_email: "bia@example.com",
 };
 
 const NOW = new Date("2026-08-10T12:00:00.000Z");
@@ -43,28 +56,40 @@ function session(
 }
 
 function setPlanQueries(
-  planResult: { data: { id: string; start_date: string } | null; error?: unknown } = {
-    data: null,
-  },
-  mesocycleResult: { data: { weeks: number }[] | null; error?: unknown } = {
+  planResult: {
+    data: { id: string; client_id: string; start_date: string }[] | null;
+    error?: unknown;
+  } = { data: [] },
+  mesocycleResult: {
+    data: { plan_id: string; weeks: number }[] | null;
+    error?: unknown;
+  } = {
     data: [],
   },
 ) {
   const planQuery = {
     select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue(planResult),
+    in: planInMock.mockReturnThis(),
+    eq: planEqMock.mockReturnThis(),
+    order: planOrderMock.mockReturnThis(),
+    then: (
+      onFulfilled: (value: typeof planResult) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ) => Promise.resolve(planResult).then(onFulfilled, onRejected),
   };
   const mesocycleQuery = {
     select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockResolvedValue(mesocycleResult),
+    in: mesocycleInMock.mockReturnThis(),
+    then: (
+      onFulfilled: (value: typeof mesocycleResult) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ) => Promise.resolve(mesocycleResult).then(onFulfilled, onRejected),
   };
+  fromMock.mockImplementation((table: string) =>
+    table === "training_plans" ? planQuery : mesocycleQuery,
+  );
   vi.mocked(supabaseMod.createClient).mockReturnValue({
-    from: vi.fn((table: string) =>
-      table === "training_plans" ? planQuery : mesocycleQuery,
-    ),
+    from: fromMock,
   } as never);
 }
 
@@ -75,8 +100,16 @@ function sourceFixtureWithNoExceptions() {
     sessions: [session("2026-08-09T12:00:00.000Z")],
   });
   setPlanQueries(
-    { data: { id: "plan-ana", start_date: "2026-08-03T00:00:00.000Z" } },
-    { data: [{ weeks: 8 }] },
+    {
+      data: [
+        {
+          id: "plan-ana",
+          client_id: "client-ana",
+          start_date: "2026-08-03T00:00:00.000Z",
+        },
+      ],
+    },
+    { data: [{ plan_id: "plan-ana", weeks: 8 }] },
   );
 }
 
@@ -123,6 +156,7 @@ describe("getClientExceptionAlerts", () => {
 
   it("propagates a session-source failure", async () => {
     listActiveClientsMock.mockResolvedValue({ ok: true, clients: [ana] });
+    setPlanQueries();
     loadSessionsMock.mockResolvedValue({
       ok: false,
       error: "Falha ao carregar sessões do aluno.",
@@ -149,7 +183,15 @@ describe("getClientExceptionAlerts", () => {
     listActiveClientsMock.mockResolvedValue({ ok: true, clients: [ana] });
     loadSessionsMock.mockResolvedValue({ ok: true, sessions: [] });
     setPlanQueries(
-      { data: { id: "plan-ana", start_date: "2026-08-03T00:00:00.000Z" } },
+      {
+        data: [
+          {
+            id: "plan-ana",
+            client_id: "client-ana",
+            start_date: "2026-08-03T00:00:00.000Z",
+          },
+        ],
+      },
       { data: null, error: { message: "offline" } },
     );
 
@@ -157,6 +199,114 @@ describe("getClientExceptionAlerts", () => {
       ok: false,
       error: "Falha ao carregar o ciclo do aluno.",
     });
+  });
+
+  it("loads active plans and selected-plan mesocycles in two batch queries", async () => {
+    listActiveClientsMock.mockResolvedValue({ ok: true, clients: [ana, bia] });
+    loadSessionsMock.mockResolvedValue({
+      ok: true,
+      sessions: [session("2026-08-09T12:00:00.000Z")],
+    });
+    setPlanQueries(
+      {
+        data: [
+          {
+            id: "plan-ana",
+            client_id: "client-ana",
+            start_date: "2026-08-03T00:00:00.000Z",
+          },
+          {
+            id: "plan-bia",
+            client_id: "client-bia",
+            start_date: "2026-08-02T00:00:00.000Z",
+          },
+        ],
+      },
+      {
+        data: [
+          { plan_id: "plan-ana", weeks: 8 },
+          { plan_id: "plan-bia", weeks: 10 },
+        ],
+      },
+    );
+
+    await expect(getClientExceptionAlerts()).resolves.toMatchObject({ ok: true });
+    expect(planInMock).toHaveBeenCalledTimes(1);
+    expect(planInMock).toHaveBeenCalledWith("client_id", [
+      "client-ana",
+      "client-bia",
+    ]);
+    expect(mesocycleInMock).toHaveBeenCalledTimes(1);
+    expect(mesocycleInMock).toHaveBeenCalledWith("plan_id", [
+      "plan-ana",
+      "plan-bia",
+    ]);
+    expect(fromMock.mock.calls.map(([table]) => table)).toEqual([
+      "training_plans",
+      "mesocycles",
+    ]);
+  });
+
+  it("chooses the newest active plan even when batch rows are unordered", async () => {
+    listActiveClientsMock.mockResolvedValue({ ok: true, clients: [ana] });
+    loadSessionsMock.mockResolvedValue({
+      ok: true,
+      sessions: [session("2026-08-09T12:00:00.000Z")],
+    });
+    setPlanQueries(
+      {
+        data: [
+          {
+            id: "plan-old",
+            client_id: "client-ana",
+            start_date: "2026-06-01T00:00:00.000Z",
+          },
+          {
+            id: "plan-new",
+            client_id: "client-ana",
+            start_date: "2026-08-01T00:00:00.000Z",
+          },
+        ],
+      },
+      {
+        data: [
+          { plan_id: "plan-old", weeks: 4 },
+          { plan_id: "plan-new", weeks: 8 },
+        ],
+      },
+    );
+
+    const result = await getClientExceptionAlerts();
+
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.alerts.some((alert) => alert.type === "plan_ending")).toBe(false);
+  });
+
+  it("overlaps session loads with an explicit maximum concurrency of four", async () => {
+    const clients = Array.from({ length: 6 }, (_, index) => ({
+      ...ana,
+      id: `link-${index}`,
+      client_id: `client-${index}`,
+      name: `Aluno ${index}`,
+    }));
+    let activeLoads = 0;
+    let maxActiveLoads = 0;
+    listActiveClientsMock.mockResolvedValue({ ok: true, clients });
+    loadSessionsMock.mockImplementation(async () => {
+      activeLoads += 1;
+      maxActiveLoads = Math.max(maxActiveLoads, activeLoads);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      activeLoads -= 1;
+      return { ok: true, sessions: [] };
+    });
+    setPlanQueries();
+
+    const resultPromise = getClientExceptionAlerts();
+    await vi.runAllTimersAsync();
+    await expect(resultPromise).resolves.toMatchObject({ ok: true });
+
+    expect(maxActiveLoads).toBe(4);
   });
 
   it("detects critical inactivity for an active client", async () => {
@@ -216,8 +366,16 @@ describe("getClientExceptionAlerts", () => {
       sessions: [session("2026-08-09T12:00:00.000Z")],
     });
     setPlanQueries(
-      { data: { id: "plan-ana", start_date: "2026-07-05T00:00:00.000Z" } },
-      { data: [{ weeks: 6 }] },
+      {
+        data: [
+          {
+            id: "plan-ana",
+            client_id: "client-ana",
+            start_date: "2026-07-05T00:00:00.000Z",
+          },
+        ],
+      },
+      { data: [{ plan_id: "plan-ana", weeks: 6 }] },
     );
 
     const result = await getClientExceptionAlerts();
