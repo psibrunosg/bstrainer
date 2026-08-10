@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(19);
 
 insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data)
 values
@@ -19,11 +19,28 @@ values
     '{"name":"Athlete B"}'::jsonb
   ),
   (
+    '00000000-0000-0000-0000-00000000000c',
+    'athlete-c@example.test',
+    now(),
+    '{"name":"Athlete C"}'::jsonb
+  ),
+  (
+    '00000000-0000-0000-0000-00000000000d',
+    'athlete-d@example.test',
+    now(),
+    '{"name":"Athlete D"}'::jsonb
+  ),
+  (
     '00000000-0000-0000-0000-00000000000f',
     'trainer-t@example.test',
     now(),
     '{"name":"Trainer T"}'::jsonb
   );
+
+update public.memberships
+set role = 'trainer'
+where profile_id = '00000000-0000-0000-0000-00000000000f'
+  and role = 'solo';
 
 insert into public.client_links (org_id, trainer_id, client_id, status)
 select
@@ -35,6 +52,7 @@ from public.organizations
 cross join (
   values
     ('00000000-0000-0000-0000-00000000000a'::uuid, 'active'),
+    ('00000000-0000-0000-0000-00000000000c'::uuid, 'active'),
     ('00000000-0000-0000-0000-00000000000b'::uuid, 'archived')
 ) as links(client_id, status)
 where organizations.owner_id = '00000000-0000-0000-0000-00000000000f';
@@ -121,6 +139,27 @@ select throws_ok(
   'athlete cannot write another athlete'
 );
 
+select results_eq(
+  $$
+    update public.body_measurements
+       set weight_kg = 99
+     where id = '10000000-0000-0000-0000-00000000000b'
+    returning id
+  $$,
+  $$ select null::uuid where false $$,
+  'athlete cannot update another athlete row'
+);
+
+select results_eq(
+  $$
+    delete from public.body_measurements
+     where id = '10000000-0000-0000-0000-00000000000b'
+    returning id
+  $$,
+  $$ select null::uuid where false $$,
+  'athlete cannot delete another athlete row'
+);
+
 select set_config(
   'request.jwt.claims',
   json_build_object(
@@ -155,13 +194,20 @@ select lives_ok(
 
 select results_eq(
   $$
-    update public.body_measurements
-       set weight_kg = 73.5
-     where id = '30000000-0000-0000-0000-00000000000a'
+    insert into public.body_measurements (id, user_id, weight_kg)
+    values (
+      '30000000-0000-0000-0000-00000000000a',
+      '00000000-0000-0000-0000-00000000000a',
+      73.5
+    )
+    on conflict (id) do update
+    set
+      user_id = excluded.user_id,
+      weight_kg = excluded.weight_kg
     returning weight_kg
   $$,
   $$ values (73.5::numeric) $$,
-  'trainer updates active linked athlete row'
+  'trainer upserts active linked athlete row without changing its owner'
 );
 
 select results_eq(
@@ -203,6 +249,81 @@ select throws_ok(
   '42501',
   null,
   'trainer cannot reassign a measurement to an archived athlete'
+);
+
+select throws_ok(
+  $$
+    update public.body_measurements
+       set user_id = '00000000-0000-0000-0000-00000000000f'
+     where id = '10000000-0000-0000-0000-00000000000a'
+  $$,
+  '42501',
+  null,
+  'trainer cannot reassign an athlete measurement to themselves'
+);
+
+select throws_ok(
+  $$
+    update public.body_measurements
+       set user_id = '00000000-0000-0000-0000-00000000000c'
+     where id = '10000000-0000-0000-0000-00000000000a'
+  $$,
+  '42501',
+  null,
+  'trainer cannot reassign a measurement to another active athlete'
+);
+
+select lives_ok(
+  $$
+    insert into public.client_links (org_id, trainer_id, invite_email, status)
+    select
+      id,
+      '00000000-0000-0000-0000-00000000000f',
+      'future-athlete@example.test',
+      'invited'
+    from public.organizations
+    where owner_id = '00000000-0000-0000-0000-00000000000f'
+  $$,
+  'trainer can create a pending email invitation'
+);
+
+select throws_ok(
+  $$
+    update public.client_links
+       set client_id = '00000000-0000-0000-0000-00000000000d',
+           status = 'active'
+     where trainer_id = '00000000-0000-0000-0000-00000000000f'
+       and invite_email = 'future-athlete@example.test'
+  $$,
+  '42501',
+  null,
+  'trainer cannot activate a pending invitation directly'
+);
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object(
+    'sub', '00000000-0000-0000-0000-00000000000a',
+    'role', 'authenticated'
+  )::text,
+  true
+);
+set local role authenticated;
+
+select throws_ok(
+  $$
+    insert into public.client_links (org_id, trainer_id, client_id, status)
+    select
+      id,
+      '00000000-0000-0000-0000-00000000000a',
+      '00000000-0000-0000-0000-00000000000b',
+      'active'
+    from public.organizations
+    where owner_id = '00000000-0000-0000-0000-00000000000a'
+  $$,
+  '42501',
+  null,
+  'solo user cannot forge an active client link'
 );
 
 select * from finish();
