@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   inviteClient,
@@ -10,64 +10,65 @@ import {
 } from "@/lib/data/clients";
 import {
   getClientExceptionAlerts,
-  type ClientExceptionAlert,
+  type AlertLoadResult,
 } from "@/lib/data/trainer-alerts";
+import {
+  ClientAlertsPanel,
+  type AlertPanelState,
+} from "@/components/ClientAlertsPanel";
 import { RequireTrainer } from "@/components/RequireTrainer";
-
-const STATUS_LABEL: Record<string, string> = {
-  invited: "Convidado",
-  requested: "Solicitação recebida",
-  active: "Ativo",
-  archived: "Arquivado",
-};
-
-const ALERT_SEVERITY_STYLES: Record<string, { border: string; bg: string; badge: string }> = {
-  high: {
-    border: "border-err/50",
-    bg: "bg-err/5",
-    badge: "bg-err/10 text-err border-err/30",
-  },
-  medium: {
-    border: "border-signal/50",
-    bg: "bg-signal/5",
-    badge: "bg-signal/15 text-signal border-signal/30",
-  },
-  low: {
-    border: "border-line",
-    bg: "bg-surface-2/30",
-    badge: "bg-surface-2 text-mute border-line",
-  },
-};
-
-const ALERT_ICON: Record<string, string> = {
-  inactive: "⏰",
-  high_fatigue: "🔋",
-  plan_ending: "📋",
-};
 
 export default function ClientsPage() {
   const [links, setLinks] = useState<ClientLink[]>([]);
-  const [alertsData, setAlertsData] = useState<{
-    alerts: ClientExceptionAlert[];
-    isDemo: boolean;
-  }>({ alerts: [], isDemo: false });
+  const latestAlertRequest = useRef(0);
+  const [alertState, setAlertState] = useState<AlertPanelState>({
+    status: "loading",
+    alerts: [],
+  });
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [loadingAlerts, setLoadingAlerts] = useState(true);
 
-  const reload = useCallback(() => {
+  const reloadLinks = useCallback(() => {
     listClientLinks().then(setLinks);
-    setLoadingAlerts(true);
-    getClientExceptionAlerts().then((res) => {
-      setAlertsData(res);
-      setLoadingAlerts(false);
-    });
+  }, []);
+
+  const reloadAlerts = useCallback(async () => {
+    const requestId = ++latestAlertRequest.current;
+    setAlertState((previous) => ({
+      status: "loading",
+      alerts: previous.alerts,
+    }));
+
+    try {
+      const result: AlertLoadResult = await getClientExceptionAlerts();
+      if (requestId !== latestAlertRequest.current) return;
+      setAlertState((previous) =>
+        result.ok
+          ? { status: "ready", alerts: result.alerts }
+          : {
+              status: "error",
+              alerts: previous.alerts,
+              error: result.error,
+            },
+      );
+    } catch {
+      if (requestId !== latestAlertRequest.current) return;
+      setAlertState((previous) => ({
+        status: "error",
+        alerts: previous.alerts,
+        error: "Falha ao atualizar alertas.",
+      }));
+    }
   }, []);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    reloadLinks();
+  }, [reloadLinks]);
+
+  useEffect(() => {
+    void reloadAlerts();
+  }, [reloadAlerts]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +79,8 @@ export default function ClientsPage() {
     if (result.ok) {
       setEmail("");
       setMsg({ ok: true, text: "Convite registrado." });
-      reload();
+      reloadLinks();
+      void reloadAlerts();
     } else {
       setMsg({ ok: false, text: result.error ?? "Falha ao convidar." });
     }
@@ -97,7 +99,10 @@ export default function ClientsPage() {
           : "Solicitação recusada."
         : result.error ?? "Falha ao responder.",
     });
-    if (result.ok) reload();
+    if (result.ok) {
+      reloadLinks();
+      void reloadAlerts();
+    }
   }
 
   const active = links.filter((l) => l.status === "active");
@@ -121,10 +126,20 @@ export default function ClientsPage() {
               Acompanhamento inteligente em tempo real e gestão por exceções para priorizar o atendimento de quem mais precisa de intervenção hoje.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-mute bg-surface rounded-lg px-4 py-2.5 border border-line h-fit w-fit">
+          <div className="flex h-fit w-fit items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2.5 text-xs font-semibold text-mute">
             <span>👥 {active.length} {active.length === 1 ? "aluno ativo" : "alunos ativos"}</span>
             <span>•</span>
-            <span className="text-signal">⚡ {alertsData.alerts.length} alertas</span>
+            <span className="text-signal">
+              ⚡ {alertState.alerts.length} {alertState.alerts.length === 1 ? "alerta" : "alertas"}
+            </span>
+            <button
+              type="button"
+              onClick={() => void reloadAlerts()}
+              disabled={alertState.status === "loading"}
+              className="ml-1 rounded-md border border-line px-2.5 py-1.5 text-xs font-bold text-text transition hover:border-signal hover:text-signal disabled:cursor-wait disabled:opacity-50"
+            >
+              Atualizar alertas
+            </button>
           </div>
         </div>
 
@@ -320,92 +335,7 @@ export default function ClientsPage() {
 
           {/* Coluna da Direita / Sidebar: Painel de Acompanhamento por Exceção (5 ou 4 colunas) */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-6">
-            <div className="sticky top-6 space-y-5 rounded-2xl border border-line bg-surface p-5 shadow-lg">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">⚡</span>
-                    <h2 className="font-display text-lg font-extrabold text-text">
-                      Acompanhamento por Exceção
-                    </h2>
-                  </div>
-                  <p className="mt-1 text-xs text-mute leading-relaxed">
-                    Algoritmo inteligente de priorização: alunos sem treinar há &gt;3 dias, fadiga estourada por 2 sessões ou programa próximo do término.
-                  </p>
-                </div>
-              </div>
-
-              {alertsData.isDemo && (
-                <div className="flex items-center justify-between rounded-lg border border-signal/30 bg-signal/10 px-3 py-2 text-[11px] font-semibold text-signal">
-                  <span>ℹ️ Exibindo alertas simulados de QA</span>
-                  <span className="uppercase text-[9px] border border-signal/30 px-1.5 py-0.5 rounded">Demo</span>
-                </div>
-              )}
-
-              {loadingAlerts ? (
-                <div className="space-y-3">
-                  <div className="h-24 rounded-xl skeleton-shimmer" />
-                  <div className="h-24 rounded-xl skeleton-shimmer" />
-                  <div className="h-24 rounded-xl skeleton-shimmer" />
-                </div>
-              ) : alertsData.alerts.length === 0 ? (
-                <div className="rounded-xl border border-line bg-ink p-6 text-center space-y-2">
-                  <span className="text-3xl block">🟢</span>
-                  <p className="font-display font-bold text-sm text-text">
-                    Zero exceções no momento!
-                  </p>
-                  <p className="text-xs text-mute">
-                    Todos os alunos ativos estão mantendo a consistência e dentro das metas programadas no mesociclo.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {alertsData.alerts.map((alert) => {
-                    const style = ALERT_SEVERITY_STYLES[alert.severity] || ALERT_SEVERITY_STYLES.low;
-                    const icon = ALERT_ICON[alert.type] || "ℹ️";
-
-                    return (
-                      <div
-                        key={alert.id}
-                        className={`rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${style!.border} ${style!.bg} space-y-3`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-0.5">
-                            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${style!.badge}`}>
-                              <span>{icon}</span>
-                              <span>{alert.title}</span>
-                            </span>
-                            <h3 className="font-display font-extrabold text-base text-text">
-                              {alert.clientName}
-                            </h3>
-                          </div>
-                          <span className="text-[11px] font-medium text-mute shrink-0">
-                            Atividade: {alert.lastActiveDate}
-                          </span>
-                        </div>
-
-                        <p className="text-xs text-mute leading-relaxed">
-                          {alert.description}
-                        </p>
-
-                        <Link
-                          href={alert.actionUrl}
-                          className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-surface-2 border border-line text-xs font-bold text-text transition hover:bg-signal hover:text-ink active:scale-[0.99]"
-                        >
-                          <span>{alert.actionLabel} →</span>
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="border-t border-line/70 pt-4 text-center">
-                <span className="text-[11px] text-mute">
-                  🎯 O painel atualiza em tempo real com os envios do logger mobile dos seus alunos.
-                </span>
-              </div>
-            </div>
+            <ClientAlertsPanel state={alertState} onRetry={reloadAlerts} />
           </div>
         </div>
       </div>
