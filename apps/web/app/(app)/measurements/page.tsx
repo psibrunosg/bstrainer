@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useSearchParams } from "next/navigation";
@@ -72,7 +73,13 @@ function MeasurementsRoute() {
   const clientId = searchParams.get("client") ?? undefined;
   const clientName = searchParams.get("name") ?? undefined;
 
-  return <MeasurementsContent clientId={clientId} clientName={clientName} />;
+  return (
+    <MeasurementsContent
+      key={clientId ?? "signed-in-athlete"}
+      clientId={clientId}
+      clientName={clientName}
+    />
+  );
 }
 
 function MeasurementsContent({
@@ -96,9 +103,11 @@ function MeasurementsContent({
   const [formError, setFormError] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setLoadError(null);
     try {
       const result = await listMeasurements(clientId);
@@ -107,7 +116,7 @@ function MeasurementsContent({
     } catch {
       setLoadError("Falha ao carregar medições.");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [clientId]);
 
@@ -115,7 +124,70 @@ function MeasurementsContent({
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!adding) return;
+
+    function handleDialogKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        if (pending) return;
+        event.preventDefault();
+        setAdding(false);
+        restoreTriggerFocus();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleDialogKey);
+    return () => document.removeEventListener("keydown", handleDialogKey);
+  }, [adding, pending]);
+
+  useEffect(() => {
+    if (adding && pending) dialogRef.current?.focus();
+  }, [adding, pending]);
+
+  function restoreTriggerFocus() {
+    window.setTimeout(() => returnFocusRef.current?.focus(), 0);
+  }
+
+  function rememberTrigger() {
+    if (document.activeElement instanceof HTMLElement) {
+      returnFocusRef.current = document.activeElement;
+    }
+  }
+
+  function closeForm() {
+    if (pending) return;
+    setAdding(false);
+    restoreTriggerFocus();
+  }
+
   function openAdd() {
+    if (pending) return;
+    rememberTrigger();
     setEditingId(null);
     setFormDate(new Date().toISOString().slice(0, 10));
     setFormValues({});
@@ -126,6 +198,8 @@ function MeasurementsContent({
   }
 
   function openEdit(e: BodyMeasurement) {
+    if (pending) return;
+    rememberTrigger();
     setEditingId(e.id);
     setFormDate(e.measuredAt);
     setFormValues({
@@ -186,9 +260,10 @@ function MeasurementsContent({
       return;
     }
 
+    await load(false);
     setAdding(false);
-    await load();
     setPending(false);
+    restoreTriggerFocus();
   }
 
   async function handleDelete(id: string) {
@@ -218,7 +293,12 @@ function MeasurementsContent({
 
   if (loading && entries.length === 0) {
     return (
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div
+        role="status"
+        aria-label="Carregando medições"
+        aria-busy="true"
+        className="mx-auto max-w-lg space-y-4 p-4"
+      >
         <div className="h-8 w-40 rounded skeleton-shimmer" />
         <div className="h-52 rounded-lg skeleton-shimmer" />
       </div>
@@ -227,6 +307,11 @@ function MeasurementsContent({
 
   return (
     <div className="mx-auto max-w-lg space-y-6 p-4">
+      <div
+        className="space-y-6"
+        inert={adding ? true : undefined}
+        aria-hidden={adding ? true : undefined}
+      >
       <div className="flex items-center justify-between">
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
           {clientId ? `Medições de ${clientName ?? "aluno"}` : "Medições"}
@@ -250,7 +335,7 @@ function MeasurementsContent({
           <Button
             variant="secondary"
             size="sm"
-            onClick={load}
+            onClick={() => void load()}
             disabled={loading}
           >
             Tentar novamente
@@ -323,34 +408,43 @@ function MeasurementsContent({
             }
             title="Nenhuma medição ainda"
             description="Registre peso, fotos ou circunferências pra acompanhar sua evolução ao longo do tempo."
-            action={{ label: "Nova medição", onClick: openAdd }}
+            action={
+              pending
+                ? undefined
+                : { label: "Nova medição", onClick: openAdd }
+            }
           />
         ) : entries.length > 0 ? (
           <div className="space-y-2">
             {entries.map((e) => (
               <article
                 key={e.id}
-                className="cursor-pointer rounded-lg border border-line bg-surface p-4 transition hover:border-signal/30"
-                onClick={() => {
-                  if (!pending) openEdit(e);
-                }}
+                className="rounded-lg border border-line bg-surface p-4"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">
                     {fmtDate(e.measuredAt)}
                   </span>
-                  <button
-                    type="button"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      void handleDelete(e.id);
-                    }}
-                    disabled={pending}
-                    className="text-xs text-mute transition active:text-err"
-                    aria-label={`Excluir medição de ${fmtDate(e.measuredAt)}`}
-                  >
-                    &#x2715;
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(e)}
+                      disabled={pending}
+                      className="text-xs font-semibold text-signal disabled:opacity-40"
+                      aria-label={`Editar medição de ${fmtDate(e.measuredAt)}`}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(e.id)}
+                      disabled={pending}
+                      className="text-xs text-mute transition active:text-err disabled:opacity-40"
+                      aria-label={`Excluir medição de ${fmtDate(e.measuredAt)}`}
+                    >
+                      &#x2715;
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs text-mute">
                   {e.weightKg != null && <span>{fmtNum(e.weightKg)} kg</span>}
@@ -375,18 +469,30 @@ function MeasurementsContent({
           </div>
         ) : null}
       </section>
+      </div>
 
       {adding && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg space-y-3 rounded-t-2xl border-t border-line bg-surface p-4 pb-6">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="measurement-form-title"
+            tabIndex={-1}
+            className="max-h-[calc(100dvh-1rem)] w-full max-w-lg space-y-3 overflow-y-auto overscroll-contain rounded-t-2xl border-t border-line bg-surface p-4 pb-6"
+          >
             <div className="flex items-center justify-between">
-              <p className="caps-label font-display font-semibold text-mute">
+              <p
+                id="measurement-form-title"
+                className="caps-label font-display font-semibold text-mute"
+              >
                 {editingId ? "Editar medição" : "Nova medição"}
               </p>
               <button
                 type="button"
-                onClick={() => setAdding(false)}
+                onClick={closeForm}
                 disabled={pending}
+                autoFocus
                 className="text-xs text-mute"
               >
                 Fechar
@@ -397,6 +503,7 @@ function MeasurementsContent({
               type="date"
               value={formDate}
               onChange={(e) => setFormDate(e.target.value)}
+              disabled={pending}
               className="h-11 w-full rounded border border-line bg-ink px-3 text-sm outline-none focus:border-signal"
             />
 
@@ -411,6 +518,7 @@ function MeasurementsContent({
                     inputMode="decimal"
                     placeholder={"–"}
                     value={formValues[f.key] ?? ""}
+                    disabled={pending}
                     onChange={(e) =>
                       setFormValues((v) => ({ ...v, [f.key]: e.target.value }))
                     }
@@ -424,6 +532,7 @@ function MeasurementsContent({
               type="text"
               placeholder="Notas (opcional)"
               value={formNotes}
+              disabled={pending}
               onChange={(e) => setFormNotes(e.target.value)}
               className="h-11 w-full rounded border border-line bg-ink px-3 text-sm outline-none placeholder:text-mute focus:border-signal"
             />
@@ -446,7 +555,7 @@ function MeasurementsContent({
             <Button
               variant="ghost"
               size="md"
-              onClick={() => setAdding(false)}
+              onClick={closeForm}
               disabled={pending}
               className="w-full text-mute active:bg-surface-2"
             >
