@@ -13,19 +13,23 @@ const fromMock = vi.fn();
 const selectMock = vi.fn();
 const eqMock = vi.fn();
 const orderMock = vi.fn();
+const currentUser = { id: "trainer-a" };
 
 function queryResult(result: { data: unknown; error: unknown }) {
   orderMock.mockResolvedValue(result);
 }
 
-function makeSupabase() {
+function makeSupabase(user: { id: string } | null = currentUser) {
   const query = {
     select: selectMock.mockReturnThis(),
     eq: eqMock.mockReturnThis(),
     order: orderMock,
   };
   fromMock.mockReturnValue(query);
-  return { from: fromMock };
+  return {
+    auth: { getUser: vi.fn().mockResolvedValue({ data: { user } }) },
+    from: fromMock,
+  };
 }
 
 describe("trainer alert sources", () => {
@@ -44,6 +48,17 @@ describe("trainer alert sources", () => {
       error: "Falha ao carregar alunos.",
     });
     expect(eqMock).toHaveBeenCalledWith("status", "active");
+    expect(eqMock).toHaveBeenCalledWith("trainer_id", "trainer-a");
+  });
+
+  it("returns an explicit error when the trainer session has expired", async () => {
+    vi.mocked(supabaseMod.createClient).mockReturnValue(makeSupabase(null) as never);
+
+    await expect(listActiveClientLinksForAlerts()).resolves.toEqual({
+      ok: false,
+      error: "Sessão expirada.",
+    });
+    expect(fromMock).not.toHaveBeenCalled();
   });
 
   it("never falls back to IndexedDB for another athlete", async () => {
