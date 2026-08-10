@@ -37,7 +37,7 @@ interface DbSession {
   performed_exercises: DbExercise[];
 }
 
-function toDomain(s: DbSession): WorkoutSession {
+export function mapSessionRow(s: DbSession): WorkoutSession {
   const blocks: WorkoutSession["blocks"] = (s.performed_exercises ?? [])
     .sort((a, b) => a.position - b.position)
     .map((ex) => ({
@@ -114,7 +114,7 @@ export async function loadSessions(clientId?: string): Promise<WorkoutSession[]>
     .order("started_at", { ascending: false });
 
   if (!error && data && data.length > 0) {
-    return (data as unknown as DbSession[]).map(toDomain);
+    return (data as unknown as DbSession[]).map(mapSessionRow);
   }
 
   if (clientId) return [];
