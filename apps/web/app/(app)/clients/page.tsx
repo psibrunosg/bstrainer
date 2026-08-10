@@ -108,6 +108,12 @@ export default function ClientsPage() {
   const active = links.filter((l) => l.status === "active");
   const pending = links.filter((l) => l.status === "invited");
   const requests = links.filter((l) => l.status === "requested");
+  const alertCountLabel =
+    alertState.alerts.length > 0 || alertState.status === "ready"
+      ? `${alertState.alerts.length} ${alertState.alerts.length === 1 ? "alerta" : "alertas"}`
+      : alertState.status === "error"
+        ? "Alertas indisponíveis"
+        : "Carregando alertas";
 
   return (
     <RequireTrainer>
@@ -130,7 +136,7 @@ export default function ClientsPage() {
             <span>👥 {active.length} {active.length === 1 ? "aluno ativo" : "alunos ativos"}</span>
             <span>•</span>
             <span className="text-signal">
-              ⚡ {alertState.alerts.length} {alertState.alerts.length === 1 ? "alerta" : "alertas"}
+              ⚡ {alertCountLabel}
             </span>
             <button
               type="button"

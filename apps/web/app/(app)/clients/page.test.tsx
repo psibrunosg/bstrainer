@@ -81,6 +81,76 @@ describe("ClientsPage", () => {
     expect(
       screen.queryByRole("status", { name: "Carregando alertas" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByText(/Alertas indisponíveis$/)).toBeInTheDocument();
+    expect(screen.queryByText(/0 alertas$/)).not.toBeInTheDocument();
+  });
+
+  it("shows zero alerts only after a successful empty load", async () => {
+    let resolveAlerts!: (result: AlertLoadResult) => void;
+    getAlertsMock.mockReturnValueOnce(
+      new Promise<AlertLoadResult>((resolve) => {
+        resolveAlerts = resolve;
+      }),
+    );
+
+    render(<ClientsPage />);
+
+    expect(screen.queryByText(/0 alertas$/)).not.toBeInTheDocument();
+    await act(async () => {
+      resolveAlerts({ ok: true, alerts: [] });
+    });
+    expect(screen.getByText(/0 alertas$/)).toBeInTheDocument();
+  });
+
+  it("keeps previous alerts and count when refresh rejects", async () => {
+    getAlertsMock
+      .mockResolvedValueOnce({ ok: true, alerts: [realAlert] })
+      .mockRejectedValueOnce(new Error("network unavailable"));
+    const user = userEvent.setup();
+
+    render(<ClientsPage />);
+
+    expect(await screen.findByText(realAlert.clientName)).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Atualizar alertas" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Falha ao atualizar alertas.",
+    );
+    expect(screen.getByText(realAlert.clientName)).toBeInTheDocument();
+    expect(screen.getByText(/1 alerta$/)).toBeInTheDocument();
+  });
+
+  it("retries from the alert panel action", async () => {
+    getAlertsMock
+      .mockResolvedValueOnce({
+        ok: false,
+        error: "Falha ao atualizar alertas.",
+      })
+      .mockResolvedValueOnce({ ok: true, alerts: [realAlert] });
+    const user = userEvent.setup();
+
+    render(<ClientsPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Tentar novamente" }),
+    );
+    expect(await screen.findByText(realAlert.clientName)).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText(/1 alerta$/)).toBeInTheDocument();
+  });
+
+  it("renders alerts while client links are still loading", async () => {
+    listClientLinksMock.mockReturnValueOnce(new Promise(() => {}));
+    getAlertsMock.mockResolvedValueOnce({ ok: true, alerts: [realAlert] });
+
+    render(<ClientsPage />);
+
+    expect(await screen.findByText(realAlert.clientName)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("status", { name: "Carregando alertas" }),
+    ).not.toBeInTheDocument();
   });
 
   it("ignores an older alert response that finishes last", async () => {
