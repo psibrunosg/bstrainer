@@ -1,4 +1,5 @@
-import type { BodyMeasurement } from "@bstrainer/domain";
+import type { BodyMeasurement, BodyMeasurementInput } from "@bstrainer/domain";
+import { hasActiveClientLink } from "@/lib/data/clients";
 import { createClient } from "@/lib/supabase/client";
 
 interface DbMeasurement {
@@ -36,39 +37,58 @@ function toDomain(r: DbMeasurement): BodyMeasurement {
   };
 }
 
-export async function listMeasurements(): Promise<BodyMeasurement[]> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
+export type MeasurementListResult =
+  | { ok: true; measurements: BodyMeasurement[] }
+  | { ok: false; error: string };
 
-  const { data } = await supabase
-    .from("body_measurements")
-    .select(SELECT_COLS)
-    .eq("user_id", user.id)
-    .order("measured_at", { ascending: false });
+export type MeasurementInput = BodyMeasurementInput & { id?: string };
 
-  return ((data ?? []) as unknown as DbMeasurement[]).map(toDomain);
-}
+export type MeasurementResult = { ok: true } | { ok: false; error: string };
 
-export interface MeasurementResult {
-  ok: boolean;
-  error?: string;
-}
+type TargetResult =
+  | { ok: true; userId: string }
+  | { ok: false; error: string };
 
-export async function saveMeasurement(
-  input: Omit<BodyMeasurement, "id" | "userId" | "createdAt"> & { id?: string },
-): Promise<MeasurementResult> {
+async function resolveMeasurementTarget(clientId?: string): Promise<TargetResult> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada." };
+  if (!clientId || clientId === user.id) return { ok: true, userId: user.id };
+  if (!(await hasActiveClientLink(clientId))) {
+    return { ok: false, error: "Aluno sem vínculo ativo com você." };
+  }
+  return { ok: true, userId: clientId };
+}
 
+export async function listMeasurements(clientId?: string): Promise<MeasurementListResult> {
+  const target = await resolveMeasurementTarget(clientId);
+  if (!target.ok) return target;
+
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("body_measurements")
+    .select(SELECT_COLS)
+    .eq("user_id", target.userId)
+    .order("measured_at", { ascending: false });
+
+  if (error) return { ok: false, error: "Falha ao carregar medições." };
+  return { ok: true, measurements: ((data ?? []) as unknown as DbMeasurement[]).map(toDomain) };
+}
+
+export async function saveMeasurement(
+  input: MeasurementInput,
+  clientId?: string,
+): Promise<MeasurementResult> {
+  const target = await resolveMeasurementTarget(clientId);
+  if (!target.ok) return target;
+
+  const supabase = createClient();
   const { error } = await supabase.from("body_measurements").upsert({
     ...(input.id ? { id: input.id } : {}),
-    user_id: user.id,
+    user_id: target.userId,
     measured_at: input.measuredAt,
     weight_kg: input.weightKg,
     body_fat_pct: input.bodyFatPct,
@@ -84,12 +104,16 @@ export async function saveMeasurement(
   return { ok: true };
 }
 
-export async function deleteMeasurement(id: string): Promise<MeasurementResult> {
+export async function deleteMeasurement(id: string, clientId?: string): Promise<MeasurementResult> {
+  const target = await resolveMeasurementTarget(clientId);
+  if (!target.ok) return target;
+
   const supabase = createClient();
   const { error } = await supabase
     .from("body_measurements")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", target.userId);
 
   if (error) return { ok: false, error: "Falha ao remover medição." };
   return { ok: true };
