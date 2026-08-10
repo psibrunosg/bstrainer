@@ -1,7 +1,8 @@
-import { loadSessions } from "./sessions";
-import { listClientLinks, type ClientLink } from "./clients";
+import {
+  listActiveClientLinksForAlerts,
+  loadCompletedClientSessionsForAlerts,
+} from "./trainer-alert-sources";
 import { createClient } from "../supabase/client";
-import type { WorkoutSession } from "@bstrainer/domain";
 
 export type AlertType = "inactive" | "high_fatigue" | "plan_ending";
 
@@ -18,6 +19,10 @@ export interface ClientExceptionAlert {
   actionLabel: string;
 }
 
+export type AlertLoadResult =
+  | { ok: true; alerts: ClientExceptionAlert[] }
+  | { ok: false; error: string };
+
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -27,13 +32,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * 2. Esforço acima do alvo por 2 sessões consecutivas
  * 3. Programa próximo do término (<= 1 semana restante)
  */
-export async function getClientExceptionAlerts(): Promise<{
-  alerts: ClientExceptionAlert[];
-  isDemo: boolean;
-}> {
-  const links = await listClientLinks();
-  const activeClients = links.filter((l) => l.status === "active" && l.client_id);
+export async function getClientExceptionAlerts(): Promise<AlertLoadResult> {
+  const clientResult = await listActiveClientLinksForAlerts();
+  if (!clientResult.ok) return clientResult;
 
+  const activeClients = clientResult.clients.filter((client) => client.client_id);
   const alerts: ClientExceptionAlert[] = [];
 
   if (activeClients.length > 0) {
@@ -44,18 +47,18 @@ export async function getClientExceptionAlerts(): Promise<{
       const clientId = client.client_id!;
       const clientName = client.name || "Aluno sem nome";
 
-      const sessions = await loadSessions(clientId);
-      const sortedSessions = [...sessions].sort(
-        (a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt)
-      );
+      const sessionResult = await loadCompletedClientSessionsForAlerts(clientId);
+      if (!sessionResult.ok) return sessionResult;
 
+      const sortedSessions = [...sessionResult.sessions].sort(
+        (a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt),
+      );
       const lastSession = sortedSessions[0];
       const lastActiveMs = lastSession ? Date.parse(lastSession.startedAt) : 0;
       const lastActiveDate = lastSession
         ? new Date(lastSession.startedAt).toLocaleDateString("pt-BR")
         : "Nunca";
 
-      // 1. Ausência / sem treinar há > 3 dias
       if (!lastSession || now - lastActiveMs > THREE_DAYS_MS) {
         const daysInactive = lastSession
           ? Math.floor((now - lastActiveMs) / DAY_MS)
@@ -76,7 +79,6 @@ export async function getClientExceptionAlerts(): Promise<{
         });
       }
 
-      // 2. Esforço acima do alvo por 2 sessões consecutivas ou fadiga elevada
       if (sortedSessions.length >= 2) {
         const [s1, s2] = sortedSessions;
         const s1High =
@@ -103,8 +105,7 @@ export async function getClientExceptionAlerts(): Promise<{
         }
       }
 
-      // 3. Programa próximo do término
-      const { data: planRow } = await supabase
+      const { data: planRow, error: planError } = await supabase
         .from("training_plans")
         .select("id, start_date")
         .eq("client_id", clientId)
@@ -113,19 +114,27 @@ export async function getClientExceptionAlerts(): Promise<{
         .limit(1)
         .maybeSingle();
 
+      if (planError) {
+        return { ok: false, error: "Falha ao carregar a ficha ativa do aluno." };
+      }
+
       if (planRow) {
-        const { data: mesoRows } = await supabase
+        const { data: mesoRows, error: mesocycleError } = await supabase
           .from("mesocycles")
           .select("weeks")
           .eq("plan_id", planRow.id);
 
+        if (mesocycleError) {
+          return { ok: false, error: "Falha ao carregar o ciclo do aluno." };
+        }
+
         if (mesoRows && mesoRows.length > 0) {
           const totalWeeks = mesoRows.reduce(
-            (acc, m: { weeks: number }) => acc + m.weeks,
-            0
+            (acc, mesocycle: { weeks: number }) => acc + mesocycle.weeks,
+            0,
           );
           const elapsedWeeks = Math.floor(
-            (now - Date.parse(planRow.start_date)) / (7 * DAY_MS)
+            (now - Date.parse(planRow.start_date)) / (7 * DAY_MS),
           );
           const weeksRemaining = totalWeeks - elapsedWeeks;
 
@@ -167,57 +176,10 @@ export async function getClientExceptionAlerts(): Promise<{
     }
   }
 
-  // Se não houver alertas reais (ou em ambiente com poucos dados), fornece dados simulados para QA desktop
-  if (alerts.length === 0) {
-    return {
-      isDemo: true,
-      alerts: [
-        {
-          id: "sim-1",
-          clientId: "demo-client-1",
-          clientName: "Lucas Mendes (Simulado)",
-          type: "inactive",
-          severity: "high",
-          title: "Ausência Crítica (>3 dias)",
-          description:
-            "Aluno sem treinar há 5 dias. O padrão histórico era 4 vezes por semana no período da manhã.",
-          lastActiveDate: "01/08/2026",
-          actionUrl: "/messages?id=demo-1&name=Lucas%20Mendes",
-          actionLabel: "Cobrar pelo Chat",
-        },
-        {
-          id: "sim-2",
-          clientId: "demo-client-2",
-          clientName: "Carolina Silva (Simular)",
-          type: "high_fatigue",
-          severity: "medium",
-          title: "Fadiga Estourada (Esforço Acima do Alvo)",
-          description:
-            "Relatou RPE 9.5 e fadiga muscular 5/5 nos últimos dois treinos de membros inferiores (Leg Day A & B).",
-          lastActiveDate: "Ontem",
-          actionUrl: "/plans/templates",
-          actionLabel: "Revisar Ficha & Deload",
-        },
-        {
-          id: "sim-3",
-          clientId: "demo-client-3",
-          clientName: "Mariana Costa (Simulado)",
-          type: "plan_ending",
-          severity: "low",
-          title: "Programa Próximo do Término",
-          description:
-            "Concluindo a semana 7 do mesociclo de Hipertrofia de 8 semanas. Pronto para progressão de bloco.",
-          lastActiveDate: "Hoje",
-          actionUrl: "/plans/new",
-          actionLabel: "Planejar Próximo Mesociclo",
-        },
-      ],
-    };
-  }
+  const severityWeight = { high: 3, medium: 2, low: 1 };
+  alerts.sort(
+    (a, b) => severityWeight[b.severity] - severityWeight[a.severity],
+  );
 
-  // Ordenar por gravidade: high -> medium -> low
-  const sevWeight = { high: 3, medium: 2, low: 1 };
-  alerts.sort((a, b) => sevWeight[b.severity] - sevWeight[a.severity]);
-
-  return { alerts, isDemo: false };
+  return { ok: true, alerts };
 }
