@@ -20,9 +20,9 @@ values
   ),
   (
     '00000000-0000-0000-0000-000000000030',
-    'unlinked-athlete@example.test',
+    'archived-athlete@example.test',
     now(),
-    '{"name":"Unlinked Athlete"}'::jsonb
+    '{"name":"Archived Athlete"}'::jsonb
   );
 
 insert into public.organizations (id, name, owner_id)
@@ -43,18 +43,33 @@ values
     '10000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000020',
     'client'
+  ),
+  (
+    '10000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000030',
+    'client'
   );
 
 -- Active links cannot be forged by authenticated users after the client_links
 -- hardening migration, so this trusted test-fixture setup happens before SET ROLE.
+-- The negative client is still a member of this organization, but its only
+-- trainer link is archived so link status is the isolated authorization failure.
 insert into public.client_links (id, org_id, trainer_id, client_id, status)
-values (
-  '11000000-0000-0000-0000-000000000001',
-  '10000000-0000-0000-0000-000000000001',
-  '00000000-0000-0000-0000-000000000010',
-  '00000000-0000-0000-0000-000000000020',
-  'active'
-);
+values
+  (
+    '11000000-0000-0000-0000-000000000001',
+    '10000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000010',
+    '00000000-0000-0000-0000-000000000020',
+    'active'
+  ),
+  (
+    '11000000-0000-0000-0000-000000000002',
+    '10000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000010',
+    '00000000-0000-0000-0000-000000000030',
+    'archived'
+  );
 
 insert into public.exercises (
   id,
@@ -262,7 +277,7 @@ select set_config(
 );
 
 select set_config(
-  'test.unlinked_payload',
+  'test.archived_link_payload',
   $payload$
   {
     "orgId": "10000000-0000-0000-0000-000000000001",
@@ -284,7 +299,7 @@ select set_config(
         "workouts": [
           {
             "id": "60000000-0000-0000-0000-000000000201",
-            "name": "Unlinked Workout",
+            "name": "Archived Link Workout",
             "suggestedWeekday": 3,
             "position": 1,
             "blocks": [
@@ -323,6 +338,67 @@ select set_config(
 );
 
 select set_config(
+  'test.second_valid_payload',
+  $payload$
+  {
+    "orgId": "10000000-0000-0000-0000-000000000001",
+    "clientId": "00000000-0000-0000-0000-000000000020",
+    "goal": "endurance",
+    "engine": "assisted",
+    "startDate": "2026-09-07",
+    "endDate": null,
+    "sourceTemplateId": null,
+    "mesocycles": [
+      {
+        "id": "80000000-0000-0000-0000-000000000101",
+        "position": 1,
+        "weeks": 4,
+        "emphasis": "intro",
+        "progressionModel": "linear",
+        "includesDeload": false,
+        "notes": "Second complete draft",
+        "workouts": [
+          {
+            "id": "80000000-0000-0000-0000-000000000201",
+            "name": "Second Complete Workout",
+            "suggestedWeekday": 4,
+            "position": 1,
+            "blocks": [
+              {
+                "kind": "exercise",
+                "id": "80000000-0000-0000-0000-000000000301",
+                "exerciseId": "20000000-0000-0000-0000-000000000002",
+                "position": 1,
+                "technique": "straight",
+                "supersetGroup": null,
+                "notes": null,
+                "sets": [
+                  {
+                    "id": "80000000-0000-0000-0000-000000000401",
+                    "position": 1,
+                    "repsMin": 10,
+                    "repsMax": 12,
+                    "loadMethod": "rpe",
+                    "loadValue": null,
+                    "targetRpe": 7,
+                    "targetRir": null,
+                    "restSeconds": 60,
+                    "isWarmup": false,
+                    "isAmrap": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  $payload$,
+  true
+);
+
+select set_config(
   'test.empty_draft_id',
   '70000000-0000-0000-0000-000000000001',
   true
@@ -341,6 +417,24 @@ set local role authenticated;
 select has_function('public', 'create_plan_draft', array['jsonb']);
 select has_function('public', 'publish_plan', array['uuid']);
 
+select results_eq(
+  $$
+    select p.proname, p.prosecdef
+    from pg_catalog.pg_proc as p
+    where p.oid in (
+      to_regprocedure('public.create_plan_draft(jsonb)'),
+      to_regprocedure('public.publish_plan(uuid)')
+    )
+    order by p.proname
+  $$,
+  $$
+    values
+      ('create_plan_draft'::name, false),
+      ('publish_plan'::name, false)
+  $$,
+  'plan RPCs are security invoker'
+);
+
 select lives_ok(
   $$
     select public.create_plan_draft(
@@ -350,45 +444,73 @@ select lives_ok(
   'linked trainer creates a draft'
 );
 
-select is(
-  (
-    select status
-    from public.training_plans
-    where client_id = '00000000-0000-0000-0000-000000000020'
-      and goal = 'hypertrophy'
-  ),
-  'draft',
-  'new plan is draft'
-);
-
-select is(
-  (
-    select count(*)
-    from public.prescribed_exercises
-    where id = '40000000-0000-0000-0000-000000000301'
-  ),
-  1::bigint,
-  'exercise persisted'
-);
-
-select is(
-  (
-    select count(*)
-    from public.prescribed_activities
-    where id = '40000000-0000-0000-0000-000000000302'
-  ),
-  1::bigint,
-  'activity persisted'
-);
-
-select is(
-  (
-    select count(*)
-    from public.prescribed_circuits
-    where id = '40000000-0000-0000-0000-000000000303'
-  ),
-  1::bigint,
-  'circuit persisted'
+select results_eq(
+  $$
+    select
+      (
+        select status
+        from public.training_plans
+        where client_id = '00000000-0000-0000-0000-000000000020'
+          and goal = 'hypertrophy'
+      ),
+      (
+        select count(*)
+        from public.mesocycles
+        where id = '40000000-0000-0000-0000-000000000101'
+      ),
+      (
+        select count(*)
+        from public.workout_templates
+        where id = '40000000-0000-0000-0000-000000000201'
+      ),
+      (
+        select count(*)
+        from public.prescribed_exercises
+        where id = '40000000-0000-0000-0000-000000000301'
+      ),
+      (
+        select count(*)
+        from public.prescribed_sets
+        where id = '40000000-0000-0000-0000-000000000401'
+      ),
+      (
+        select count(*)
+        from public.prescribed_activities
+        where id = '40000000-0000-0000-0000-000000000302'
+      ),
+      (
+        select count(*)
+        from public.prescribed_circuits
+        where id = '40000000-0000-0000-0000-000000000303'
+      ),
+      (
+        select count(*)
+        from public.prescribed_circuit_exercises
+        where circuit_id = '40000000-0000-0000-0000-000000000303'
+      ),
+      (
+        select array_agg(exercise_id order by position)
+        from public.prescribed_circuit_exercises
+        where circuit_id = '40000000-0000-0000-0000-000000000303'
+      )
+  $$,
+  $$
+    values (
+      'draft'::text,
+      1::bigint,
+      1::bigint,
+      1::bigint,
+      1::bigint,
+      1::bigint,
+      1::bigint,
+      2::bigint,
+      array[
+        '20000000-0000-0000-0000-000000000002'::uuid,
+        '20000000-0000-0000-0000-000000000001'::uuid
+      ]
+    )
+  $$,
+  'draft persists the complete ordered mixed-block tree'
 );
 
 select throws_ok(
@@ -397,30 +519,56 @@ select throws_ok(
       current_setting('test.invalid_fk_payload')::jsonb
     )
   $$,
+  '23503',
   null,
-  null,
-  'invalid child aborts transaction'
+  'invalid exercise foreign key aborts transaction'
 );
 
-select is(
-  (
-    select count(*)
-    from public.training_plans
-    where goal = 'power'
-  ),
-  0::bigint,
-  'failed payload leaves no header'
+select results_eq(
+  $$
+    select
+      (
+        select count(*)
+        from public.training_plans
+        where org_id = '10000000-0000-0000-0000-000000000001'
+          and client_id = '00000000-0000-0000-0000-000000000020'
+          and created_by = '00000000-0000-0000-0000-000000000010'
+          and goal = 'power'
+      ),
+      (
+        select count(*)
+        from public.mesocycles
+        where id = '50000000-0000-0000-0000-000000000101'
+      ),
+      (
+        select count(*)
+        from public.workout_templates
+        where id = '50000000-0000-0000-0000-000000000201'
+      ),
+      (
+        select count(*)
+        from public.prescribed_exercises
+        where id = '50000000-0000-0000-0000-000000000301'
+      ),
+      (
+        select count(*)
+        from public.prescribed_sets
+        where id = '50000000-0000-0000-0000-000000000401'
+      )
+  $$,
+  $$ values (0::bigint, 0::bigint, 0::bigint, 0::bigint, 0::bigint) $$,
+  'failed payload leaves no plan tree rows'
 );
 
 select throws_ok(
   $$
     select public.create_plan_draft(
-      current_setting('test.unlinked_payload')::jsonb
+      current_setting('test.archived_link_payload')::jsonb
     )
   $$,
   '42501',
   null,
-  'unlinked trainer denied'
+  'trainer with archived client link is denied'
 );
 
 select lives_ok(
@@ -436,6 +584,57 @@ select lives_ok(
     )
   $$,
   'complete draft publishes'
+);
+
+select lives_ok(
+  $assertion$
+    do $body$
+    declare
+      v_status text;
+    begin
+      select status
+        into strict v_status
+      from public.training_plans
+      where client_id = '00000000-0000-0000-0000-000000000020'
+        and goal = 'hypertrophy';
+
+      if v_status is distinct from 'active' then
+        raise exception 'expected published plan to be active, got %', v_status;
+      end if;
+
+      perform public.create_plan_draft(
+        current_setting('test.second_valid_payload')::jsonb
+      );
+    end
+    $body$
+  $assertion$,
+  'published plan is active and second complete draft is created'
+);
+
+select throws_ok(
+  $assertion$
+    do $body$
+    declare
+      v_second_plan_id uuid;
+    begin
+      select id
+        into v_second_plan_id
+      from public.training_plans
+      where client_id = '00000000-0000-0000-0000-000000000020'
+        and goal = 'endurance'
+        and status = 'draft';
+
+      if v_second_plan_id is null then
+        raise exception 'second complete draft is missing';
+      end if;
+
+      perform public.publish_plan(v_second_plan_id);
+    end
+    $body$
+  $assertion$,
+  '23514',
+  null,
+  'another active plan prevents second complete draft publication'
 );
 
 select throws_ok(
