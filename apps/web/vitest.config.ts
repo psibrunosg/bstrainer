@@ -3,8 +3,9 @@ import path from "path";
 
 export default defineConfig({
   test: {
-    alias: {
-      "@": path.resolve(__dirname, "./"),
-    },
+    alias: { "@": path.resolve(__dirname, "./") },
+    environment: "jsdom",
+    setupFiles: ["./vitest.setup.ts"],
+    restoreMocks: true,
   },
 });
