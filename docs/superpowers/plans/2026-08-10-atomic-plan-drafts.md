@@ -37,6 +37,7 @@ export interface CreatePlanDraftPayload {
   goal: string;
   engine: "template" | "assisted";
   startDate: string;
+  endDate: string | null;
   sourceTemplateId: string | null;
   mesocycles: Array<{
     id: string;
@@ -229,7 +230,17 @@ for v_meso in select value from jsonb_array_elements(p_input->'mesocycles') loop
 end loop;
 ```
 
-Map the contract explicitly: plan `organizationId`, `clientId`, `goal`, `startDate`, `endDate`; mesocycle `id`, `name`, `startDate`, `endDate`, `position`; workout `id`, `name`, `description`, `position`; exercise block `id`, `exerciseId`, `notes`, `technique`, `position`; set `id`, `repsMin`, `repsMax`, `loadKg`, `restSeconds`, `position`; activity block `id`, `activityId`, `durationMinutes`, `distanceKm`, `notes`, `position`; circuit block `id`, `name`, `rounds`, `restBetweenRoundsSeconds`, `position`; and each circuit exercise's `exerciseId` plus ordinal position. Reject missing required keys before the first insert and use no dynamic SQL.
+Map the canonical domain contract exactly as it exists in `packages/domain/src/plan.ts` and the planning migrations:
+
+- plan: `orgId`, `clientId`, `goal`, `engine`, `startDate`, `endDate`, `sourceTemplateId`;
+- mesocycle: `id`, `position`, `weeks`, `emphasis`, `progressionModel`, `includesDeload`, `notes`;
+- workout: `id`, `name`, `suggestedWeekday`, `position`;
+- exercise block: `kind`, `id`, `exerciseId`, `position`, `technique`, `supersetGroup`, `notes`;
+- prescribed set: `id`, `position`, `repsMin`, `repsMax`, `loadMethod`, `loadValue`, `targetRpe`, `targetRir`, `restSeconds`, `isWarmup`, `isAmrap`;
+- activity block: `kind`, `id`, `activityId`, `position`, `durationSeconds`, `distanceKm`, `targetPaceMinPerKm`, `targetRpe`, `notes`;
+- circuit block: `kind`, `id`, `position`, `exerciseIds` in their declared order, `rounds`, `workSeconds`, `restSeconds`, `targetRpe`, `notes`.
+
+Insert each circuit member with its array ordinal as `position`. `sourceTemplateId` must be `null` unless it refers to an actual UUID row in `public.plan_templates`; IDs from the engine JSON library are not written into that FK. Reject missing required keys before the first insert and use no dynamic SQL.
 
 - [ ] **Step 3: Implement `publish_plan`**
 
