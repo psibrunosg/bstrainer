@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useSearchParams } from "next/navigation";
 import {
   LineChart,
   Line,
@@ -10,13 +17,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { RequireAthlete } from "@/components/RequireAthlete";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/Button";
 import {
   listMeasurements,
   saveMeasurement,
   deleteMeasurement,
+  type MeasurementInput,
   type MeasurementResult,
 } from "@/lib/data/measurements";
 import type { BodyMeasurement } from "@bstrainer/domain";
@@ -52,17 +59,32 @@ function fmtNum(n: number | null): string {
   return n % 1 === 0 ? String(n) : n.toFixed(1).replace(".", ",");
 }
 
-export default function MeasurementsPage() {
+function MeasurementsPage() {
   return (
-    <RequireAthlete>
-      <MeasurementsContent />
-    </RequireAthlete>
+    <Suspense fallback={null}>
+      <MeasurementsRoute />
+    </Suspense>
   );
 }
 
-function MeasurementsContent() {
+function MeasurementsRoute() {
+  const searchParams = useSearchParams();
+  const clientId = searchParams.get("client") ?? undefined;
+  const clientName = searchParams.get("name") ?? undefined;
+
+  return <MeasurementsContent clientId={clientId} clientName={clientName} />;
+}
+
+function MeasurementsContent({
+  clientId,
+  clientName,
+}: {
+  clientId?: string;
+  clientName?: string;
+}) {
   const [entries, setEntries] = useState<BodyMeasurement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [formDate, setFormDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
@@ -71,22 +93,35 @@ function MeasurementsContent() {
   const [formNotes, setFormNotes] = useState("");
   const [chartField, setChartField] = useState<FieldKey>("weightKg");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    listMeasurements().then((m) => {
-      setEntries(m);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const result = await listMeasurements(clientId);
+      if (result.ok) setEntries(result.measurements);
+      else setLoadError(result.error);
+    } catch {
+      setLoadError("Falha ao carregar medições.");
+    } finally {
       setLoading(false);
-    });
-  }, []);
+    }
+  }, [clientId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   function openAdd() {
     setEditingId(null);
     setFormDate(new Date().toISOString().slice(0, 10));
     setFormValues({});
     setFormNotes("");
-    setError(null);
+    setFormError(null);
+    setMutationError(null);
     setAdding(true);
   }
 
@@ -103,7 +138,8 @@ function MeasurementsContent() {
       thighRightCm: e.thighRightCm != null ? String(e.thighRightCm) : "",
     });
     setFormNotes(e.notes ?? "");
-    setError(null);
+    setFormError(null);
+    setMutationError(null);
     setAdding(true);
   }
 
@@ -113,9 +149,7 @@ function MeasurementsContent() {
       return Number.isFinite(n) ? n : null;
     };
 
-    const input: Omit<BodyMeasurement, "id" | "userId" | "createdAt"> & {
-      id?: string;
-    } = {
+    const input: MeasurementInput = {
       measuredAt: formDate,
       weightKg: parse(formValues.weightKg ?? ""),
       bodyFatPct: parse(formValues.bodyFatPct ?? ""),
@@ -136,30 +170,38 @@ function MeasurementsContent() {
       input.bicepRightCm == null &&
       input.thighRightCm == null
     ) {
-      setError("Preencha pelo menos um campo.");
+      setFormError("Preencha pelo menos um campo.");
       return;
     }
 
     if (editingId) input.id = editingId;
 
     setPending(true);
-    setError(null);
-    const result: MeasurementResult = await saveMeasurement(input);
-    setPending(false);
+    setFormError(null);
+    const result: MeasurementResult = await saveMeasurement(input, clientId);
 
     if (!result.ok) {
-      setError(result.error ?? "Falha ao salvar.");
+      setFormError(result.error);
+      setPending(false);
       return;
     }
 
     setAdding(false);
-    const updated = await listMeasurements();
-    setEntries(updated);
+    await load();
+    setPending(false);
   }
 
   async function handleDelete(id: string) {
-    await deleteMeasurement(id);
-    setEntries((prev) => prev.filter((e) => e.id !== id));
+    if (pending) return;
+    setPending(true);
+    setMutationError(null);
+    const result = await deleteMeasurement(id, clientId);
+    if (result.ok) {
+      setEntries((prev) => prev.filter((e) => e.id !== id));
+    } else {
+      setMutationError(result.error);
+    }
+    setPending(false);
   }
 
   const chartData = useMemo(() => {
@@ -174,7 +216,7 @@ function MeasurementsContent() {
       }));
   }, [entries, chartField]);
 
-  if (loading) {
+  if (loading && entries.length === 0) {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-4">
         <div className="h-8 w-40 rounded skeleton-shimmer" />
@@ -187,16 +229,40 @@ function MeasurementsContent() {
     <div className="mx-auto max-w-lg space-y-6 p-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-[28px] font-extrabold uppercase tracking-tight">
-          Medições
+          {clientId ? `Medições de ${clientName ?? "aluno"}` : "Medições"}
         </h1>
         <button
           type="button"
           onClick={openAdd}
+          disabled={pending}
           className="text-sm font-semibold text-signal"
         >
           + Nova
         </button>
       </div>
+
+      {loadError && (
+        <div
+          role="alert"
+          className="space-y-2 rounded-lg border border-err/40 bg-surface p-4"
+        >
+          <p className="text-sm text-err">{loadError}</p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={load}
+            disabled={loading}
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+
+      {mutationError && (
+        <p role="alert" className="text-sm text-err">
+          {mutationError}
+        </p>
+      )}
 
       {chartData.length >= 2 && (
         <section className="space-y-2">
@@ -247,7 +313,7 @@ function MeasurementsContent() {
         <h2 className="caps-label font-display font-semibold text-mute">
           Registros
         </h2>
-        {entries.length === 0 ? (
+        {entries.length === 0 && !loadError ? (
           <EmptyState
             icon={
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
@@ -259,13 +325,15 @@ function MeasurementsContent() {
             description="Registre peso, fotos ou circunferências pra acompanhar sua evolução ao longo do tempo."
             action={{ label: "Nova medição", onClick: openAdd }}
           />
-        ) : (
+        ) : entries.length > 0 ? (
           <div className="space-y-2">
             {entries.map((e) => (
               <article
                 key={e.id}
                 className="cursor-pointer rounded-lg border border-line bg-surface p-4 transition hover:border-signal/30"
-                onClick={() => openEdit(e)}
+                onClick={() => {
+                  if (!pending) openEdit(e);
+                }}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">
@@ -275,10 +343,11 @@ function MeasurementsContent() {
                     type="button"
                     onClick={(ev) => {
                       ev.stopPropagation();
-                      handleDelete(e.id);
+                      void handleDelete(e.id);
                     }}
+                    disabled={pending}
                     className="text-xs text-mute transition active:text-err"
-                    aria-label="Remover"
+                    aria-label={`Excluir medição de ${fmtDate(e.measuredAt)}`}
                   >
                     &#x2715;
                   </button>
@@ -304,7 +373,7 @@ function MeasurementsContent() {
               </article>
             ))}
           </div>
-        )}
+        ) : null}
       </section>
 
       {adding && (
@@ -317,6 +386,7 @@ function MeasurementsContent() {
               <button
                 type="button"
                 onClick={() => setAdding(false)}
+                disabled={pending}
                 className="text-xs text-mute"
               >
                 Fechar
@@ -358,7 +428,11 @@ function MeasurementsContent() {
               className="h-11 w-full rounded border border-line bg-ink px-3 text-sm outline-none placeholder:text-mute focus:border-signal"
             />
 
-            {error && <p className="text-sm text-err">{error}</p>}
+            {formError && (
+              <p role="alert" className="text-sm text-err">
+                {formError}
+              </p>
+            )}
 
             <Button
               variant="primary"
@@ -373,6 +447,7 @@ function MeasurementsContent() {
               variant="ghost"
               size="md"
               onClick={() => setAdding(false)}
+              disabled={pending}
               className="w-full text-mute active:bg-surface-2"
             >
               Cancelar
@@ -383,3 +458,7 @@ function MeasurementsContent() {
     </div>
   );
 }
+
+MeasurementsPage.Content = MeasurementsContent;
+
+export default MeasurementsPage;
