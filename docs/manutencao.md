@@ -60,6 +60,9 @@ pnpm lint             # turbo run lint → eslint . no apps/web
 # Banco local (ver subseção abaixo)
 pnpm db:seed:build    # gera supabase/seed/02_hasaneyldrm_exercises.sql a partir dos JSONs
 pnpm db:reset         # db:seed:build && supabase db reset
+
+# Banco remoto (ver subseção abaixo)
+pnpm db:deploy        # supabase db push + aplica os seeds no banco apontado por SUPABASE_DB_URL
 ```
 
 ### Banco de dados local (migrations + seeds)
@@ -93,18 +96,37 @@ Antes disso os arquivos de `supabase/seed/` **nunca eram aplicados**; agora o `0
 JSON por linha dentro de um array válido** — mantenha esse formato ao editar, é ele que deixa o diff
 legível registro a registro. Depois rode `pnpm db:seed:build`.
 
-> ⚠️ **Ressalva 1 — seeds não vão para ambientes remotos.**
-> Seeds só rodam em `supabase db reset` (local). **Não** rodam em `supabase db push`.
-> Um projeto Supabase **novo** (staging/produção criada do zero) recebe o schema mas **não** recebe
-> os 1324 exercícios. Depois do push, aplique `supabase/seed/02_hasaneyldrm_exercises.sql`
-> manualmente (ex.: via `psql`). Em ambientes onde a migration original já foi aplicada, nada muda.
-
-> ⚠️ **Ressalva 2 — não rode `supabase db reset` direto num clone limpo.**
+> ⚠️ **Ressalva — não rode `supabase db reset` direto num clone limpo.**
 > O `02_hasaneyldrm_exercises.sql` não existe até ser gerado, então um reset cru aplica **apenas** o
 > `01_exercises.sql` e você fica sem o catálogo. Use sempre `pnpm db:reset`.
 
 > **Sobre o peso:** o repo versionado foi de 1042 KB para 1205 KB. O refactor **não** economizou
 > bytes — o ganho é migration limpa e dados revisáveis por registro no diff.
+
+### Banco de dados remoto (staging / produção)
+
+`supabase db push` aplica **só as migrations**. Seeds rodam apenas em `supabase db reset`, que é
+local. Sem um passo extra, um projeto Supabase **novo** receberia o schema e ficaria sem os 1324
+exercícios. `pnpm db:deploy` (`scripts/db-deploy.mjs`) fecha esse buraco:
+
+```bash
+SUPABASE_DB_URL='postgresql://postgres:<senha>@db.<ref>.supabase.co:5432/postgres' pnpm db:deploy
+```
+
+A connection string sai de **Supabase Dashboard > Project Settings > Database > Connection string
+(URI)**. O script gera o `02_*.sql`, roda `supabase db push` e aplica os seeds. Flags: `--dry-run`
+(não escreve nada) e `--skip-migrations` (só os seeds).
+
+Usa `psql` do PATH; se não houver, cai para um container Docker descartável só com o cliente
+(`DB_DEPLOY_PG_IMAGE` troca a imagem).
+
+> ⚠️ **`01_exercises.sql` não é idempotente.** Os 78 exercícios curados têm `external_id` nulo, e o
+> índice `exercises_external_unique` só cobre linhas com `external_id` não nulo — rodar o arquivo
+> duas vezes duplicaria as 78 linhas. Por isso o `db:deploy` só aplica o `01` quando o alvo ainda
+> não tem exercícios curados. **Não aplique esse arquivo à mão** num banco já populado.
+> O `02_*.sql` é idempotente (`on conflict do update` + `where not exists`) e roda sempre.
+
+> ⚠️ **Nunca use `supabase db reset --db-url <remoto>`** para isso: `reset` **apaga** o banco.
 
 ### Armadilhas conhecidas
 

@@ -9,7 +9,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "db:seed:build": "node supabase/seed/generate-exercises-seed.mjs",
-    "db:reset": "pnpm db:seed:build && supabase db reset"
+    "db:reset": "pnpm db:seed:build && supabase db reset",
+    "db:deploy": "node scripts/db-deploy.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

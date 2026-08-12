@@ -84,20 +84,45 @@ As migrations dependem de objetos que **só existem numa stack Supabase completa
 - função `auth.uid()` (usada nas policies de RLS)
 - publication `supabase_realtime`
 
-**Consequências práticas:**
+**A escolha da imagem muda tudo — e é o atalho que economiza mais tempo:**
 
-- Para aplicar num Postgres avulso (ex.: o container descartável do item 2) é preciso criar um
-  **stub**: `create schema auth`, uma tabela `auth.users` mínima e uma função `auth.uid()`.
-- Mesmo com o stub, `supabase/migrations/20260717140000_messages.sql` **falha** sem a publication
-  `supabase_realtime` — crie-a antes, ou pule essa migration se ela não for relevante para o que
-  você está validando.
+| Imagem | O que acontece |
+|---|---|
+| `postgres:17` (oficial) | Precisa de stub manual: `create schema auth`, tabela `auth.users` mínima, função `auth.uid()`. Mesmo assim, `20260717140000_messages.sql` **falha** por falta da publication `supabase_realtime`. |
+| `public.ecr.aws/supabase/postgres:17.6.1.141` | Já traz o schema `auth` com `users`, `uid()`, `role()`, `email()` e a publication. As **18 migrations aplicam com 0 falhas**. |
 
-Ou seja: Postgres puro serve para conferir dados, não para validar o schema inteiro de ponta a
-ponta. Para isso, `supabase db reset` de verdade.
+Prefira a imagem do Supabase: é a mesma que o `supabase start` usa, então o ambiente descartável
+fica fiel ao real.
+
+**Pegadinha ao usar a imagem do Supabase:** o schema `auth` **já existe**. Um stub escrito como
+`create table auth.users (...)` falha com `relation already exists` e, sob `-v ON_ERROR_STOP=1`,
+aborta o script inteiro — inclusive as linhas seguintes que você achava que tinham rodado. Escreva
+sempre `create schema if not exists` / `create table if not exists`.
 
 ---
 
-## 5. `git check-ignore` dá falso negativo em diretório que não existe no disco
+## 5. `localhost` não alcança o host de dentro de um container
+
+**Sintoma:** você roda `psql` dentro de um container apontando para um banco que está na **sua
+máquina** (ex.: o Postgres descartável publicado em `localhost:55433`) e a conexão é recusada.
+
+**Causa:** dentro do container, `localhost` é o **próprio container**, não o host.
+
+**Correção (Docker Desktop no Windows/macOS):** use `host.docker.internal`.
+
+```bash
+# errado, de dentro do container:
+postgresql://postgres:postgres@localhost:55433/postgres
+# certo:
+postgresql://postgres:postgres@host.docker.internal:55433/postgres
+```
+
+Só importa para alvo local. Apontar para um Supabase remoto (`db.<ref>.supabase.co`) funciona
+normalmente, porque aí o host é externo aos dois.
+
+---
+
+## 6. `git check-ignore` dá falso negativo em diretório que não existe no disco
 
 **Sintoma:** `git check-ignore apps/web/.next` responde que o caminho **não** está ignorado, mesmo
 com `.next/` no `.gitignore`. Leva a concluir que o `.gitignore` está errado — não está.
