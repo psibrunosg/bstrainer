@@ -149,7 +149,7 @@ Usa `psql` do PATH; se não houver, cai para um container Docker descartável s�
 | Gate | Estado | Evidência |
 |---|---|---|
 | **Lint** | ✅ Passando | `pnpm lint` → 0 erros, 0 warnings. Config flat em `apps/web/eslint.config.mjs` |
-| **Typecheck** | ✅ Passando | `pnpm typecheck` limpo nos 4 pacotes do workspace |
+| **Typecheck** | ✅ Passando | `pnpm typecheck` limpo nos 3 pacotes do workspace |
 | **Testes** | ✅ Passando | `pnpm test` verde; `apps/web`: 8 arquivos, 44 tests, nenhum caminho de `.worktrees/` |
 | **Build web** | ✅ Passando | `pnpm build` gera o static export (`output: "export"`) |
 | **Bundle budget** | ✅ Passando | `node apps/web/scripts/check-bundle-budget.mjs` verde após o build |
@@ -171,12 +171,29 @@ CI:      ████████████████████  OK  (lint
 
 > Cada dívida: o que é → onde → o que fazer ao tocar na área.
 
-**Nenhuma dívida viva no momento (2026-08-12).** D1, D2, D3, D4 e D5 foram pagas — ver
-**Apêndice A**. Ao abrir uma nova dívida, use o próximo número sequencial (D6).
+D1, D2, D3, D4 e D5 foram pagas — ver **Apêndice A**. Ao abrir uma nova dívida, use o próximo
+número sequencial (D7).
 
-Pontos de atenção que sobraram do refactor de seeds (não são dívida, são operação — detalhados na
-seção 2): seeds não são aplicados por `supabase db push`, e `supabase db reset` precisa ser
-precedido de `pnpm db:seed:build` (use `pnpm db:reset`).
+### D6 — camada de dados do web sem tipagem do Supabase
+
+- **O que é:** `apps/web/lib/supabase/client.ts` chama `createBrowserClient(...)` **sem** o genérico
+  `<Database>`. Como consequência, as **64 chamadas `.from()`** espalhadas por **21 arquivos** do web
+  retornam `any`: erro de nome de coluna ou de tabela só aparece em runtime. Os **42 tipos escritos à
+  mão** em `apps/web/lib/data/` são reconstrução manual do que os tipos gerados dariam de graça.
+- **Onde:** `apps/web/lib/supabase/client.ts` e `apps/web/lib/data/*`
+- **Contexto:** existia um `packages/db` com `database.types.ts` gerado, mas ele estava
+  desatualizado em 8 tabelas e não tinha nenhum consumidor. Foi removido em 2026-08-12 — manter
+  artefato gerado e desatualizado é pior que não ter. Recriar é um comando, não um resgate.
+- **O que fazer ao tocar:**
+  1. `supabase gen types typescript --linked > <destino>/database.types.ts`
+  2. Tipar o client: `createBrowserClient<Database>(...)`
+  3. Migrar `lib/data/*` incrementalmente, arquivo a arquivo — tirar o `any` deve expor erros hoje
+     mascarados; é justamente esse o valor
+  4. Decidir onde o arquivo gerado mora (novo `packages/db` ou dentro do próprio `apps/web`) e
+     registrar que **toda migration exige regenerar os tipos**
+
+Ponto de atenção que sobrou do refactor de seeds (não é dívida, é operação — detalhado na seção 2):
+`supabase db reset` precisa ser precedido de `pnpm db:seed:build` (use `pnpm db:reset`).
 
 ---
 
@@ -225,7 +242,7 @@ Antes de `git commit`, verifique:
 # 1. Lint (rápido)
 pnpm lint
 
-# 2. Typecheck (4 pacotes)
+# 2. Typecheck (3 pacotes)
 pnpm typecheck
 
 # 3. Testes
@@ -278,7 +295,7 @@ pnpm build
 
 ### D4 — `@bstrainer/db` é dependência fantasma no web
 - **Resolvido em:** já estava resolvida (a doc é que estava desatualizada)
-- **O que foi feito:** a dependência **não existe** em `apps/web/package.json` — nem no HEAD. Nada a remover. `packages/db` continua no workspace, hoje sem consumidores; se seguir assim, vira candidato a uma dívida futura própria.
+- **O que foi feito:** a dependência **não existe** em `apps/web/package.json` — nem no HEAD. Nada a remover no web. O pacote `packages/db` em si foi **removido** em 2026-08-12: 1495 linhas geradas, desatualizadas em 8 tabelas (`activities`, `body_measurements`, `messages`, `performed_activities`, `performed_circuits`, `prescribed_activities`, `prescribed_circuits`, `prescribed_circuit_exercises`) e zero consumidores. A lacuna de tipagem que ele deveria cobrir virou a dívida **D6**.
 
 ### D5 — Migration gigante no repo
 - **Resolvido em:** 2026-08-12

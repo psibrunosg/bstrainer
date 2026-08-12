@@ -10,4 +10,4 @@ Default five-label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, 
 
 ### Domain docs
 
-Multi-context: root `CONTEXT-MAP.md` + per-package `CONTEXT.md` in `apps/web`, `packages/db`, `packages/domain`, `packages/engine`. See `docs/agents/domain.md`.
+Multi-context: root `CONTEXT-MAP.md` + per-package `CONTEXT.md` in `apps/web`, `packages/domain`, `packages/engine`. See `docs/agents/domain.md`.

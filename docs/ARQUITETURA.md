@@ -2,7 +2,7 @@
 
 **Documento oficial v0.1 — 2026-07-12**  
 *Atualizado em 2026-08-11 para refletir estado real do código.*  
-*Atualizado em 2026-08-12: seção F — novo layout de `supabase/seed/` (dados em JSON + gerador). Fluxo de banco em `docs/manutencao.md` §2.*  
+*Atualizado em 2026-08-12: seção F — novo layout de `supabase/seed/` (dados em JSON + gerador) e remoção de `packages/db` (tipos gerados desatualizados, sem consumidores — virou a dívida D6). Fluxo de banco em `docs/manutencao.md` §2.*  
 Repo: `bstrainer`
 
 ---
@@ -235,13 +235,12 @@ bstrainer/
 │       └── public/                 # manifest PWA, ícones, exercise-media
 ├── packages/
 │   ├── domain/                     # tipos de domínio (Zod = fonte única), sem framework
-│   ├── engine/                     # AS 3 ENGINES — TS puro, 100% testável
-│   │   ├── templates/              # engine 1 + biblioteca tipada
-│   │   ├── progression/            # dupla progressão, e1RM, estagnação (engine 2)
-│   │   ├── audit/                  # volume semanal, alertas, guarda de restrições
-│   │   ├── recommend/              # recomendação de planos
-│   │   └── gamification/           # strength-score, XP, badges
-│   └── db/                         # tipos gerados do Supabase
+│   └── engine/                     # AS 3 ENGINES — TS puro, 100% testável
+│       ├── templates/              # engine 1 + biblioteca tipada
+│       ├── progression/            # dupla progressão, e1RM, estagnação (engine 2)
+│       ├── audit/                  # volume semanal, alertas, guarda de restrições
+│       ├── recommend/              # recomendação de planos
+│       └── gamification/           # strength-score, XP, badges
 ├── supabase/
 │   ├── config.toml                 # inclui [db.seed] → aplica ./seed/*.sql no `db reset`
 │   ├── migrations/                 # SQL versionado (schema seção A) — só schema, sem dados
