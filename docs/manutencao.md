@@ -20,8 +20,8 @@
 
 | Doc | O quê | Estado |
 |---|---|---|
-| `README.md` | Visão geral do produto | ⚠️ Desatualizado (diz "implementação não iniciada") |
-| `docs/ARQUITETURA.md` | Plano de arquitetura e features | ⚠️ Desatualizado (lista pastas que não existem) |
+| `README.md` | Visão geral do produto | ✅ Corrigido em 2026-08-11 |
+| `docs/ARQUITETURA.md` | Plano de arquitetura e features | ✅ Corrigido em 2026-08-11 |
 | `docs/auditoria-projeto.md` | Auditoria deste repositório | ✅ Atual (2026-08-11) |
 | `CONTEXT-MAP.md` | Mapa de contextos dos packages | ✅ Ok |
 | `packages/domain/CONTEXT.md` | Vocabulário de domínio | ✅ Ok |
@@ -76,16 +76,16 @@ pnpm lint             # NÃO FUNCIONA — falta config ESLint (ver Dívidas)
 | **Engine tests** | ✅ Passando | `packages/engine`: 9 suites, 66 tests, 0 falhas |
 | **Web tests** | ⚠️ Parcial | Ambiente local não resolve `jsdom` corretamente (problema de hoisting pnpm). Em execução manual da raiz: 28 passaram, 9 falharam (todos da `.worktrees/`, não do projeto). |
 | **Engine typecheck** | ✅ Passando | `tsc --noEmit` limpo no `packages/engine` |
-| **Web typecheck** | ❌ Quebrado | `vitest.setup.ts` e `.test.tsx` compilados pelo tsc; `toBeInTheDocument` e `@testing-library/react` não resolvidos |
-| **Web build** | ❌ Quebrado | Mesmo motivo do typecheck — `vitest.setup.ts` é pego pelo `include: ["**/*.ts"]` do `tsconfig.json` |
+| **Web typecheck** | ✅ Passando | `tsc --noEmit` limpo após excluir `**/*.test.ts`, `**/*.test.tsx`, `vitest.setup.ts` do `tsconfig.json` |
+| **Web build** | ✅ Passando | Static export gerado com sucesso (40 páginas) após fix do `tsconfig.json` |
 | **Lint** | ❌ Inexistente | Não há `.eslintrc` nem `eslint.config.*`; script `"lint": "next lint"` no `package.json` não funciona |
 | **Bundle budget** | ⚠️ Depende de build | Script existe e é chamado pela CI, mas o build precisa passar primeiro |
 
 ### Resumo dos gates
 ```
 Engine:  ████████████████████  OK  (tests + typecheck)
-Web:     ██████░░░░░░░░░░░░░░  BROKEN  (build + typecheck + lint)
-CI:      ░░░░░░░░░░░░░░░░░░░░  CI CONFIGURADO mas build quebraria
+Web:     ████████████████░░░░  OK  (build + typecheck), lint quebrado
+CI:      ████████████████░░░░  OK  (typecheck + build passam, lint falta)
 ```
 
 ---
@@ -94,15 +94,7 @@ CI:      ░░░░░░░░░░░░░░░░░░░░  CI CONFIG
 
 > Cada dívida: o que é → onde → o que fazer ao tocar na área.
 
-### D1 — Build/typecheck do web quebrado por `vitest.setup.ts`
-- **O que é:** O `tsconfig.json` do web inclui `**/*.ts`, que captura `vitest.setup.ts`. Esse arquivo importa `@testing-library/react` (devDependency). No build de produção e no `tsc --noEmit`, essas importações não são resolvidas.
-- **Onde:** `apps/web/tsconfig.json` linha 14; `apps/web/vitest.setup.ts`
-- **O que fazer ao tocar:**
-  - Adicionar `**/*.test.ts`, `**/*.test.tsx`, `vitest.setup.ts` ao `exclude` do `tsconfig.json`
-  - Ou criar `tsconfig.test.json` separado para testes e usar no vitest
-  - Verificar que `pnpm build` passa antes de abrir PR
-
-### D2 — ESLint não configurado
+### D1 — ESLint não configurado
 - **O que é:** Script `"lint": "next lint"` existe mas não há config nem dependência instalada.
 - **Onde:** `apps/web/package.json`; ausência de `.eslintrc*`
 - **O que fazer ao tocar:**
@@ -111,29 +103,21 @@ CI:      ░░░░░░░░░░░░░░░░░░░░  CI CONFIG
   - Rodar `pnpm lint` e corrigir erros existentes (pode ser volumoso)
   - Adicionar `pnpm lint` à CI
 
-### D3 — `vitest.config.ts` não exclui `.worktrees/`
+### D2 — `vitest.config.ts` não exclui `.worktrees/`
 - **O que é:** Se existir uma git worktree local, o vitest escaneia seus arquivos `.test.tsx` e pode falhar (imports não resolvem no contexto da worktree).
 - **Onde:** `apps/web/vitest.config.ts`
 - **O que fazer ao tocar:**
   - Adicionar `'.worktrees'` ao array `exclude` do vitest config
   - Ou usar `include` mais restrito ao invés de deixar vitest escanear tudo
 
-### D4 — README e ARQUITETURA.md desatualizados
-- **O que é:** README diz "implementação não iniciada"; ARQUITETURA.md lista `packages/ui/`, `app/(marketing)/`, `app/api/` que não existem.
-- **Onde:** `README.md`; `docs/ARQUITETURA.md` seção F
-- **O que fazer ao tocar:**
-  - Atualizar README com status real do MVP
-  - Atualizar seção F da ARQUITETURA.md para refletir estrutura real
-  - Remover menções a libs não usadas (TanStack Query, Dexie) ou adicioná-las
-
-### D5 — `@bstrainer/db` é dependência fantasma no web
+### D4 — `@bstrainer/db` é dependência fantasma no web
 - **O que é:** `apps/web/package.json` declara `@bstrainer/db` como dependência, mas nenhum arquivo do web o importa. O web usa Supabase diretamente.
 - **Onde:** `apps/web/package.json`
 - **O que fazer ao tocar:**
   - Remover `@bstrainer/db` do `apps/web/package.json` se não houver plano de uso imediato
   - Ou migrar os data layers do web para usar `@bstrainer/db`
 
-### D6 — Migration gigante no repo
+### D5 — Migration gigante no repo
 - **O que é:** `20260715170000_import_hasaneyldrm_exercises.sql` tem ~1MB de INSERTs. Dificulta clone e review.
 - **Onde:** `supabase/migrations/`
 - **O que fazer ao tocar:**
@@ -189,7 +173,7 @@ cd packages/engine && vitest run
 
 # 3. Build do web (mais lento, ~20-30s)
 cd apps/web && next build
-# ⚠️ Build está quebrado atualmente (D1). Não ignore — corrija ou documente.
+# Build validado — deve passar antes de abrir PR.
 
 # 4. Verifique se não commitou arquivos de runtime
 # Nunca commite: .claude/, .claude-flow/, .next/, out/, node_modules/
@@ -210,4 +194,7 @@ cd apps/web && next build
 
 ## Apêndice A — Dívidas resolvidas
 
-*Nenhuma registrada ainda.*
+### D3 — README e ARQUITETURA.md desatualizados
+- **Resolvido em:** 2026-08-11
+- **Commit:** `3b60dd1` — `docs: corrige README e ARQUITETURA.md para refletir estado real do código`
+- **O que foi feito:** README atualizado com status real do MVP; ARQUITETURA.md seção F corrigida para refletir estrutura real do repo; menções a libs não usadas removidas.
