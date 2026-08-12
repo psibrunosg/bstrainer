@@ -6,4 +6,4 @@ Plano completo de arquitetura e features: [docs/ARQUITETURA.md](docs/ARQUITETURA
 
 **Stack:** Next.js (App Router) + Supabase, monorepo pnpm/Turborepo.
 
-**Status:** planejamento concluído, implementação não iniciada.
+**Status:** MVP em progresso — 18 migrations, engine completa com testes, ~20 páginas Next.js, PWA, CI/CD. Ver `docs/auditoria-projeto.md` para estado detalhado.

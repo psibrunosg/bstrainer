@@ -1,6 +1,7 @@
 # bstrainer — Plano de Arquitetura e Features
 
-**Documento oficial v0.1 — 2026-07-12**
+**Documento oficial v0.1 — 2026-07-12**  
+*Atualizado em 2026-08-11 para refletir estado real do código.*  
 Repo: `bstrainer`
 
 ---
@@ -195,14 +196,14 @@ Geração de rascunho por LLM, estruturalmente restrita, obrigatoriamente revisa
 | Camada | Escolha |
 |---|---|
 | Framework | Next.js 15+, App Router, TypeScript strict |
-| UI | Tailwind + shadcn/ui |
-| Estado/servidor | TanStack Query + supabase-js; Zod nas bordas |
+| UI | Tailwind + CSS custom tokens (não shadcn/ui ainda) |
+| Estado/servidor | supabase-js direto; Zod em `packages/domain` e `packages/engine` |
 | Gráficos | Recharts |
-| Offline | IndexedDB (Dexie) + fila de sync própria |
+| Offline | IndexedDB (`idb` package) + fila de sync própria |
 | Billing | Schema pronto, provedor a decidir; webhooks em Edge Function; `entitlement` local — nunca checar tier no client |
 | IA | Route handler server-side, abstração de provedor, structured outputs, dados pseudonimizados |
-| Testes | Vitest (engines — puras e testáveis) + Playwright (fluxo crítico) |
-| Deploy | Vercel + Supabase cloud; migrations versionadas (supabase CLI) |
+| Testes | Vitest (engines + web) |
+| Deploy | GitHub Pages (static export); migrations versionadas (supabase CLI) |
 
 **Decisão-chave:** lógica de domínio (progressão, auditoria de volume, e1RM, instanciação de template, validação IA) em pacotes TS puros sem dependência de framework (`packages/engine`, `packages/domain`) — garante portabilidade mobile e testabilidade isolada.
 
@@ -215,36 +216,39 @@ bstrainer/
 ├── apps/
 │   └── web/                        # Next.js (App Router)
 │       ├── app/
-│       │   ├── (marketing)/        # landing, pricing
-│       │   ├── (auth)/             # login, convite, onboarding
 │       │   ├── (app)/
 │       │   │   ├── dashboard/      # analytics
 │       │   │   ├── clients/        # gestão de alunos (trainer)
 │       │   │   ├── plans/          # construtor de ficha + templates
 │       │   │   ├── train/          # logger de execução (mobile-first, offline)
-│       │   │   ├── assessments/    # avaliações (V2 amplia)
-│       │   │   └── settings/       # org, billing, perfil
-│       │   └── api/
-│       │       ├── webhooks/stripe/
-│       │       └── ai/generate/    # engine 3, server-only
+│       │   │   ├── measurements/   # avaliações reduzidas (peso + medidas)
+│       │   │   ├── messages/       # chat trainer↔aluno (básico)
+│       │   │   ├── personal/       # área do aluno vinculado
+│       │   │   ├── today/          # visão diária do atleta
+│       │   │   └── settings/       # org, perfil, tema
+│       │   ├── login/              # auth (magic link)
+│       │   ├── page.tsx            # landing page
+│       │   └── layout.tsx          # root layout + PWA manifest
 │       ├── components/
-│       ├── lib/                    # supabase clients, auth helpers
-│       └── public/                 # manifest PWA, ícones
+│       ├── lib/                    # supabase clients, data layers, workout logic
+│       └── public/                 # manifest PWA, ícones, exercise-media
 ├── packages/
 │   ├── domain/                     # tipos de domínio (Zod = fonte única), sem framework
 │   ├── engine/                     # AS 3 ENGINES — TS puro, 100% testável
 │   │   ├── templates/              # engine 1 + biblioteca tipada
 │   │   ├── progression/            # dupla progressão, e1RM, estagnação (engine 2)
 │   │   ├── audit/                  # volume semanal, alertas, guarda de restrições
-│   │   └── ai/                     # prompts, schema output, validação (engine 3)
-│   ├── db/                         # tipos gerados do Supabase, queries compartilhadas
-│   └── ui/                         # adiar até precisar
+│   │   ├── recommend/              # recomendação de planos
+│   │   └── gamification/           # strength-score, XP, badges
+│   └── db/                         # tipos gerados do Supabase
 ├── supabase/
 │   ├── migrations/                 # SQL versionado (schema seção A)
-│   ├── seed/                       # exercícios wger+curados, templates
-│   └── functions/
+│   ├── seed/                       # exercícios importados, templates
+│   └── functions/                  # Edge Functions (preparado, não usado ainda)
 ├── docs/
 │   ├── ARQUITETURA.md              # este documento
+│   ├── auditoria-projeto.md        # auditoria do repo (2026-08-11)
+│   ├── manutencao.md               # guia de manutenção
 │   ├── decisoes/                   # ADRs curtos
 │   └── templates-treino/           # fichas técnicas dos templates com referências
 ├── .github/workflows/
