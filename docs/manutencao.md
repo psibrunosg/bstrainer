@@ -1,6 +1,6 @@
 # Guia de Manutenção — bstrainer
 
-> **Versão:** 2026-08-11  
+> **Versão:** 2026-08-12  
 > **Regras:** Este doc deve ser atualizado sempre que uma convenção mudar, um gate quebrar, ou uma dívida técnica for paga. Se você leu algo aqui que não bate com a realidade, corrija antes de commitar.
 
 ---
@@ -22,7 +22,8 @@
 |---|---|---|
 | `README.md` | Visão geral do produto | ✅ Corrigido em 2026-08-11 |
 | `docs/ARQUITETURA.md` | Plano de arquitetura e features | ✅ Corrigido em 2026-08-11 |
-| `docs/auditoria-projeto.md` | Auditoria deste repositório | ✅ Atual (2026-08-11) |
+| `docs/auditoria-projeto.md` | Auditoria deste repositório | ✅ Atualizado em 2026-08-12 |
+| `DESAFIOS.md` | Atritos operacionais recorrentes (ambiente, não código) | ✅ Criado em 2026-08-12 |
 | `CONTEXT-MAP.md` | Mapa de contextos dos packages | ✅ Ok |
 | `packages/domain/CONTEXT.md` | Vocabulário de domínio | ✅ Ok |
 | `docs/adr/` | ADRs (0001, 0002) | ✅ Ok |
@@ -48,44 +49,98 @@ pnpm typecheck        # turbo run typecheck
 # Testes
 pnpm test             # turbo run test
 # Ou diretamente nos packages:
-cd packages/engine && pnpm vitest run    # 9 suites, 66 tests
-cd apps/web && pnpm vitest run           # requer jsdom instalado
+cd packages/engine && pnpm vitest run
+cd apps/web && pnpm vitest run           # 8 arquivos, 44 tests
 
 # Lint
-pnpm lint             # NÃO FUNCIONA — falta config ESLint (ver Dívidas)
+pnpm lint             # turbo run lint → eslint . no apps/web
+# Config flat em apps/web/eslint.config.mjs (estende next/core-web-vitals).
+# NÃO use `next lint`: deprecado no Next 15.5, removido no Next 16.
+
+# Banco local (ver subseção abaixo)
+pnpm db:seed:build    # gera supabase/seed/02_hasaneyldrm_exercises.sql a partir dos JSONs
+pnpm db:reset         # db:seed:build && supabase db reset
 ```
+
+### Banco de dados local (migrations + seeds)
+
+O catálogo de exercícios do dataset `hasaneyldrm` **não vive mais numa migration**. Ele é dado
+versionado em JSON, e o SQL é gerado sob demanda:
+
+| Caminho | O que é | Versionado? |
+|---|---|---|
+| `supabase/migrations/20260715170000_import_hasaneyldrm_exercises.sql` | Só o ajuste de schema (constraint `exercises_source_check` aceitando `hasaneyldrm`) | ✅ Sim |
+| `supabase/seed/data/hasaneyldrm-exercises.json` | 1324 exercícios | ✅ Sim |
+| `supabase/seed/data/hasaneyldrm-aliases.json` | 1324 aliases | ✅ Sim |
+| `supabase/seed/generate-exercises-seed.mjs` | Gerador ESM determinístico, zero dependências | ✅ Sim |
+| `supabase/seed/01_exercises.sql` | 78 exercícios curados (escrito à mão) | ✅ Sim |
+| `supabase/seed/02_hasaneyldrm_exercises.sql` | Saída do gerador | ❌ Não (`supabase/seed/.gitignore`) |
+
+O **nome e o timestamp da migration foram mantidos de propósito**: ela já pode estar aplicada em
+ambientes remotos, e renomear causaria drift no histórico. Não renomeie.
+
+**Fluxo correto para subir/resetar o banco local:**
+
+```bash
+pnpm db:reset          # gera o 02_*.sql e só então roda `supabase db reset`
+```
+
+`supabase/config.toml` agora tem `[db.seed] enabled = true` com `sql_paths = ["./seed/*.sql"]`.
+Antes disso os arquivos de `supabase/seed/` **nunca eram aplicados**; agora o `01_exercises.sql`
+(78 curados) roda de fato, e um reset completo passa de 1324 para **1402 exercícios**.
+
+**Editando os dados:** mexa nos JSONs de `supabase/seed/data/`. Eles são gravados com **um objeto
+JSON por linha dentro de um array válido** — mantenha esse formato ao editar, é ele que deixa o diff
+legível registro a registro. Depois rode `pnpm db:seed:build`.
+
+> ⚠️ **Ressalva 1 — seeds não vão para ambientes remotos.**
+> Seeds só rodam em `supabase db reset` (local). **Não** rodam em `supabase db push`.
+> Um projeto Supabase **novo** (staging/produção criada do zero) recebe o schema mas **não** recebe
+> os 1324 exercícios. Depois do push, aplique `supabase/seed/02_hasaneyldrm_exercises.sql`
+> manualmente (ex.: via `psql`). Em ambientes onde a migration original já foi aplicada, nada muda.
+
+> ⚠️ **Ressalva 2 — não rode `supabase db reset` direto num clone limpo.**
+> O `02_hasaneyldrm_exercises.sql` não existe até ser gerado, então um reset cru aplica **apenas** o
+> `01_exercises.sql` e você fica sem o catálogo. Use sempre `pnpm db:reset`.
+
+> **Sobre o peso:** o repo versionado foi de 1042 KB para 1205 KB. O refactor **não** economizou
+> bytes — o ganho é migration limpa e dados revisáveis por registro no diff.
 
 ### Armadilhas conhecidas
 
 | Armadilha | Por quê | Como evitar |
 |---|---|---|
 | **Build falha por causa de `vitest.setup.ts`** | O `tsconfig.json` do web inclui `**/*.ts`, que pega `vitest.setup.ts`. Ele importa `@testing-library/react` (devDependency) e quebra o build de produção. | Não commite sem verificar build local. Correção: excluir `**/*.test.ts`, `**/*.test.tsx` e `vitest.setup.ts` do `tsconfig.json` include. |
-| **Vitest escaneia `.worktrees/`** | Se houver uma worktree git local, o vitest pode encontrar arquivos `.test.tsx` duplicados lá e falhar. | Adicionar `.worktrees/` ao `exclude` do `vitest.config.ts`, ou manter worktrees fora do repo. |
+| **Vitest escaneia `.worktrees/`** | Se houver uma worktree git local, o vitest encontrava arquivos `.test.tsx` duplicados lá e falhava. | ✅ Resolvido: `apps/web/vitest.config.ts` tem `exclude: [...configDefaults.exclude, "**/.worktrees/**"]`. Ao mexer no `exclude`, **sempre** espalhe `configDefaults.exclude` junto — sobrescrever o array perde os defaults do vitest (`node_modules`, `dist`, …). |
+| **`pnpm build` falha com `ENOENT` em `.next/`** | Dois processos buildando o mesmo `apps/web` em paralelo (comum com agentes concorrentes no Windows) corrompem o diretório de build. Não é erro de código. | `rm -rf apps/web/.next apps/web/out apps/web/.turbo` e rebuildar sozinho. Detalhes em `DESAFIOS.md`. |
+| **`supabase db reset` num clone limpo não traz o catálogo** | O `supabase/seed/02_hasaneyldrm_exercises.sql` é gerado, não versionado. | Use `pnpm db:reset` (ver seção 2). |
 | **Next.js static export + images** | `images: { unoptimized: true }` é obrigatório para `output: "export"`. Se alguém remover isso, o build quebra. | Não alterar `next.config.ts` sem testar build. |
 | **Bundle budget gate quebra se manifest muda** | `scripts/check-bundle-budget.mjs` lê `.next/app-build-manifest.json`. Com `output: "export"`, o manifest ainda é gerado, mas o path é implícito. | Se o script falhar, verifique se `.next/` existe após build. |
 | **pnpm não está no PATH em alguns ambientes** | Em shells Git Bash no Windows, `pnpm` pode não ser encontrado se instalado via corepack. | Usar `corepack pnpm <cmd>` ou path absoluto. |
 
 ---
 
-## 3. Estado atual dos gates (validado em 2026-08-11)
+## 3. Estado atual dos gates (validado em 2026-08-12)
 
 > ⚠️ Não copie da auditoria — sempre revalide rodando localmente.
 
 | Gate | Estado | Evidência |
 |---|---|---|
-| **Engine tests** | ✅ Passando | `packages/engine`: 9 suites, 66 tests, 0 falhas |
-| **Web tests** | ⚠️ Parcial | Ambiente local não resolve `jsdom` corretamente (problema de hoisting pnpm). Em execução manual da raiz: 28 passaram, 9 falharam (todos da `.worktrees/`, não do projeto). |
-| **Engine typecheck** | ✅ Passando | `tsc --noEmit` limpo no `packages/engine` |
-| **Web typecheck** | ✅ Passando | `tsc --noEmit` limpo após excluir `**/*.test.ts`, `**/*.test.tsx`, `vitest.setup.ts` do `tsconfig.json` |
-| **Web build** | ✅ Passando | Static export gerado com sucesso (40 páginas) após fix do `tsconfig.json` |
-| **Lint** | ❌ Inexistente | Não há `.eslintrc` nem `eslint.config.*`; script `"lint": "next lint"` no `package.json` não funciona |
-| **Bundle budget** | ⚠️ Depende de build | Script existe e é chamado pela CI, mas o build precisa passar primeiro |
+| **Lint** | ✅ Passando | `pnpm lint` → 0 erros, 0 warnings. Config flat em `apps/web/eslint.config.mjs` |
+| **Typecheck** | ✅ Passando | `pnpm typecheck` limpo nos 4 pacotes do workspace |
+| **Testes** | ✅ Passando | `pnpm test` verde; `apps/web`: 8 arquivos, 44 tests, nenhum caminho de `.worktrees/` |
+| **Build web** | ✅ Passando | `pnpm build` gera o static export (`output: "export"`) |
+| **Bundle budget** | ✅ Passando | `node apps/web/scripts/check-bundle-budget.mjs` verde após o build |
+
+A CI (`.github/workflows/ci.yml`) roda, nesta ordem: `pnpm install --frozen-lockfile` → `pnpm lint`
+→ `pnpm typecheck` → `pnpm test` → `pnpm build`.
 
 ### Resumo dos gates
 ```
+Lint:    ████████████████████  OK  (eslint flat config, 0 erros / 0 warnings)
 Engine:  ████████████████████  OK  (tests + typecheck)
-Web:     ████████████████░░░░  OK  (build + typecheck), lint quebrado
-CI:      ████████████████░░░░  OK  (typecheck + build passam, lint falta)
+Web:     ████████████████████  OK  (lint + tests + typecheck + build)
+CI:      ████████████████████  OK  (lint + typecheck + test + build)
 ```
 
 ---
@@ -94,35 +149,12 @@ CI:      ████████████████░░░░  OK  (type
 
 > Cada dívida: o que é → onde → o que fazer ao tocar na área.
 
-### D1 — ESLint não configurado
-- **O que é:** Script `"lint": "next lint"` existe mas não há config nem dependência instalada.
-- **Onde:** `apps/web/package.json`; ausência de `.eslintrc*`
-- **O que fazer ao tocar:**
-  - Instalar `eslint` + `eslint-config-next` como devDependencies
-  - Criar `.eslintrc.json` mínimo
-  - Rodar `pnpm lint` e corrigir erros existentes (pode ser volumoso)
-  - Adicionar `pnpm lint` à CI
+**Nenhuma dívida viva no momento (2026-08-12).** D1, D2, D3, D4 e D5 foram pagas — ver
+**Apêndice A**. Ao abrir uma nova dívida, use o próximo número sequencial (D6).
 
-### D2 — `vitest.config.ts` não exclui `.worktrees/`
-- **O que é:** Se existir uma git worktree local, o vitest escaneia seus arquivos `.test.tsx` e pode falhar (imports não resolvem no contexto da worktree).
-- **Onde:** `apps/web/vitest.config.ts`
-- **O que fazer ao tocar:**
-  - Adicionar `'.worktrees'` ao array `exclude` do vitest config
-  - Ou usar `include` mais restrito ao invés de deixar vitest escanear tudo
-
-### D4 — `@bstrainer/db` é dependência fantasma no web
-- **O que é:** `apps/web/package.json` declara `@bstrainer/db` como dependência, mas nenhum arquivo do web o importa. O web usa Supabase diretamente.
-- **Onde:** `apps/web/package.json`
-- **O que fazer ao tocar:**
-  - Remover `@bstrainer/db` do `apps/web/package.json` se não houver plano de uso imediato
-  - Ou migrar os data layers do web para usar `@bstrainer/db`
-
-### D5 — Migration gigante no repo
-- **O que é:** `20260715170000_import_hasaneyldrm_exercises.sql` tem ~1MB de INSERTs. Dificulta clone e review.
-- **Onde:** `supabase/migrations/`
-- **O que fazer ao tocar:**
-  - Considerar converter para seed script que lê JSON externo
-  - Ou separar em migration de schema + seed de dados
+Pontos de atenção que sobraram do refactor de seeds (não são dívida, são operação — detalhados na
+seção 2): seeds não são aplicados por `supabase db push`, e `supabase db reset` precisa ser
+precedido de `pnpm db:seed:build` (use `pnpm db:reset`).
 
 ---
 
@@ -151,11 +183,14 @@ chore: update pnpm-lock.yaml
 - Ver `docs/agents/issue-tracker.md` e `docs/agents/triage-labels.md`
 
 ### Code review — checklist mínimo
+- [ ] Lint passa: `pnpm lint` (0 erros, 0 warnings)
 - [ ] Build passa: `pnpm build`
 - [ ] Typecheck passa: `pnpm typecheck`
-- [ ] Testes do engine passam: `cd packages/engine && pnpm vitest run`
+- [ ] Testes passam: `pnpm test`
 - [ ] Não introduz novas dependências sem justificativa
 - [ ] Migrations são versionadas e nomeadas com timestamp `YYYYMMDDhhmmss_`
+- [ ] Migrations existentes **não** foram renomeadas (causa drift em ambientes já aplicados)
+- [ ] Alterou catálogo de exercícios? Mexeu nos JSONs de `supabase/seed/data/`, não no SQL gerado
 - [ ] RLS cobre novas tabelas (se aplicável)
 
 ---
@@ -165,18 +200,23 @@ chore: update pnpm-lock.yaml
 Antes de `git commit`, verifique:
 
 ```bash
-# 1. Typecheck no engine (rápido, 2-3s)
-cd packages/engine && tsc --noEmit
+# 1. Lint (rápido)
+pnpm lint
 
-# 2. Testes do engine (rápido, 3-5s)
-cd packages/engine && vitest run
+# 2. Typecheck (4 pacotes)
+pnpm typecheck
 
-# 3. Build do web (mais lento, ~20-30s)
-cd apps/web && next build
+# 3. Testes
+pnpm test
+
+# 4. Build do web (mais lento, ~20-30s)
+pnpm build
 # Build validado — deve passar antes de abrir PR.
+# Se der ENOENT em .next/, provavelmente há outro build rodando em paralelo: ver DESAFIOS.md.
 
-# 4. Verifique se não commitou arquivos de runtime
+# 5. Verifique se não commitou arquivos de runtime
 # Nunca commite: .claude/, .claude-flow/, .next/, out/, node_modules/
+#                supabase/seed/02_hasaneyldrm_exercises.sql (gerado)
 ```
 
 ---
@@ -194,7 +234,37 @@ cd apps/web && next build
 
 ## Apêndice A — Dívidas resolvidas
 
+### D1 — ESLint não configurado
+- **Resolvido em:** 2026-08-12
+- **O que foi feito:**
+  - `apps/web` ganhou as devDeps `eslint@^9.39.5`, `eslint-config-next@15.5.20` e `@eslint/eslintrc@^3.3.6`
+  - Config flat em `apps/web/eslint.config.mjs`, estendendo `next/core-web-vitals` via `FlatCompat`; ignora `.next/`, `out/`, `node_modules/`, `.worktrees/` e `next-env.d.ts`
+  - Script trocado de `"lint": "next lint"` para `"lint": "eslint ."` — `next lint` está deprecado no Next 15.5 e foi removido no Next 16
+  - Correções no código para zerar o lint: aspas escapadas em `app/(app)/plans/page.tsx`; `postcss.config.mjs` deixou de exportar objeto anônimo; `usePlanFromTemplate` renomeada para `createPlanFromTemplate` em `lib/data/plans.ts` e `components/UseTemplateButton.tsx` — o prefixo `use` fazia o ESLint tratá-la como React hook e disparar `rules-of-hooks`
+  - `.github/workflows/ci.yml` passou a rodar `pnpm lint` logo após o install
+- **Gate:** `pnpm lint` → 0 erros, 0 warnings
+
+### D2 — `vitest.config.ts` não exclui `.worktrees/`
+- **Resolvido em:** 2026-08-12
+- **O que foi feito:** `apps/web/vitest.config.ts` ganhou `exclude: [...configDefaults.exclude, "**/.worktrees/**"]` — os defaults do vitest são preservados via `configDefaults`, em vez de sobrescritos.
+- **Gate:** `pnpm vitest run` no `apps/web` → 8 arquivos, 44 tests, nenhum caminho de `.worktrees/`
+
 ### D3 — README e ARQUITETURA.md desatualizados
 - **Resolvido em:** 2026-08-11
 - **Commit:** `3b60dd1` — `docs: corrige README e ARQUITETURA.md para refletir estado real do código`
 - **O que foi feito:** README atualizado com status real do MVP; ARQUITETURA.md seção F corrigida para refletir estrutura real do repo; menções a libs não usadas removidas.
+
+### D4 — `@bstrainer/db` é dependência fantasma no web
+- **Resolvido em:** já estava resolvida (a doc é que estava desatualizada)
+- **O que foi feito:** a dependência **não existe** em `apps/web/package.json` — nem no HEAD. Nada a remover. `packages/db` continua no workspace, hoje sem consumidores; se seguir assim, vira candidato a uma dívida futura própria.
+
+### D5 — Migration gigante no repo
+- **Resolvido em:** 2026-08-12
+- **O que foi feito:**
+  - `supabase/migrations/20260715170000_import_hasaneyldrm_exercises.sql` foi reduzida a ~12 linhas contendo **apenas** o ajuste de schema (`drop constraint if exists exercises_source_check` + `add constraint … check (source in ('wger','custom','hasaneyldrm'))`). Nome e timestamp mantidos de propósito, para não causar drift onde a migration já foi aplicada.
+  - Dados viraram JSON versionado: `supabase/seed/data/hasaneyldrm-exercises.json` (1324 registros) e `hasaneyldrm-aliases.json` (1324), no formato "um objeto JSON por linha dentro de um array válido" — diff legível registro a registro.
+  - `supabase/seed/generate-exercises-seed.mjs` (ESM, zero dependências) gera `supabase/seed/02_hasaneyldrm_exercises.sql` de forma determinística. O SQL gerado **não** é versionado (`supabase/seed/.gitignore`).
+  - `supabase/config.toml` ganhou `[db.seed] enabled = true` / `sql_paths = ["./seed/*.sql"]`. Antes disso os seeds de `supabase/seed/` **nunca** eram aplicados; como efeito colateral pretendido, o `01_exercises.sql` (78 curados) passou a rodar e um reset vai de 1324 para 1402 exercícios.
+  - Scripts na raiz: `db:seed:build` e `db:reset` (= `pnpm db:seed:build && supabase db reset`).
+- **Sobre o peso:** 1042 KB → 1205 KB de conteúdo versionado. O refactor **não** economizou espaço; o ganho é migration limpa e dados revisáveis por registro.
+- **Ressalvas operacionais:** seeds não rodam em `supabase db push`, e `supabase db reset` cru num clone limpo não traz o catálogo. Ambas detalhadas na **seção 2**.

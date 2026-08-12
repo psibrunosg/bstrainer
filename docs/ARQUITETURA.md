@@ -2,6 +2,7 @@
 
 **Documento oficial v0.1 — 2026-07-12**  
 *Atualizado em 2026-08-11 para refletir estado real do código.*  
+*Atualizado em 2026-08-12: seção F — novo layout de `supabase/seed/` (dados em JSON + gerador). Fluxo de banco em `docs/manutencao.md` §2.*  
 Repo: `bstrainer`
 
 ---
@@ -242,8 +243,13 @@ bstrainer/
 │   │   └── gamification/           # strength-score, XP, badges
 │   └── db/                         # tipos gerados do Supabase
 ├── supabase/
-│   ├── migrations/                 # SQL versionado (schema seção A)
-│   ├── seed/                       # exercícios importados, templates
+│   ├── config.toml                 # inclui [db.seed] → aplica ./seed/*.sql no `db reset`
+│   ├── migrations/                 # SQL versionado (schema seção A) — só schema, sem dados
+│   ├── seed/
+│   │   ├── data/                   # catálogo hasaneyldrm em JSON (fonte de verdade, versionado)
+│   │   ├── generate-exercises-seed.mjs  # gera 02_*.sql a partir de ./data (pnpm db:seed:build)
+│   │   ├── 01_exercises.sql        # exercícios curados pt-BR (escrito à mão)
+│   │   └── .gitignore              # ignora o 02_*.sql gerado
 │   └── functions/                  # Edge Functions (preparado, não usado ainda)
 ├── docs/
 │   ├── ARQUITETURA.md              # este documento

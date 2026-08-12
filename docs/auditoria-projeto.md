@@ -3,7 +3,8 @@
 > **Data da auditoria:** 2026-08-11  
 > **Auditor:** agente sênior (análise baseada em código real, não em documentação)  
 > **Branch:** `main`  
-> **Commits desde o início:** ~100+ (histórico ativo desde 2026-07)
+> **Commits desde o início:** ~100+ (histórico ativo desde 2026-07)  
+> **Revisão de status:** 2026-08-12 — itens 6, 7 e 13 marcados como resolvidos (ver `docs/manutencao.md`, Apêndice A). O restante da auditoria segue como capturado em 2026-08-11.
 
 ---
 
@@ -85,14 +86,14 @@ Contrário ao que o README afirma ("implementação não iniciada"), o projeto e
 | 3 | **`(marketing)/` e `api/` não existem** | `docs/ARQUITETURA.md` lista `app/(marketing)/` (landing, pricing) e `app/api/` (webhooks, AI). Não existem no disco. | Documentação divergente da estrutura real | Atualizar seção F da ARQUITETURA.md |
 | 4 | **TanStack Query e Zod "nas bordas" não usados no web** | ARQUITETURA.md seção E lista TanStack Query + Zod. No `apps/web/package.json` não há `@tanstack/react-query`, e `zod` não é importado em nenhum arquivo `.ts/.tsx` do web. | Stack documentada ≠ stack real | Atualizar docs ou adicionar as libs se fizerem parte do roadmap |
 | 5 | **Dexie mencionado, `idb` usado** | ARQUITETURA.md cita "Dexie" para offline. O web usa `idb` (pacote mais baixo-nível) diretamente em `lib/workout/storage.ts` e `lib/workout/sync.ts`. | Pequena inconsistência de docs | Atualizar docs ou migrar para Dexie se for intenção |
-| 6 | **ESLint não configurado** | `apps/web/package.json` tem script `"lint": "next lint"`, mas **não existe** `.eslintrc*`, `eslint.config.*`, nem `eslint` em `devDependencies`. | Gate de qualidade ausente; CI não roda lint de fato | Adicionar config ESLint + devDependency, ou remover script |
-| 7 | **`@bstrainer/db` não é usado no web** | `apps/web/package.json` depende de `@bstrainer/db` (workspace), mas grep por `@bstrainer/db` em `apps/web/` retorna 0 imports. O web usa `supabase-js` direto via `@/lib/supabase/client.ts`. | Dependência fantasma no web | Remover `@bstrainer/db` do `apps/web/package.json` se não for usado |
+| 6 | ✅ **RESOLVIDO (2026-08-12) — ESLint não configurado** | Havia script `"lint": "next lint"` sem config nem dependência. | Gate de qualidade ausente; CI não rodava lint de fato | Feito: devDeps `eslint@^9.39.5` + `eslint-config-next@15.5.20` + `@eslint/eslintrc@^3.3.6`, config flat em `apps/web/eslint.config.mjs` (estende `next/core-web-vitals`), script trocado para `"lint": "eslint ."` (o `next lint` foi removido no Next 16) e `pnpm lint` adicionado ao `ci.yml`. Gate: 0 erros, 0 warnings |
+| 7 | ✅ **RESOLVIDO (2026-08-12) — `@bstrainer/db` não é usado no web** | Reverificado: `@bstrainer/db` **não** consta em `apps/web/package.json` — nem no HEAD. O achado original já não valia; a documentação é que estava desatualizada. | Nenhum — não havia dependência fantasma a remover | Nada a fazer no web. `packages/db` segue no workspace sem consumidores; se continuar assim, vira candidato a remoção em auditoria futura |
 | 8 | **`@bstrainer/domain` pouco usado no web** | Domain é dependência do web e do engine. No web, tipos vêm principalmente de `@/lib/data/*` (wrappers do Supabase), não de `@bstrainer/domain`. | Package domain pode estar subutilizado no front | Avaliar se vale a pena manter a duplicação de tipos |
 | 9 | **CI roda `check-bundle-budget.mjs` que depende de `.next/`** | `.github/workflows/ci.yml` roda `node apps/web/scripts/check-bundle-budget.mjs`. O script lê `.next/app-build-manifest.json`, mas o build usa `output: "export"` que gera `out/`. O manifest ainda é gerado durante build, mas o script depende de path relativo ao `.next/`. | Gate de bundle pode quebrar silenciosamente se o manifest não for gerado | Validar que o manifest existe após build static, ou ajustar script |
 | 10 | **`skills-lock.json` não documentado** | Arquivo `skills-lock.json` na raiz (10KB) — não há menção nos docs sobre o que é. | Arquivo misterioso para novos devs | Documentar propósito ou mover para `.gitignore` se for lock de ferramenta local |
 | 11 | **`.worktrees/` no `.gitignore` mas presente no disco** | `.worktrees/reliability-foundation/` existe no working tree com cópia parcial do repo. | Artefato de desenvolvimento local | Nenhuma ação se não estiver rastreado (não está) |
 | 12 | **Migrations em ordem cronológica mas com gaps de data** | Migrations vão de `20260712*` até `20260804*`, mas há saltos (ex.: `20260715*` → `20260717*` → `20260720*` → `20260804*`). Não há conflito de timestamp. | Nenhum impacto funcional, mas pode confundir | Manter como está; documentar que gaps são normais |
-| 13 | **Migration de exercícios gigante (~1MB)** | `20260715170000_import_hasaneyldrm_exercises.sql` contém ~3000+ INSERTs de exercícios e ocupa ~1MB. | Deixa o repo pesado para clone; não é versionável de forma útil | Considerar migrar para seed script (SQL gerado dinamicamente) ou arquivo JSON separado |
+| 13 | ✅ **RESOLVIDO (2026-08-12) — Migration de exercícios gigante (~1MB)** | `20260715170000_import_hasaneyldrm_exercises.sql` tinha ~1MB de INSERTs. Hoje tem ~12 linhas, só o ajuste da constraint `exercises_source_check` (nome/timestamp mantidos de propósito para não causar drift). | Migration ilegível em review; dados não revisáveis | Feito: dados versionados em `supabase/seed/data/*.json` (1324 exercícios + 1324 aliases, um objeto por linha), gerador determinístico `supabase/seed/generate-exercises-seed.mjs`, SQL gerado não versionado, `[db.seed]` habilitado no `config.toml` e scripts `pnpm db:seed:build` / `pnpm db:reset`. **Não houve economia de bytes** (1042 KB → 1205 KB versionados); o ganho é migration limpa + diff por registro. Ressalvas de deploy em `docs/manutencao.md` §2 |
 
 ---
 
@@ -108,10 +109,10 @@ Contrário ao que o README afirma ("implementação não iniciada"), o projeto e
 **Porquê:** Documentação desatualizada cria desconfiança e desorienta qualquer pessoa que entre no projeto.
 **Como:** Atualizar README com status real, lista de features implementadas, e link para docs. Atualizar `ARQUITETURA.md` seção F (estrutura do repo) para refletir a realidade atual.
 
-### 🥉 #3 — Configurar ESLint ou remover o script de lint
-**O quê:** `apps/web/package.json` tem `"lint": "next lint"` mas não há configuração de ESLint instalada.
-**Porquê:** Gate de qualidade quebrado/ilusório. A CI não roda `pnpm lint` mas o script existe e não funciona.
-**Como:** Instalar `eslint` + `eslint-config-next` como devDependencies e criar config, OU remover o script do package.json se não for prioridade agora.
+### 🥉 #3 — Configurar ESLint ou remover o script de lint — ✅ CONCLUÍDO (2026-08-12)
+**O quê:** `apps/web/package.json` tinha `"lint": "next lint"` mas não havia configuração de ESLint instalada.
+**Porquê:** Gate de qualidade quebrado/ilusório. A CI não rodava `pnpm lint` e o script não funcionava.
+**Como (feito):** `eslint` + `eslint-config-next` + `@eslint/eslintrc` instalados como devDependencies, config flat em `apps/web/eslint.config.mjs`, script trocado para `"eslint ."` e `pnpm lint` adicionado ao `.github/workflows/ci.yml`. Gate verde: 0 erros, 0 warnings.
 
 ---
 
