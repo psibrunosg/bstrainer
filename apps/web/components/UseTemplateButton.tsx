@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LoadType } from "@bstrainer/domain";
-import { usePlanFromTemplate } from "@/lib/data/plans";
+import { createPlanFromTemplate } from "@/lib/data/plans";
 
 const EQUIPMENT: { key: LoadType; label: string }[] = [
   { key: "barbell", label: "Barra" },
@@ -46,7 +46,7 @@ export function UseTemplateButton({ templateId }: { templateId: string }) {
   function confirm() {
     setError(null);
     startTransition(async () => {
-      const result = await usePlanFromTemplate(templateId, [...selected], clientId);
+      const result = await createPlanFromTemplate(templateId, [...selected], clientId);
       if (result.ok) {
         router.push(clientId ? "/clients" : "/plans");
       } else {

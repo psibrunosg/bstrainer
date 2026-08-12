@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -22,6 +22,7 @@
     "recharts": "^3.9.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
     "@tailwindcss/postcss": "^4.1.0",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "7.0.0",
@@ -30,6 +31,8 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "15.5.20",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "30.0.1",
     "tailwindcss": "^4.1.0",

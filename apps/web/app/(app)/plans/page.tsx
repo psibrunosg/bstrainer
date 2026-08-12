@@ -63,7 +63,7 @@ export default function PlansPage() {
         <p className="text-sm text-mute">Escolha um aluno pra criar uma ficha nova.</p>
         {active.length === 0 ? (
           <p className="rounded-lg border border-line bg-surface p-6 text-center text-sm text-mute">
-            Nenhum aluno ativo ainda. Convide alunos em "Alunos".
+            Nenhum aluno ativo ainda. Convide alunos em &quot;Alunos&quot;.
           </p>
         ) : (
           <ul className="space-y-2">

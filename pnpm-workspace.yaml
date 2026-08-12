@@ -4,3 +4,6 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: true
+  # Transitive dep de eslint-config-next (eslint-plugin-import-x).
+  # O postinstall so valida o binario nativo ja instalado via optionalDependencies.
+  unrs-resolver: false

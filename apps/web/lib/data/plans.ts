@@ -15,7 +15,7 @@ export interface UsePlanResult {
  * Instancia um template para o equipamento do usuário e persiste o plano
  * completo no banco. Roda no browser; RLS garante o isolamento por org.
  */
-export async function usePlanFromTemplate(
+export async function createPlanFromTemplate(
   templateId: string,
   equipment: LoadType[],
   clientId?: string,
