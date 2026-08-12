@@ -7,6 +7,17 @@ port = 54321
 [db]
 port = 54322
 
+# Aplica os seeds em ordem alfabetica apos as migrations em `supabase db reset`.
+#
+# ATENCAO: 02_hasaneyldrm_exercises.sql e GERADO e NAO e versionado (ver
+# supabase/seed/.gitignore). Num clone limpo ele nao existe, e rodar
+# `supabase db reset` direto aplica somente o 01_exercises.sql — sem os 1324
+# exercicios do catalogo hasaneyldrm. Use `pnpm db:reset`, que roda
+# `pnpm db:seed:build` antes de resetar.
+[db.seed]
+enabled = true
+sql_paths = ["./seed/*.sql"]
+
 [studio]
 enabled = true
 port = 54323

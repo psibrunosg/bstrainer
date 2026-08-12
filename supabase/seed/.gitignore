@@ -1,0 +1,3 @@
+# SQL gerado a partir de ./data/*.json — nao versionado (mantem o clone leve).
+# Regenerar com `pnpm db:seed:build` (ou use `pnpm db:reset`, que ja faz isso antes).
+02_hasaneyldrm_exercises.sql
