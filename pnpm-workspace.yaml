@@ -1,5 +1,6 @@
 packages:
   - "apps/*"
+  - "!apps/web-redesign"
   - "packages/*"
 allowBuilds:
   esbuild: true
