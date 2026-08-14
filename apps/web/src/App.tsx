@@ -39,7 +39,7 @@ const ALL = [...PRIMARY, ...MORE]
 export function Logo({ size = 40 }: { size?: number }) {
   return (
     <div className="flex items-center gap-3">
-      <img src="/lobo-movimento.png" alt="BS Trainer" width={size} height={size}
+      <img src={`${import.meta.env.BASE_URL}lobo-movimento.png`} alt="BS Trainer" width={size} height={size}
         className="rounded-xl object-cover ring-1 ring-line" style={{ width: size, height: size }} />
       <div className="leading-none">
         <span className="font-display text-lg tracking-tight text-foreground">BS<span className="text-volt">TRAINER</span></span>

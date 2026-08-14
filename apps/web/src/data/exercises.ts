@@ -176,4 +176,4 @@ export const EXERCISES: Exercise[] = [
 
 export const MUSCLES: Muscle[] = ['Peito', 'Costas', 'Ombros', 'Quadríceps', 'Posteriores', 'Glúteos', 'Panturrilha', 'Bíceps', 'Tríceps', 'Core'];
 
-export const byId = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
+export const byId = Object.fromEntries(EXERCISES.map((e) => [e.id, { ...e, gif: e.gif ? `${import.meta.env.BASE_URL}exercise-media/bstrainer/${e.gif.split('/').pop()}` : '' }]));
