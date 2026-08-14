@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* BS Trainer — Dark Premium "Noturno" */
+    --background: 150 14% 3%;          /* #05080a verde-preto profundo */
+    --foreground: 120 14% 94%;         /* off-white frio */
+    --card: 150 11% 6%;
+    --card-foreground: 120 14% 94%;
+    --popover: 150 11% 6%;
+    --popover-foreground: 120 14% 94%;
+    --primary: 73 60% 55%;             /* lima do lobo */
+    --primary-foreground: 150 20% 6%;
+    --secondary: 152 12% 11%;
+    --secondary-foreground: 120 14% 94%;
+    --muted: 152 12% 11%;
+    --muted-foreground: 140 6% 56%;
+    --accent: 172 66% 50%;             /* teal do lobo */
+    --accent-foreground: 160 20% 6%;
+    --destructive: 6 70% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 152 12% 13%;
+    --input: 152 12% 15%;
+    --ring: 73 60% 55%;
+    --radius: 1rem;
+
+    /* tokens próprios */
+    --volt: 73 66% 58%;                /* lima vibrante */
+    --aqua: 172 70% 52%;               /* teal vibrante */
+    --surface: 150 12% 5.5%;
+    --surface-2: 152 13% 9%;
+    --line: 152 12% 14%;
+
+    --sidebar-background: 150 12% 5%;
+    --sidebar-foreground: 120 14% 94%;
+    --sidebar-primary: 73 60% 55%;
+    --sidebar-primary-foreground: 150 20% 6%;
+    --sidebar-accent: 152 12% 11%;
+    --sidebar-accent-foreground: 120 14% 94%;
+    --sidebar-border: 152 12% 13%;
+    --sidebar-ring: 73 60% 55%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background: #04070a;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-feature-settings: 'ss01' on, 'cv11' on;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--line)); border-radius: 99px; }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .font-mono-num {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-gradient-volt {
+    background: linear-gradient(92deg, hsl(73 66% 62%), hsl(172 70% 55%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .card-surface {
+    background: linear-gradient(160deg, hsl(var(--surface-2)) 0%, hsl(var(--surface)) 70%);
+    border: 1px solid hsl(var(--line));
+  }
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-rise { animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-pulse-soft { animation: pulse-soft 1.6s ease-in-out infinite; }
