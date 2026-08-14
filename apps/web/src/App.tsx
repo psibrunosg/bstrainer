@@ -12,6 +12,7 @@ import Messages from './sections/Messages'
 import Personal from './sections/Personal'
 import Settings from './sections/Settings'
 import Onboarding from './sections/Onboarding'
+import Login from './sections/Login'
 
 export type Tab =
   | 'inicio' | 'treino' | 'planos' | 'biblioteca' | 'progresso'
@@ -146,6 +147,12 @@ function Shell() {
 }
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  if (!isAuthenticated) {
+    return <Login onLogin={() => setIsAuthenticated(true)} />
+  }
+
   return (
     <Routes>
       <Route path="/" element={<Shell />} />
