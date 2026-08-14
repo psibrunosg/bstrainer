@@ -30,20 +30,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
-      # Redesign (apps/web-redesign): app Vite standalone
-      - name: Build redesign
-        run: |
-          cd apps/web-redesign
-          npm install
-          npm run build
-          mkdir -p ../web/out/redesign
-          cp -r dist/* ../web/out/redesign/
-          cp ../web/public/lobo-movimento.png ../web/out/redesign/lobo-movimento.png
-
-      - run: touch apps/web/out/.nojekyll
+      - run: touch apps/web/dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/web/out
+          path: apps/web/dist
 
   deploy:
     needs: build
