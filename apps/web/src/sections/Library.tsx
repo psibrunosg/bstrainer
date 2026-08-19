@@ -16,11 +16,11 @@ function ExerciseModal({ ex, onClose }: { ex: DbExercise; onClose: () => void })
           <button onClick={onClose} className="rounded-full border border-line p-2 text-muted-foreground hover:text-foreground"><X size={16} /></button>
         </div>
         {ex.gif ? (
-          <div className="mt-5 overflow-hidden rounded-2xl border border-line bg-surface">
+          <div className="mt-5 overflow-hidden rounded-3xl border border-line bg-surface">
             <img src={ex.gif} alt={ex.name} className="aspect-square w-full object-cover" />
           </div>
         ) : (
-          <div className="mt-5 flex aspect-video items-center justify-center rounded-2xl border border-line bg-surface text-muted-foreground">
+          <div className="mt-5 flex aspect-video items-center justify-center rounded-3xl border border-line bg-surface text-muted-foreground">
             <Dumbbell size={28} />
           </div>
         )}
@@ -75,10 +75,8 @@ export default function LibrarySection() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3 animate-rise">
         <div>
-          <h1 className="font-display text-3xl lg:text-4xl">Biblioteca de exercícios</h1>
-          <p className="mt-1 text-muted-foreground">
-            <span className="font-mono-num text-volt">{total || '…'}</span> exercícios reais do banco — execução em movimento.
-          </p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Catálogo</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Biblioteca de exercícios</h1>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-aqua">
           <span className="h-1.5 w-1.5 rounded-full bg-volt animate-pulse-soft" /> Supabase ao vivo
@@ -91,7 +89,7 @@ export default function LibrarySection() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar exercício…"
-          className="w-full rounded-2xl border border-line bg-surface py-3.5 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-volt/60"
+          className="w-full rounded-3xl border border-line bg-surface py-3.5 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-volt/60"
         />
       </div>
 
@@ -110,7 +108,7 @@ export default function LibrarySection() {
       </div>
 
       {error && (
-        <p className="card-surface rounded-2xl p-5 text-sm text-destructive animate-rise">
+        <p className="card-surface rounded-3xl p-5 text-sm text-destructive animate-rise">
           Não consegui falar com o Supabase agora. Verifique a conexão e tente de novo.
         </p>
       )}
@@ -120,7 +118,7 @@ export default function LibrarySection() {
           <button
             key={e.id}
             onClick={() => setSel(e)}
-            className="card-surface group overflow-hidden rounded-2xl text-left transition-transform hover:-translate-y-1 animate-rise"
+            className="card-surface group overflow-hidden rounded-3xl text-left transition-transform hover:-translate-y-1 animate-rise"
             style={{ animationDelay: `${Math.min(i % PAGE_SIZE, 12) * 30}ms` }}
           >
             <div className="relative aspect-square overflow-hidden bg-surface">
@@ -152,7 +150,7 @@ export default function LibrarySection() {
       {!loading && hasMore && (
         <button
           onClick={() => setPage((p) => p + 1)}
-          className="w-full rounded-2xl border border-line py-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-volt/50 hover:text-foreground"
+          className="w-full rounded-3xl border border-line py-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-volt/50 hover:text-foreground"
         >
           Carregar mais ({items.length} de {total})
         </button>

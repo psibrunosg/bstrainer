@@ -132,7 +132,7 @@ function Shell() {
             <div className="grid grid-cols-3 gap-2">
               {MORE.map(({ id, label, icon: Icon }) => (
                 <button key={id} onClick={() => go(id)}
-                  className={`flex flex-col items-center gap-2 rounded-2xl border py-4 text-xs font-medium transition-colors ${
+                  className={`flex flex-col items-center gap-2 rounded-3xl border py-4 text-xs font-medium transition-colors ${
                     tab === id ? 'border-volt/40 bg-volt/10 text-volt' : 'border-line text-muted-foreground'
                   }`}>
                   <Icon size={20} />{label}

@@ -51,14 +51,16 @@ const tooltipStyle = {
 export default function ProgressSection() {
   return (
     <div className="space-y-6">
-      <div className="animate-rise">
-        <h1 className="font-display text-3xl lg:text-4xl">Progresso</h1>
-        <p className="mt-1 text-muted-foreground">Mesociclo atual — últimas 6 semanas.</p>
+            <div className="animate-rise flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Estatísticas</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Progresso</h1>
+        </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2 animate-rise" style={{ animationDelay: '60ms' }}>
         {/* Nível XP */}
-        <section className="card-surface grain relative overflow-hidden rounded-2xl p-5">
+        <section className="card-surface grain relative overflow-hidden rounded-3xl p-5">
           <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-aqua/10 blur-3xl" />
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Zap size={13} className="text-volt" /> Nível {XP.level}</span>
@@ -70,7 +72,7 @@ export default function ProgressSection() {
         </section>
 
         {/* Strength score */}
-        <section className="card-surface rounded-2xl p-5">
+        <section className="card-surface rounded-3xl p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Strength Score</span>
             <span className="font-mono-num font-display text-3xl font-bold text-volt">{STRENGTH.overall}</span>
@@ -85,7 +87,7 @@ export default function ProgressSection() {
 
       {/* Badges + Metas */}
       <div className="grid gap-3 lg:grid-cols-2 animate-rise" style={{ animationDelay: '90ms' }}>
-        <section className="card-surface rounded-2xl p-5">
+        <section className="card-surface rounded-3xl p-5">
           <h3 className="font-display text-lg">Conquistas</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {BADGES.map((b) => (
@@ -95,7 +97,7 @@ export default function ProgressSection() {
             ))}
           </div>
         </section>
-        <section className="card-surface rounded-2xl p-5">
+        <section className="card-surface rounded-3xl p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-lg">Metas</h3>
             <Target size={15} className="text-aqua" />
@@ -125,7 +127,7 @@ export default function ProgressSection() {
           { icon: Medal, label: 'PRs no ciclo', value: '7' },
           { icon: CalendarCheck, label: 'Adesão', value: '92%' },
         ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="card-surface rounded-2xl p-4">
+          <div key={label} className="card-surface rounded-3xl p-4">
             <Icon size={16} className="text-aqua" />
             <p className="font-mono-num mt-3 text-2xl font-semibold lg:text-3xl">{value}</p>
             <p className="mt-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
@@ -133,7 +135,7 @@ export default function ProgressSection() {
         ))}
       </div>
 
-      <section className="card-surface rounded-2xl p-5 animate-rise" style={{ animationDelay: '120ms' }}>
+      <section className="card-surface rounded-3xl p-5 animate-rise" style={{ animationDelay: '120ms' }}>
         <h3 className="font-display text-lg">Carga estimada nos básicos</h3>
         <p className="text-xs text-muted-foreground">Top set de trabalho, kg</p>
         <div className="mt-4 h-56">
@@ -161,7 +163,7 @@ export default function ProgressSection() {
       </section>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <section className="card-surface rounded-2xl p-5 animate-rise" style={{ animationDelay: '180ms' }}>
+        <section className="card-surface rounded-3xl p-5 animate-rise" style={{ animationDelay: '180ms' }}>
           <h3 className="font-display text-lg">Volume semanal</h3>
           <p className="text-xs text-muted-foreground">Toneladas por semana</p>
           <div className="mt-4 h-44">
@@ -176,7 +178,7 @@ export default function ProgressSection() {
           </div>
         </section>
 
-        <section className="card-surface rounded-2xl p-5 animate-rise" style={{ animationDelay: '240ms' }}>
+        <section className="card-surface rounded-3xl p-5 animate-rise" style={{ animationDelay: '240ms' }}>
           <h3 className="font-display text-lg">Recordes recentes</h3>
           <div className="mt-3 divide-y divide-line">
             {PRS.map((p) => (
@@ -192,7 +194,7 @@ export default function ProgressSection() {
         </section>
       </div>
 
-      <section className="card-surface rounded-2xl p-5 animate-rise" style={{ animationDelay: '300ms' }}>
+      <section className="card-surface rounded-3xl p-5 animate-rise" style={{ animationDelay: '300ms' }}>
         <h3 className="font-display text-lg">Consistência — 12 semanas</h3>
         <div className="mt-4 grid grid-cols-12 gap-1.5">
           {WEEKS.map((n, i) => (

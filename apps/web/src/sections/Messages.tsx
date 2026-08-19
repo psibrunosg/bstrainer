@@ -50,7 +50,7 @@ export default function Messages({ initialName }: { initialName?: string | null 
     return (
       <div className="flex h-[calc(100dvh-12rem)] flex-col lg:h-[calc(100dvh-10rem)] animate-rise">
         <div className="flex items-center gap-3 border-b border-line pb-3">
-          <button onClick={() => setOpen(null)} className="rounded-xl border border-line p-2 text-muted-foreground hover:text-foreground"><ArrowLeft size={16} /></button>
+          <button onClick={() => setOpen(null)} className="rounded-full border border-line p-2 text-muted-foreground hover:text-foreground"><ArrowLeft size={16} /></button>
           <div>
             <h1 className="font-display text-lg leading-tight">{open.name}</h1>
             <p className="text-[11px] text-muted-foreground">{open.role}</p>
@@ -58,7 +58,7 @@ export default function Messages({ initialName }: { initialName?: string | null 
         </div>
         <div className="flex-1 space-y-2.5 overflow-y-auto py-4">
           {open.messages.map((m) => (
-            <div key={m.id} className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+            <div key={m.id} className={`max-w-[80%] rounded-3xl px-4 py-2.5 text-sm leading-relaxed ${
               m.mine ? 'ml-auto rounded-br-md bg-volt/15 text-foreground' : 'rounded-bl-md border border-line bg-surface'
             }`}>
               {m.body}
@@ -71,9 +71,9 @@ export default function Messages({ initialName }: { initialName?: string | null 
           <input value={draft} onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send()}
             placeholder="Escrever…"
-            className="h-12 flex-1 rounded-2xl border border-line bg-surface px-4 text-sm outline-none placeholder:text-muted-foreground focus:border-volt/60" />
+            className="h-12 flex-1 rounded-3xl border border-line bg-surface px-4 text-sm outline-none placeholder:text-muted-foreground focus:border-volt/60" />
           <button onClick={send} disabled={!draft.trim()}
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-volt text-[#101405] transition-transform active:scale-95 disabled:opacity-40">
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-volt text-[#101405] transition-transform active:scale-95 disabled:opacity-40">
             <Send size={17} />
           </button>
         </div>
@@ -83,11 +83,13 @@ export default function Messages({ initialName }: { initialName?: string | null 
 
   return (
     <div className="space-y-5">
-      <div className="animate-rise">
-        <h1 className="font-display text-3xl lg:text-4xl">Mensagens</h1>
-        <p className="mt-1 text-muted-foreground">Conversa direta com seu personal e equipe.</p>
+            <div className="animate-rise flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Comunicação</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Mensagens</h1>
+        </div>
       </div>
-      <div className="card-surface divide-y divide-line overflow-hidden rounded-2xl animate-rise" style={{ animationDelay: '80ms' }}>
+      <div className="card-surface divide-y divide-line overflow-hidden rounded-3xl animate-rise" style={{ animationDelay: '80ms' }}>
         {threads.map((t) => (
           <button key={t.id} onClick={() => setOpen({ ...t, unread: 0 })} className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-surface-2/40">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-2 font-display text-sm font-bold text-aqua ring-1 ring-line">

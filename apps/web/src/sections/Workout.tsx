@@ -88,7 +88,7 @@ function Scale({ label, hint, icon: Icon, value, onChange, invert }: {
           const danger = invert ? v >= 4 : v <= 2
           return (
             <button key={v} onClick={() => onChange(v)}
-              className={`flex h-12 items-center justify-center rounded-xl border font-mono-num text-sm font-semibold transition-all active:scale-95 ${
+              className={`flex h-12 items-center justify-center rounded-full border font-mono-num text-sm font-semibold transition-all active:scale-95 ${
                 active
                   ? danger
                     ? 'border-destructive bg-destructive text-white'
@@ -120,10 +120,11 @@ function CheckinScreen({ day, onStart }: { day: PlanDay; onStart: (adj: Adjustme
 
   return (
     <div className="space-y-6">
-      <div className="animate-rise">
-        <span className="rounded-full bg-volt/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-volt">Check-in diário</span>
-        <h1 className="font-display mt-3 text-3xl">Como você chegou hoje?</h1>
-        <p className="mt-1 text-sm text-muted-foreground">O motor ajusta volume, RIR e cargas do <span className="text-foreground">{day.name}</span> conforme sua prontidão.</p>
+            <div className="animate-rise flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Check-in diário</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Como você chegou hoje?</h1>
+        </div>
       </div>
 
       <div className="card-surface space-y-6 rounded-3xl p-5 lg:p-7 animate-rise" style={{ animationDelay: '60ms' }}>
@@ -137,7 +138,7 @@ function CheckinScreen({ day, onStart }: { day: PlanDay; onStart: (adj: Adjustme
           <div className="mt-2 grid grid-cols-4 gap-2">
             {[30, 45, 60, 90].map((m) => (
               <button key={m} onClick={() => setC({ ...c, minutes: m })}
-                className={`flex h-12 items-center justify-center rounded-xl border font-mono-num text-sm font-semibold transition-all active:scale-95 ${
+                className={`flex h-12 items-center justify-center rounded-full border font-mono-num text-sm font-semibold transition-all active:scale-95 ${
                   c.minutes === m ? 'border-volt bg-volt text-[#101405]' : 'border-line bg-surface text-muted-foreground hover:text-foreground'
                 }`}>
                 {m}min
@@ -171,7 +172,7 @@ function CheckinScreen({ day, onStart }: { day: PlanDay; onStart: (adj: Adjustme
       <button
         onClick={() => complete && onStart(adj, c.minutes)}
         disabled={!complete}
-        className={`w-full rounded-2xl py-4 font-display text-sm uppercase tracking-wide transition-all ${
+        className={`w-full rounded-3xl py-4 font-display text-sm uppercase tracking-wide transition-all ${
           complete ? 'bg-volt text-[#101405] hover:scale-[1.01] active:scale-[0.98]' : 'cursor-not-allowed bg-surface-2 text-muted-foreground'
         }`}>
         {complete ? `Iniciar ${day.name}` : 'Responda o check-in para começar'}
@@ -234,9 +235,9 @@ function RestTimer({ seconds, onClose }: { seconds: number; onClose: () => void 
           </div>
         </div>
         <div className="mt-6 flex justify-center gap-2">
-          <button onClick={() => setLeft((s) => s + 30)} className="rounded-xl border border-line px-4 py-2 font-mono-num text-sm text-muted-foreground hover:text-foreground">+30s</button>
-          <button onClick={() => setLeft((s) => Math.max(0, s - 30))} className="rounded-xl border border-line px-4 py-2 font-mono-num text-sm text-muted-foreground hover:text-foreground">−30s</button>
-          <button onClick={onClose} className="rounded-xl bg-volt px-4 py-2 text-sm font-semibold text-[#101405]">{left === 0 ? 'Continuar' : 'Pular'}</button>
+          <button onClick={() => setLeft((s) => s + 30)} className="rounded-full border border-line px-4 py-2 font-mono-num text-sm text-muted-foreground hover:text-foreground">+30s</button>
+          <button onClick={() => setLeft((s) => Math.max(0, s - 30))} className="rounded-full border border-line px-4 py-2 font-mono-num text-sm text-muted-foreground hover:text-foreground">−30s</button>
+          <button onClick={onClose} className="rounded-full bg-volt px-4 py-2 text-sm font-semibold text-[#101405]">{left === 0 ? 'Continuar' : 'Pular'}</button>
         </div>
       </div>
     </div>
@@ -318,14 +319,14 @@ export default function Workout({ planId }: { planId: string }) {
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">{day.name} · {plan.name}</p>
         <div className="mt-6 grid grid-cols-3 gap-3">
           {[[`${doneSets}/${totalSets}`, 'séries'], [`${(volume / 1000).toFixed(1)}t`, 'volume'], [`${mins}min`, 'duração']].map(([v, l]) => (
-            <div key={l} className="card-surface rounded-2xl px-5 py-4">
+            <div key={l} className="card-surface rounded-3xl px-5 py-4">
               <p className="font-mono-num text-xl font-semibold text-volt">{v}</p>
               <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p>
             </div>
           ))}
         </div>
         {adj?.deload && <p className="mt-4 text-xs text-muted-foreground">Sessão em modo recuperação registrada — descanse bem, o corpo agradece.</p>}
-        <button onClick={() => { setPhase('checkin'); setSets({}); setAdj(null) }} className="mt-8 rounded-2xl border border-line px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <button onClick={() => { setPhase('checkin'); setSets({}); setAdj(null) }} className="mt-8 rounded-3xl border border-line px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
           Voltar
         </button>
       </div>
@@ -372,7 +373,7 @@ export default function Workout({ planId }: { planId: string }) {
           const hist = LAST_SESSION[pe.ex]
           const rirTarget = pe.rir === '—' ? '—' : pe.rir.split(/[–-]/).map((r) => parseInt(r, 10) + (adj?.rirShift ?? 0)).join('–')
           return (
-            <div key={pe.ex} className="card-surface overflow-hidden rounded-2xl animate-rise" style={{ animationDelay: `${idx * 40}ms` }}>
+            <div key={pe.ex} className="card-surface overflow-hidden rounded-3xl animate-rise" style={{ animationDelay: `${idx * 40}ms` }}>
               <button onClick={() => setOpen(isOpen ? null : pe.ex)} className="flex w-full items-center gap-4 p-4 text-left">
                 <img src={e.gif} alt={e.name} loading="lazy" className="h-16 w-16 shrink-0 rounded-xl border border-line bg-surface object-cover" />
                 <div className="min-w-0 flex-1">
@@ -407,15 +408,15 @@ export default function Workout({ planId }: { planId: string }) {
                   {ss.map((s, i) => {
                     const prev = LAST_SESSION[pe.ex]?.[i]
                     return (
-                      <div key={i} className={`mb-2 rounded-xl p-1.5 ${s.done ? 'bg-volt/10' : 'bg-surface'}`}>
+                      <div key={i} className={`mb-2 rounded-full p-1.5 ${s.done ? 'bg-volt/10' : 'bg-surface'}`}>
                         <div className="grid grid-cols-[2.25rem_1fr_1fr_5.5rem_2.5rem] items-center gap-2">
                           <span className="font-mono-num text-center text-xs text-muted-foreground">{i + 1}</span>
                           <input value={s.weight} inputMode="decimal" placeholder="—"
                             onChange={(ev) => setSets({ ...sets, [pe.ex]: ss.map((x, j) => (j === i ? { ...x, weight: ev.target.value } : x)) })}
-                            className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-center font-mono-num text-sm outline-none focus:border-volt/60" />
+                            className="rounded-xl border border-line bg-surface-2 px-3 py-2 text-center font-mono-num text-sm outline-none focus:border-volt/60" />
                           <input value={s.reps} inputMode="numeric"
                             onChange={(ev) => setSets({ ...sets, [pe.ex]: ss.map((x, j) => (j === i ? { ...x, reps: ev.target.value } : x)) })}
-                            className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-center font-mono-num text-sm outline-none focus:border-volt/60" />
+                            className="rounded-xl border border-line bg-surface-2 px-3 py-2 text-center font-mono-num text-sm outline-none focus:border-volt/60" />
                           <div className="flex gap-1">
                             {[0, 1, 2, 3].map((r) => (
                               <button key={r} onClick={() => setSets({ ...sets, [pe.ex]: ss.map((x, j) => (j === i ? { ...x, rir: r } : x)) })}
@@ -427,7 +428,7 @@ export default function Workout({ planId }: { planId: string }) {
                             ))}
                           </div>
                           <button onClick={() => toggleSet(pe, i)}
-                            className={`flex h-9 w-9 items-center justify-center justify-self-end rounded-lg transition-all ${
+                            className={`flex h-9 w-9 items-center justify-center justify-self-end rounded-full transition-all ${
                               s.done ? 'bg-volt text-[#101405]' : 'border border-line text-muted-foreground hover:border-volt/50'
                             }`}>
                             <Check size={16} strokeWidth={3} />
@@ -446,7 +447,7 @@ export default function Workout({ planId }: { planId: string }) {
                     )
                   })}
                   <div className="mt-3 flex items-start gap-2 rounded-xl bg-surface p-3">
-                    <img src={e.gif} alt="" className="h-20 w-20 rounded-lg object-cover lg:hidden" />
+                    <img src={e.gif} alt="" className="h-20 w-20 rounded-full object-cover lg:hidden" />
                     <ul className="space-y-1 text-xs text-muted-foreground">
                       {e.cues.map((cu) => <li key={cu} className="flex gap-2"><span className="text-volt">→</span>{cu}</li>)}
                     </ul>
@@ -466,7 +467,7 @@ export default function Workout({ planId }: { planId: string }) {
 
       <div className="sticky bottom-20 z-30 lg:bottom-4">
         <button onClick={() => setPhase('done')}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-volt py-4 font-display text-sm uppercase tracking-wide text-[#101405] shadow-[0_8px_30px_hsl(73_66%_58%/0.25)] transition-transform hover:scale-[1.01] active:scale-[0.98]">
+          className="flex w-full items-center justify-center gap-2 rounded-3xl bg-volt py-4 font-display text-sm uppercase tracking-wide text-[#101405] shadow-[0_8px_30px_hsl(73_66%_58%/0.25)] transition-transform hover:scale-[1.01] active:scale-[0.98]">
           <Timer size={16} /> Concluir treino · {doneSets}/{totalSets} séries
         </button>
       </div>

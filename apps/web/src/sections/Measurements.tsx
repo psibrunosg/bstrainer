@@ -64,8 +64,8 @@ export default function Measurements() {
     <div className="space-y-6">
       <div className="flex items-end justify-between animate-rise">
         <div>
-          <h1 className="font-display text-3xl lg:text-4xl">Medidas & avaliação</h1>
-          <p className="mt-1 text-muted-foreground">Corpo e força — a avaliação alimenta as cargas prescritas.</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Evolução</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Medidas & avaliação</h1>
         </div>
         {tab === 'corpo' && (
           <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 rounded-xl bg-volt px-4 py-2.5 text-sm font-semibold text-[#101405] active:scale-95">
@@ -85,7 +85,7 @@ export default function Measurements() {
 
       {tab === 'corpo' ? (
         <>
-          <section className="card-surface rounded-2xl p-5 animate-rise" style={{ animationDelay: '120ms' }}>
+          <section className="card-surface rounded-3xl p-5 animate-rise" style={{ animationDelay: '120ms' }}>
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg">Evolução</h2>
               <div className="flex flex-wrap gap-1.5">
@@ -113,7 +113,7 @@ export default function Measurements() {
           <section className="space-y-2 animate-rise" style={{ animationDelay: '180ms' }}>
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Registros</h2>
             {[...entries].reverse().map((e, i) => (
-              <div key={i} className="card-surface rounded-2xl p-4">
+              <div key={i} className="card-surface rounded-3xl p-4">
                 <div className="flex items-center justify-between">
                   <p className="font-mono-num text-sm font-semibold">{e.date}</p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono-num text-xs text-muted-foreground">
@@ -129,13 +129,13 @@ export default function Measurements() {
         </>
       ) : (
         <section className="space-y-4 animate-rise">
-          <div className="card-surface rounded-2xl border-l-2 border-l-volt p-5">
+          <div className="card-surface rounded-3xl border-l-2 border-l-volt p-5">
             <p className="text-sm leading-relaxed">
               <span className="font-semibold text-volt">Como funciona: </span>
               quando um exercício ainda não tem histórico de treino, a carga prescrita vem daqui — o teste de repetições máximas é convertido para a faixa do plano. Assim que o aluno treina, o histórico passa a mandar.
             </p>
           </div>
-          <div className="card-surface divide-y divide-line overflow-hidden rounded-2xl">
+          <div className="card-surface divide-y divide-line overflow-hidden rounded-3xl">
             {STRENGTH_TESTS.map((t) => (
               <div key={t.ex} className="flex items-center gap-4 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-aqua"><Dumbbell size={16} /></div>
@@ -150,7 +150,7 @@ export default function Measurements() {
               </div>
             ))}
           </div>
-          <button className="w-full rounded-2xl border border-line py-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-volt/50 hover:text-foreground">
+          <button className="w-full rounded-3xl border border-line py-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-volt/50 hover:text-foreground">
             + Agendar nova avaliação
           </button>
         </section>
@@ -173,7 +173,7 @@ export default function Measurements() {
                 </label>
               ))}
             </div>
-            <button onClick={save} className="mt-5 w-full rounded-2xl bg-volt py-3.5 text-sm font-semibold text-[#101405] active:scale-[0.98]">Salvar</button>
+            <button onClick={save} className="mt-5 w-full rounded-3xl bg-volt py-3.5 text-sm font-semibold text-[#101405] active:scale-[0.98]">Salvar</button>
           </div>
         </div>
       )}

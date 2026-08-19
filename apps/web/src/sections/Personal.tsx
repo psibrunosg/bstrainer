@@ -13,10 +13,11 @@ export default function Personal({ onChat }: { onChat: (name: string) => void })
 
   return (
     <div className="space-y-6">
-      <div className="animate-rise">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-volt">Acompanhamento</p>
-        <h1 className="font-display mt-1 text-3xl lg:text-4xl">Seu personal</h1>
-        <p className="mt-1 text-muted-foreground">Treine solo quando quiser — e peça olho profissional quando fizer sentido.</p>
+            <div className="animate-rise flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Acompanhamento</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Seu personal</h1>
+        </div>
       </div>
 
       {active && (
@@ -33,7 +34,7 @@ export default function Personal({ onChat }: { onChat: (name: string) => void })
                 <p className="text-xs text-muted-foreground">{active.students} alunos · ★ {active.rating}</p>
               </div>
             </div>
-            <button onClick={() => onChat(active.name)} className="flex items-center gap-2 rounded-2xl bg-volt px-5 py-3 text-sm font-semibold text-[#101405] active:scale-95">
+            <button onClick={() => onChat(active.name)} className="flex items-center gap-2 rounded-3xl bg-volt px-5 py-3 text-sm font-semibold text-[#101405] active:scale-95">
               <MessageCircle size={15} /> Conversar
             </button>
           </div>
@@ -44,7 +45,7 @@ export default function Personal({ onChat }: { onChat: (name: string) => void })
         <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Disponíveis para acompanhar</h2>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {TRAINERS.filter((t) => t.id !== active.id).map((t) => (
-            <article key={t.id} className="card-surface rounded-2xl p-5">
+            <article key={t.id} className="card-surface rounded-3xl p-5">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-2 font-display font-bold text-aqua ring-1 ring-line">
                 {t.name.split(' ').map((n) => n[0]).join('')}
               </div>
@@ -54,7 +55,7 @@ export default function Personal({ onChat }: { onChat: (name: string) => void })
               <button
                 onClick={() => setRequested(t.id)}
                 disabled={requested === t.id}
-                className={`mt-4 w-full rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98] ${
+                className={`mt-4 w-full rounded-full py-2.5 text-sm font-semibold transition-all active:scale-[0.98] ${
                   requested === t.id ? 'cursor-default bg-surface-2 text-volt' : 'bg-volt text-[#101405]'
                 }`}>
                 {requested === t.id ? 'Solicitação enviada ✓' : 'Pedir acompanhamento'}

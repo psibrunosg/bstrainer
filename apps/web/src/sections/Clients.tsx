@@ -55,11 +55,10 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3 animate-rise">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-volt">Workspace profissional</p>
-          <h1 className="font-display mt-1 text-3xl lg:text-4xl">Painel de alunos</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Gestão por exceção: o painel aponta quem precisa de você hoje.</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">Workspace profissional</p>
+          <h1 className="font-display mt-1 text-2xl lg:text-3xl">Painel de alunos</h1>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-2.5 font-mono-num text-xs">
+        <div className="flex items-center gap-3 rounded-3xl border border-line bg-surface px-4 py-2.5 font-mono-num text-xs">
           <span>{active.length} ativos</span>
           <span className="text-line">·</span>
           <span className={allAlerts.length ? 'text-destructive' : 'text-volt'}>{allAlerts.length} alertas</span>
@@ -69,13 +68,13 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           {/* Convidar */}
-          <section className="card-surface rounded-2xl p-5 animate-rise" style={{ animationDelay: '60ms' }}>
+          <section className="card-surface rounded-3xl p-5 animate-rise" style={{ animationDelay: '60ms' }}>
             <h2 className="font-display text-lg">Convidar aluno</h2>
             <p className="text-xs text-muted-foreground">O vínculo é ativado assim que a pessoa entrar no app.</p>
             <div className="mt-3 flex gap-2">
               <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="email.do.aluno@gmail.com"
                 className="h-12 flex-1 rounded-xl border border-line bg-surface px-4 text-sm outline-none placeholder:text-muted-foreground focus:border-volt/60" />
-              <button onClick={invite} className="flex h-12 items-center gap-2 rounded-xl bg-volt px-5 text-sm font-semibold text-[#101405] transition-transform active:scale-95">
+              <button onClick={invite} className="flex h-12 items-center gap-2 rounded-full bg-volt px-5 text-sm font-semibold text-[#101405] transition-transform active:scale-95">
                 <UserPlus size={16} /> Convidar
               </button>
             </div>
@@ -87,7 +86,7 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
             <section className="space-y-2 animate-rise" style={{ animationDelay: '100ms' }}>
               <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-volt">Pedidos de acompanhamento · {requests.length}</h2>
               {requests.map((r) => (
-                <div key={r.id} className="card-surface flex items-center justify-between gap-3 rounded-2xl border-volt/20 p-4">
+                <div key={r.id} className="card-surface flex items-center justify-between gap-3 rounded-3xl border-volt/20 p-4">
                   <div>
                     <p className="font-semibold">{r.name}</p>
                     <p className="text-xs text-muted-foreground">{r.email}</p>
@@ -106,7 +105,7 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
           {/* Ativos */}
           <section className="space-y-2 animate-rise" style={{ animationDelay: '140ms' }}>
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Alunos ativos · {active.length}</h2>
-            <div className="card-surface divide-y divide-line overflow-hidden rounded-2xl">
+            <div className="card-surface divide-y divide-line overflow-hidden rounded-3xl">
               {active.map((c) => (
                 <div key={c.id} className="flex flex-wrap items-center gap-4 p-4 transition-colors hover:bg-surface-2/40">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-2 font-display text-sm font-bold text-volt ring-1 ring-line">
@@ -123,8 +122,8 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
                     </div>
                   </div>
                   <div className="flex gap-1.5">
-                    <button className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted-foreground transition-colors hover:border-volt/50 hover:text-volt" title="Fichas"><ClipboardList size={15} /></button>
-                    <button className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted-foreground transition-colors hover:border-volt/50 hover:text-volt" title="Progresso"><TrendingUp size={15} /></button>
+                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted-foreground transition-colors hover:border-volt/50 hover:text-volt" title="Fichas"><ClipboardList size={15} /></button>
+                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted-foreground transition-colors hover:border-volt/50 hover:text-volt" title="Progresso"><TrendingUp size={15} /></button>
                     <button onClick={() => onChat(c.name)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-volt/10 text-volt transition-colors hover:bg-volt hover:text-[#101405]" title="Chat"><MessageCircle size={15} /></button>
                   </div>
                 </div>
@@ -137,7 +136,7 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
             <section className="space-y-2 animate-rise" style={{ animationDelay: '180ms' }}>
               <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Convites pendentes · {invited.length}</h2>
               {invited.map((i) => (
-                <div key={i.id} className="flex items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
+                <div key={i.id} className="flex items-center justify-between rounded-3xl border border-line bg-surface px-4 py-3 text-sm">
                   <span>{i.email}</span>
                   <span className="rounded-full border border-line px-2.5 py-0.5 text-[11px] text-muted-foreground">Aguardando cadastro</span>
                 </div>
@@ -152,9 +151,9 @@ export default function Clients({ onChat }: { onChat: (name: string) => void }) 
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Alertas por exceção</h2>
             <RefreshCw size={14} className="text-muted-foreground" />
           </div>
-          {allAlerts.length === 0 && <p className="card-surface rounded-2xl p-5 text-sm text-muted-foreground">Nenhuma exceção hoje. Todo mundo no trilho.</p>}
+          {allAlerts.length === 0 && <p className="card-surface rounded-3xl p-5 text-sm text-muted-foreground">Nenhuma exceção hoje. Todo mundo no trilho.</p>}
           {allAlerts.map((a, i) => (
-            <div key={i} className={`card-surface rounded-2xl border-l-2 p-4 ${a.kind === 'warn' ? 'border-l-destructive' : 'border-l-aqua'}`}>
+            <div key={i} className={`card-surface rounded-3xl border-l-2 p-4 ${a.kind === 'warn' ? 'border-l-destructive' : 'border-l-aqua'}`}>
               <p className="flex items-center gap-2 text-sm font-semibold">
                 <AlertTriangle size={14} className={a.kind === 'warn' ? 'text-destructive' : 'text-aqua'} />
                 {a.name}

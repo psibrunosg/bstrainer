@@ -55,7 +55,7 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
           <button
             type="submit"
             disabled={loading}
-            className="group mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-volt py-4 font-display text-[15px] font-bold uppercase tracking-wide text-[#101405] transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
+            className="group mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-volt py-4 font-display text-[15px] font-bold uppercase tracking-wide text-[#101405] transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
           >
             {loading ? (
               <Loader2 size={20} className="animate-spin text-[#101405]" />
